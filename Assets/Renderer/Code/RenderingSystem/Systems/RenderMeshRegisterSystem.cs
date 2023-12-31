@@ -20,12 +20,12 @@ namespace Renderer
         public static RenderMesh GetRenderMesh(RenderMeshIndex renderMeshIndex)
         {
             // index = 0, count needs to be 1, then count - 1 needs to be greater than index
-            if (_renderMeshes.Count - 1 > renderMeshIndex.Value)
+            if (_renderMeshes.Count - 1 <= renderMeshIndex.Value)
             {
                 return _renderMeshes[renderMeshIndex.Value];
             }
-
-            throw new Exception($"Couldn't find the RenderMesh for '{renderMeshIndex}'");
+            
+            throw new Exception($"Couldn't find the RenderMesh for '{renderMeshIndex}'. RenderMeshCount: '{_renderMeshes.Count}'");
         }
 
         public static RenderMeshIndex GetRenderMeshIndex(RenderMesh renderMesh)
