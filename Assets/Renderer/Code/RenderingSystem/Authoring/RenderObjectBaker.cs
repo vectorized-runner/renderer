@@ -21,11 +21,12 @@ namespace Renderer
                 var material = meshRenderer.sharedMaterial;
                 var mesh = authoring.GetComponent<MeshFilter>().sharedMesh;
                 var subMeshCount = mesh.subMeshCount;
-
+                var layer = authoring.gameObject.layer;
+                
                 // What am I going to do if I have to create multiple objects here?
                 for (int subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
                 {
-                    var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
+                    var renderMesh = new RenderMesh(mesh, material, layer, subMeshIndex);
                     var renderMeshId = RenderMeshRegisterSystem.GetRenderMeshIndex(renderMesh);
 
                     if (subMeshIndex == 0)

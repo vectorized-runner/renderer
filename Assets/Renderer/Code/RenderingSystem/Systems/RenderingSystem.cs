@@ -22,7 +22,7 @@ namespace Renderer
             {
                 var renderMesh = RenderMeshRegisterSystem.GetRenderMesh(renderMeshIndex);
 
-                Graphics.DrawMesh(renderMesh.Mesh, worldMatrix.Value, renderMesh.Material, -1, camera,
+                Graphics.DrawMesh(renderMesh.Mesh, worldMatrix.Value, renderMesh.Material, renderMesh.Layer, camera,
                     renderMesh.SubMeshIndex);
             }).WithoutBurst().Run();
         }
