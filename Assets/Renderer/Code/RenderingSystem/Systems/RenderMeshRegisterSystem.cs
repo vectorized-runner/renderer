@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,23 +7,36 @@ namespace Renderer
     // Consider making this class non-static (an actual system)
     public static class RenderMeshRegisterSystem
     {
-        private static readonly Dictionary<RenderMesh, RenderMeshId> _renderMeshById = new();
-        private static int _lastUsedId;
-        
+        private static readonly List<RenderMesh> _renderMeshes = new();
+        private static readonly Dictionary<RenderMesh, RenderMeshIndex> _renderMeshIndexByMesh = new();
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Initialize()
         {
-            _renderMeshById.Clear();
-            _lastUsedId = -1;
+            _renderMeshes.Clear();
+            _renderMeshIndexByMesh.Clear();
         }
 
-        public static RenderMeshId GetRenderMeshId(RenderMesh renderMesh)
+        public static RenderMesh GetRenderMesh(RenderMeshIndex renderMeshIndex)
         {
-            if (_renderMeshById.TryGetValue(renderMesh, out var id))
-                return id;
+            // index = 0, count needs to be 1, then count - 1 needs to be greater than index
+            if (_renderMeshes.Count - 1 > renderMeshIndex.Value)
+            {
+                return _renderMeshes[renderMeshIndex.Value];
+            }
 
-            var newId = ++_lastUsedId;
-            return new RenderMeshId(newId);
+            throw new Exception($"Couldn't find the RenderMesh for '{renderMeshIndex}'");
+        }
+
+        public static RenderMeshIndex GetRenderMeshIndex(RenderMesh renderMesh)
+        {
+            if (_renderMeshIndexByMesh.TryGetValue(renderMesh, out var index))
+                return index;
+
+            var renderMeshIndex = new RenderMeshIndex(_renderMeshes.Count);
+            _renderMeshes.Add(renderMesh);
+            _renderMeshIndexByMesh.Add(renderMesh, renderMeshIndex);
+            return renderMeshIndex;
         }
     }
 }
