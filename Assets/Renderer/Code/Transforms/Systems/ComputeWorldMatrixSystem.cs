@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Renderer.Code.Transforms.Systems
+namespace Renderer
 {
     public partial class ComputeWorldMatrixSystem : SystemBase
     {
