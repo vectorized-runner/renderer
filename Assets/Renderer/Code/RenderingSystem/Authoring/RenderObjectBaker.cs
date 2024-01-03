@@ -1,11 +1,14 @@
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Renderer
 {
     public class RenderObjectBaker : MonoBehaviour
     {
+        public bool IsStatic;
+
         private class RenderObjectBakerBaker : Baker<RenderObjectBaker>
         {
             // TODO: Collect SharedMaterials
@@ -22,7 +25,8 @@ namespace Renderer
                 var mesh = authoring.GetComponent<MeshFilter>().sharedMesh;
                 var subMeshCount = mesh.subMeshCount;
                 var layer = authoring.gameObject.layer;
-                
+                var isStatic = authoring.IsStatic;
+
                 // What am I going to do if I have to create multiple objects here?
                 for (int subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
                 {
@@ -36,7 +40,7 @@ namespace Renderer
                         var rot = new Rotation { Value = tf.rotation };
                         var scale = new Scale { Value = tf.localScale.x };
 
-                        AddComponents(entity, pos, rot, scale, renderMeshId);
+                        AddComponents(entity, pos, rot, scale, renderMeshId, isStatic);
                     }
                     else
                     {
@@ -46,13 +50,18 @@ namespace Renderer
             }
 
             private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
-                RenderMeshIndex renderMeshIndex)
+                RenderMeshIndex renderMeshIndex, bool isStatic)
             {
                 AddComponent(entity, renderMeshIndex);
                 AddComponent(entity, position);
                 AddComponent(entity, rotation);
                 AddComponent(entity, scale);
-                AddComponent(entity, new WorldMatrix());
+                AddComponent(entity, new WorldMatrix { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
+
+                if (isStatic)
+                {
+                    AddComponent(entity, new Static());
+                }
             }
         }
     }
