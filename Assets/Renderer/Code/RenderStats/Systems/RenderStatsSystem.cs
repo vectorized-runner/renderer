@@ -19,6 +19,8 @@ namespace Renderer
                 // Initialize to 0, will be populated in 60 frames anyway
                 _averageMsList[i] = 0;
             }
+
+            EntityManager.AddComponent<RenderStats>(SystemHandle);
         }
 
         protected override void OnDestroy()
@@ -52,6 +54,12 @@ namespace Renderer
 
             var averageMs = totalMs / _collectedFrames;
             var averageFps = 1000f / averageMs;
+
+            EntityManager.SetComponentData(SystemHandle, new RenderStats
+            {
+                AverageMs = averageMs,
+                AverageFps = averageFps,
+            });
 
             _lastUpdateTime = currentTime;
         }
