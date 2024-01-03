@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -10,39 +11,20 @@ namespace Renderer
     {
         protected override void OnCreate()
         {
-            EntityManager.AddComponentData(SystemHandle, new RenderSettings
-            {
-                RenderMode = RenderMode.Default
-            });
         }
 
         protected override void OnUpdate()
         {
             var camera = Camera.main;
-            var renderSettings = EntityManager.GetComponentData<RenderSettings>(SystemHandle);
 
-            switch (renderSettings.RenderMode)
+            Entities.ForEach((in WorldMatrix worldMatrix, in RenderMeshIndex renderMeshIndex) =>
             {
-                case RenderMode.Default:
-                {
-                    Entities.ForEach((in WorldMatrix worldMatrix, in RenderMeshIndex renderMeshIndex) =>
-                    {
-                        var renderMesh = RenderMeshRegisterSystem.GetRenderMesh(renderMeshIndex);
+                var renderMesh = RenderMeshRegisterSystem.GetRenderMesh(renderMeshIndex);
 
-                        Graphics.DrawMesh(renderMesh.Mesh, worldMatrix.Value, renderMesh.Material, renderMesh.Layer,
-                            camera,
-                            renderMesh.SubMeshIndex);
-                    }).WithoutBurst().Run();
-
-                    break;
-                }
-                case RenderMode.InstancingOn:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            // Let's run DrawMesh first, non-burst
+                Graphics.DrawMesh(renderMesh.Mesh, worldMatrix.Value, renderMesh.Material, renderMesh.Layer,
+                    camera,
+                    renderMesh.SubMeshIndex);
+            }).WithoutBurst().Run();
         }
     }
 }
