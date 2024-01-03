@@ -7,6 +7,7 @@ namespace Renderer
     {
         private float _lastUpdateTime;
         private NativeArray<float> _averageMsList;
+        private int _replaceIndex;
         private const int _collectedFrames = 60;
 
         protected override void OnCreate()
@@ -34,9 +35,13 @@ namespace Renderer
             // 33ms -> 1000/33 -> 30fps
             const float secondsToMilliseconds = 1000.0f;
             var thisFrameMs = deltaTime * secondsToMilliseconds;
-            var lastIndex = _collectedFrames - 1;
-            _averageMsList[0] = _averageMsList[lastIndex];
-            _averageMsList[lastIndex] = thisFrameMs;
+
+            _averageMsList[_replaceIndex++] = thisFrameMs;
+
+            if (_replaceIndex == _collectedFrames)
+            {
+                _replaceIndex = 0;
+            }
 
             var totalMs = 0f;
 
@@ -46,6 +51,7 @@ namespace Renderer
             }
 
             var averageMs = totalMs / _collectedFrames;
+            var averageFps = 1000f / averageMs;
 
             _lastUpdateTime = currentTime;
         }
