@@ -3,8 +3,8 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
-    public struct Rotation : IComponentData
-    {
-        public quaternion Value;
-    }
+	public struct Rotation : IComponentData
+	{
+		public quaternion Value;
+	}
 }

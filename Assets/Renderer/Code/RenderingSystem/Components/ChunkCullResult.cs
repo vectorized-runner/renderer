@@ -3,9 +3,9 @@ using Unity.Entities;
 
 namespace Renderer
 {
-    public struct ChunkCullResult : IComponentData
-    {
-        public BitField64 Lower;
-        public BitField64 Upper;
-    }
+	public struct ChunkCullResult : IComponentData
+	{
+		public BitField64 Lower;
+		public BitField64 Upper;
+	}
 }

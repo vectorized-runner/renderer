@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace Renderer
 {
-    public struct Static : IComponentData
-    {
-    }
+	public struct Static : IComponentData
+	{
+	}
 }

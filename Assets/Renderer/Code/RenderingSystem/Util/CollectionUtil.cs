@@ -44,7 +44,7 @@ namespace Renderer
 		{
 			return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafeReadOnlyPtr(), index);
 		}
-		
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static Span<T> AsSpan<T>(this UnsafeList<T> list, int startIndex, int length) where T : unmanaged
 		{
@@ -107,16 +107,18 @@ namespace Renderer
 		{
 			return AsReadOnlySpan(array, 0, array.Length);
 		}
-		
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ReadOnlySpan<T2> Reinterpret<T1, T2>(this ReadOnlySpan<T1> items) where T2 : unmanaged where T1 : unmanaged
+		public static ReadOnlySpan<T2> Reinterpret<T1, T2>(this ReadOnlySpan<T1> items)
+			where T2 : unmanaged where T1 : unmanaged
 		{
 			Debug.Assert(UnsafeUtility.SizeOf<T1>() == UnsafeUtility.SizeOf<T2>());
 			return MemoryMarshal.Cast<T1, T2>(items);
 		}
-		
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static Span<TTo> Reinterpret<TFrom, TTo>(this Span<TFrom> items) where TTo : unmanaged where TFrom : unmanaged
+		public static Span<TTo> Reinterpret<TFrom, TTo>(this Span<TFrom> items)
+			where TTo : unmanaged where TFrom : unmanaged
 		{
 			Debug.Assert(UnsafeUtility.SizeOf<TFrom>() == UnsafeUtility.SizeOf<TTo>());
 			return MemoryMarshal.Cast<TFrom, TTo>(items);
@@ -128,6 +130,5 @@ namespace Renderer
 			Debug.Assert(UnsafeUtility.SizeOf<TFrom>() == UnsafeUtility.SizeOf<TTo>());
 			return ref Unsafe.As<TFrom, TTo>(ref from);
 		}
-
 	}
 }

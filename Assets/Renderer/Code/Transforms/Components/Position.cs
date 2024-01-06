@@ -3,8 +3,8 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
-    public struct Position : IComponentData
-    {
-        public float3 Value;
-    }
+	public struct Position : IComponentData
+	{
+		public float3 Value;
+	}
 }
