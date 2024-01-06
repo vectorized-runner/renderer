@@ -47,7 +47,7 @@ namespace Renderer
 				if (lower)
 					cullResult.Lower.SetBits(entityIndex, isVisible);
 				else
-					cullResult.Upper.SetBits(entityIndex, isVisible);
+					cullResult.Upper.SetBits(64 - entityIndex, isVisible);
 			}
 			
 			chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);

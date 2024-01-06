@@ -46,7 +46,7 @@ namespace Renderer
 
 				while (entityIndex < entityCount)
 				{
-					if (cullResult.Upper.IsSet(entityIndex))
+					if (cullResult.Upper.IsSet(64 - entityIndex))
 					{
 						var renderMeshIndex = renderMeshArray[entityIndex].Value;
 						var matrix = localToWorldArray[entityIndex];
