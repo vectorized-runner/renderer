@@ -20,15 +20,12 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			// TODO-Renderer: Find a way to not call complete on this. Maybe 1 frame delayed rendering is ok?
+			// TODO: Check the old thread. How to not call complete on this? I want to make this run like a job
 			_cullingSystem.FinalJobHandle.Complete();
-
-			var renderMeshes = _cullingSystem.RenderMeshes;
-			if (renderMeshes.Count == 0)
-				return;
 
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
 			var renderMeshCount = matricesByRenderMeshIndex.Length;
+			var renderMeshes = RenderMeshRegisterSystem.RenderMeshes;
 
 			for (var renderMeshIndex = 0; renderMeshIndex < renderMeshCount; renderMeshIndex++)
 			{
@@ -43,9 +40,9 @@ namespace Renderer
 
 				for (batchIndex = 0; batchIndex < fullBatchCount; batchIndex++)
 				{
-					var span = matrices.AsSpan(batchIndex * _maxDrawCountPerBatch, _maxDrawCountPerBatch);
-					var m4x4 = span.Reinterpret<float4x4, Matrix4x4>();
-					DrawMeshInstanced(renderMesh, m4x4);
+					var matrixBatch = matrices.AsSpan(batchIndex * _maxDrawCountPerBatch, _maxDrawCountPerBatch)
+						.Reinterpret<float4x4, Matrix4x4>();
+					DrawMeshInstanced(renderMesh, matrixBatch);
 				}
 
 				var lastBatchDrawCount = drawCount % _maxDrawCountPerBatch;
