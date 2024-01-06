@@ -45,7 +45,6 @@ namespace Renderer
 				{
 					var span = matrices.AsSpan(batchIndex * _maxDrawCountPerBatch, _maxDrawCountPerBatch);
 					var m4x4 = span.Reinterpret<float4x4, Matrix4x4>();
-					AssertValidMatrices(m4x4);
 					DrawMeshInstanced(renderMesh, m4x4);
 				}
 
@@ -54,7 +53,6 @@ namespace Renderer
 				{
 					var span = matrices.AsSpan(batchIndex * _maxDrawCountPerBatch, lastBatchDrawCount);
 					var m4x4 = span.Reinterpret<float4x4, Matrix4x4>();
-					AssertValidMatrices(m4x4);
 					DrawMeshInstanced(renderMesh, m4x4);
 				}
 			}
@@ -67,21 +65,6 @@ namespace Renderer
 			matrices.CopyTo(_matrixCache);
 			Graphics.DrawMeshInstanced(renderMesh.Mesh, renderMesh.SubMeshIndex, renderMesh.Material, _matrixCache,
 				matrices.Length);
-		}
-
-		private static void AssertValidMatrices(Span<Matrix4x4> matrices)
-		{
-			foreach (ref var matrix in matrices)
-			{
-				ref var f4x4 = ref Unsafe.As<Matrix4x4, float4x4>(ref matrix);
-				AssertValid(f4x4.c3.xyz);
-			}
-		}
-
-		private static void AssertValid(float3 position)
-		{
-			Debug.Assert(!math.any(math.isnan(position)));
-			Debug.Assert(!math.any(math.isinf(position)));
 		}
 	}
 }
