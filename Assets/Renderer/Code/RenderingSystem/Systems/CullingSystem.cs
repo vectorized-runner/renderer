@@ -8,26 +8,22 @@ namespace Renderer
 {
 	public partial class ChunkCullingSystem : SystemBase
 	{
+		public JobHandle FinalJobHandle { get; private set; }
+		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
 
 		private EntityQuery _chunkCullingQuery;
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
-		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
-
-		public ChunkCullingSystem(CalculateCameraFrustumPlanesSystem frustumSystem)
-		{
-			_frustumSystem = frustumSystem;
-		}
-
-		public JobHandle FinalJobHandle { get; private set; }
 
 		protected override void OnCreate()
 		{
 			_frustumSystem = World.GetExistingSystemManaged<CalculateCameraFrustumPlanesSystem>();
 
-			MatricesByRenderMeshIndex =
-				new NativeArray<UnsafeList<float4x4>>(MaxSupportedUniqueMeshCount, Allocator.Persistent);
+			const int maxMeshCount = RenderMeshRegisterSystem.MaxSupportedUniqueMeshCount;
 
-			for (var i = 0; i < MaxSupportedUniqueMeshCount; i++)
+			MatricesByRenderMeshIndex =
+				new NativeArray<UnsafeList<float4x4>>(maxMeshCount, Allocator.Persistent);
+
+			for (var i = 0; i < maxMeshCount; i++)
 				MatricesByRenderMeshIndex[i] = new UnsafeList<float4x4>(0, Allocator.Persistent);
 
 			_chunkCullingQuery = GetEntityQuery(
@@ -55,22 +51,26 @@ namespace Renderer
 			var frustumPlanes = _frustumSystem.NativeFrustumPlanes;
 
 			// TODO: Use the async version of this (?)
-			_chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
+			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 
 			var cullHandle = new ChunkCullingJob
 			{
+				FrustumPlanes = frustumPlanes,
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
-				FrustumPlanes = frustumPlanes,
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>()
 			}.ScheduleParallel(_chunkCullingQuery, Dependency);
 
 			var collectJob = new CollectRenderMatricesJob
 			{
-				Chunks = 
-			}.Schedule();
+				Chunks = chunks,
+				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
+				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
+				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
+				RenderMeshIndexHandle = GetComponentTypeHandle<RenderMeshIndex>()
+			}.Schedule(cullHandle);
 
-			Dependency = FinalJobHandle = ;
+			Dependency = FinalJobHandle = collectJob;
 		}
 	}
 }
