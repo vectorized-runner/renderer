@@ -26,6 +26,15 @@ namespace Renderer
                 var subMeshCount = mesh.subMeshCount;
                 var layer = authoring.gameObject.layer;
                 var isStatic = authoring.IsStatic;
+                var bounds = meshRenderer.localBounds;
+                var renderBounds = new RenderBounds
+                {
+                    AABB = new AABB
+                    {
+                        Center = bounds.center,
+                        Extents = bounds.extents
+                    }
+                };
 
                 // What am I going to do if I have to create multiple objects here?
                 for (int subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
@@ -40,7 +49,7 @@ namespace Renderer
                         var rot = new Rotation { Value = tf.rotation };
                         var scale = new Scale { Value = tf.localScale.x };
 
-                        AddComponents(entity, pos, rot, scale, renderMeshId, isStatic);
+                        AddComponents(entity, pos, rot, scale, renderMeshId, renderBounds, isStatic);
                     }
                     else
                     {
@@ -51,15 +60,18 @@ namespace Renderer
 
             // TODO: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
             private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
-                RenderMeshIndex renderMeshIndex, bool isStatic)
+                RenderMeshIndex renderMeshIndex, RenderBounds renderBounds, bool isStatic)
             {
-                AddComponent(entity,
-                    new LocalToWorld { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
+                var localToWorld = new LocalToWorld { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
+                AddComponent(entity, localToWorld);
                 AddComponent(entity, renderMeshIndex);
+                var worldBounds = ComputeWorldRenderBoundsSystem.CalculateWorldBounds(renderBounds, localToWorld);
+                AddComponent(entity, worldBounds);
 
                 if (isStatic)
                 {
                     AddComponent(entity, new Static());
+
                 }
                 else
                 {
@@ -68,6 +80,7 @@ namespace Renderer
                     AddComponent(entity, position);
                     AddComponent(entity, rotation);
                     AddComponent(entity, scale);
+                    AddComponent(entity, renderBounds);
                 }
             }
         }
