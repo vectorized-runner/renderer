@@ -52,6 +52,14 @@ namespace Renderer
 		{
 			var frustumPlanes = _frustumSystem.NativeFrustumPlanes;
 
+			// TODO: This can be made a job
+			// This should be safe because job should be already completed at this point
+			for (int i = 0; i < MatricesByRenderMeshIndex.Length; i++)
+			{
+				ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(i);
+				matrices.Clear();
+			}
+			
 			// TODO: Use the async version of this (?)
 			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 
