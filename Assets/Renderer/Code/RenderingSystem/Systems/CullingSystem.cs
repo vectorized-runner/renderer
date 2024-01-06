@@ -8,7 +8,6 @@ namespace Renderer
 {
 	public partial class ChunkCullingSystem : SystemBase
 	{
-		public const int MaxSupportedUniqueMeshCount = 1024;
 
 		private EntityQuery _chunkCullingQuery;
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
