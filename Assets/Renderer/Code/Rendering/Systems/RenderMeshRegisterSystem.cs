@@ -5,8 +5,18 @@ using UnityEngine;
 namespace Renderer
 {
 	// Consider making this class non-static (an actual system)
-	public static class RenderMeshRegisterSystem
+	public class RenderMeshRegisterSystem : MonoBehaviour
 	{
+		public Mesh Mesh;
+		public Material Material;
+
+		public static RenderMeshRegisterSystem Instance;
+
+		private void Awake()
+		{
+			Instance = this;
+		}
+
 		// TODO: Ensure RenderMesh count doesn't surpass this.
 		public const int MaxSupportedUniqueMeshCount = 1024;
 		
@@ -20,13 +30,15 @@ namespace Renderer
 			_renderMeshIndexByMesh.Clear();
 		}
 
-		public static RenderMesh GetRenderMesh(RenderMeshIndex renderMeshIndex)
+		public RenderMesh GetRenderMesh(int renderMeshIndex)
 		{
+			return new RenderMesh(Mesh, Material, 0, 0);
+			
 			// index = 0, count needs to be 1, then count - 1 needs to be greater than index
-			if (RenderMeshes.Count - 1 <= renderMeshIndex.Value) return RenderMeshes[renderMeshIndex.Value];
-
-			throw new Exception(
-				$"Couldn't find the RenderMesh for '{renderMeshIndex}'. RenderMeshCount: '{RenderMeshes.Count}'");
+			// if (RenderMeshes.Count - 1 <= renderMeshIndex.Value) return RenderMeshes[renderMeshIndex.Value];
+			//
+			// throw new Exception(
+			// 	$"Couldn't find the RenderMesh for '{renderMeshIndex}'. RenderMeshCount: '{RenderMeshes.Count}'");
 		}
 
 		public static RenderMeshIndex GetRenderMeshIndex(RenderMesh renderMesh)
