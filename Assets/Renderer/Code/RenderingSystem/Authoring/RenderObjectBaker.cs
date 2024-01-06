@@ -56,7 +56,7 @@ namespace Renderer
                 AddComponent(entity, position);
                 AddComponent(entity, rotation);
                 AddComponent(entity, scale);
-                AddComponent(entity, new WorldMatrix { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
+                AddComponent(entity, new LocalToWorld { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
 
                 if (isStatic)
                 {
