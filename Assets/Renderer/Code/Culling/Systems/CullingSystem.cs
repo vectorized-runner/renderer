@@ -7,6 +7,7 @@ using Unity.Mathematics;
 namespace Renderer
 {
 	// TODO: This System has data dependency to camera, get that shit working please?
+	[UpdateInGroup(typeof(CullingGroup))]
 	public partial class ChunkCullingSystem : SystemBase
 	{
 		public JobHandle FinalJobHandle { get; private set; }

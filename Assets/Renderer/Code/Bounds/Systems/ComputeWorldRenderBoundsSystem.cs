@@ -4,6 +4,7 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(RenderBoundsGroup))]
 	public partial class ComputeWorldRenderBoundsSystem : SystemBase
 	{
 		protected override void OnUpdate()

@@ -6,6 +6,7 @@ using Object = UnityEngine.Object;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(RenderSetupGroup))]
 	public partial class CalculateCameraFrustumPlanesSystem : SystemBase
 	{
 		private Camera _camera;

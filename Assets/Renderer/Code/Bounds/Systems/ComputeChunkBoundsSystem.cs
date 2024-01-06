@@ -2,6 +2,8 @@ using Unity.Entities;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(RenderBoundsGroup))]
+	[UpdateAfter(typeof(ComputeWorldRenderBoundsSystem))]
 	public partial class ComputeChunkBoundsSystem : SystemBase
 	{
 		private EntityQuery _changedChunksQuery;

@@ -2,6 +2,7 @@ using Unity.Entities;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(RenderSetupGroup))]
 	public partial class AttachChunkComponentsSystem : SystemBase
 	{
 		private EntityQuery _chunkLackQuery;

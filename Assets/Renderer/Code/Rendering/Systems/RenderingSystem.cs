@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(PresentationSystemGroup))]
 	public partial class RenderingSystem : SystemBase
 	{
 		private const int _maxDrawCountPerBatch = 1023;
@@ -20,6 +21,8 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
+			Debug.Log("RenderingSystem running!");
+			
 			// TODO: Check the old thread. How to not call complete on this? I want to make this run like a job
 			_cullingSystem.FinalJobHandle.Complete();
 

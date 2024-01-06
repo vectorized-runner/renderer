@@ -3,6 +3,7 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(TransformsGroup))]
 	public partial class ComputeWorldMatrixSystem : SystemBase
 	{
 		protected override void OnUpdate()

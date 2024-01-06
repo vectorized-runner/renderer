@@ -3,6 +3,8 @@ using Unity.Entities;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(PresentationSystemGroup))]
+	[UpdateAfter(typeof(RenderingSystem))]
 	public partial class RenderStatsSystem : SystemBase
 	{
 		private const int _collectedFrames = 60;
