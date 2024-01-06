@@ -49,6 +49,8 @@ namespace Renderer
 				else
 					cullResult.Upper.SetBits(entityIndex, isVisible);
 			}
+			
+			chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
