@@ -17,7 +17,7 @@ namespace Renderer
         {
             var camera = Camera.main;
 
-            Entities.ForEach((in WorldMatrix worldMatrix, in RenderMeshIndex renderMeshIndex) =>
+            Entities.ForEach((in LocalToWorld worldMatrix, in RenderMeshIndex renderMeshIndex) =>
             {
                 var renderMesh = RenderMeshRegisterSystem.GetRenderMesh(renderMeshIndex);
 

@@ -10,7 +10,7 @@ namespace Renderer
             Entities
                 .WithNone<Static>()
                 .ForEach(
-                    (ref WorldMatrix worldMatrix, in Position position, in Rotation rotation, in Scale scale) =>
+                    (ref LocalToWorld worldMatrix, in Position position, in Rotation rotation, in Scale scale) =>
                     {
                         worldMatrix.Value = float4x4.TRS(position.Value, rotation.Value, scale.Value);
                     })
