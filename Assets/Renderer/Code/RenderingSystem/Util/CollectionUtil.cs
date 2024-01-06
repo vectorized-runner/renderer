@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
-namespace DotsRenderer
+namespace Renderer
 {
 	public static unsafe class CollectionUtil
 	{
