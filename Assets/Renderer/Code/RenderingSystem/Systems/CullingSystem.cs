@@ -1,6 +1,5 @@
 using Unity.Entities;
 using System.Collections.Generic;
-using DotsRenderer;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
@@ -28,6 +27,8 @@ namespace Renderer
 
         public NativeArray<UnsafeStream> MatricesByRenderMeshIndex;
 
+        [NativeSetThreadIndex] public int ThreadIndex;
+
         private void AssertValid(AABB aabb)
         {
             Debug.Assert(!math.any(math.isnan(aabb.Min)));
@@ -36,46 +37,36 @@ namespace Renderer
             Debug.Assert(!math.any(math.isinf(aabb.Max)));
         }
 
+        // Chunk A R=1, Chunk B R=1, Chunk C R=2, Thread 1, Thread 2
+
+        // Goal at this Job: Do check for culling, if culling passes, add entity matrix to render list
         public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
             in v128 chunkEnabledMask)
         {
             // TODO: Add culling later. Currently Just add all Entities for Rendering.
             // TODO: Rethink the culling logic here (partial, full-in, full-out)
+            // TODO: If ChunkRenderBounds isn't visible, don't check the Entities for visibility
 
-            // var chunkWorldRenderBounds = chunk.GetChunkComponentData(ChunkWorldRenderBoundsHandle);
-            //
-            // AssertValid(chunkWorldRenderBounds.AABB);
-            // // Early exit, if Chunk doesn't have it no need to check Entities
-            // if (!RMath.IsVisibleByCameraFrustum(FrustumPlanes, chunkWorldRenderBounds.AABB))
-            //     return;
-            //
-            // var entityCount = chunk.ChunkEntityCount;
-            // if (entityCount == 0)
-            //     return;
-            //
-            // var worldRenderBoundsArray = chunk.GetNativeArray(WorldRenderBoundsHandle);
-            // Debug.Assert(entityCount == worldRenderBoundsArray.Length);
-            //
-            // var sharedComponentIndex = chunk.GetSharedComponentIndex(RenderMeshHandle);
-            // var localToWorldArray = chunk.GetNativeArray(LocalToWorldHandle);
-            //
-            // ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(sharedComponentIndex);
-            // var matrixWriter = matrices.AsWriter();
-            //
-            // // Use ChunkIndex instead of ThreadIndex, as two Chunks might get processed in the same thread
-            // matrixWriter.BeginForEachIndex(chunkIndex);
-            // {
-            //     for (int i = 0; i < entityCount; i++)
-            //     {
-            //         AssertValid(worldRenderBoundsArray[i].AABB);
-            //         if (RMath.IsVisibleByCameraFrustum(FrustumPlanes, worldRenderBoundsArray[i].AABB))
-            //         {
-            //             // Entity is visible, write its Matrix for rendering
-            //             matrixWriter.Write(localToWorldArray[i]);
-            //         }
-            //     }
-            // }
-            // matrixWriter.EndForEachIndex();
+            // All entities have different RenderMeshIndex value
+            var renderMeshIndexArray = chunk.GetNativeArray(ref RenderMeshHandle);
+            var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
+            var localToWorldArray = chunk.GetNativeArray(ref LocalToWorldHandle);
+
+            var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+            while (enumerator.NextEntityIndex(out var i))
+            {
+                var aabb = worldRenderBoundsArray[i].AABB;
+
+                if (RMath.IsVisibleByCameraFrustum(FrustumPlanes, aabb))
+                {
+                    // We have the Entity right now. We want to add it for rendering.
+                    // But the Render Batches are by render mesh index
+                    // TODO: Is this thread-safe?
+                    var renderMeshIndex = renderMeshIndexArray[i].Value;
+                    var matrixStream = MatricesByRenderMeshIndex[renderMeshIndex];
+                    var matrixWriter = matrixStream.AsWriter();
+                }
+            }
         }
     }
 
