@@ -75,8 +75,6 @@ namespace Renderer
 				}
 				else
 				{
-					AddComponent(entity,
-						new LocalToWorld { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
 					AddComponent(entity, position);
 					AddComponent(entity, rotation);
 					AddComponent(entity, scale);
