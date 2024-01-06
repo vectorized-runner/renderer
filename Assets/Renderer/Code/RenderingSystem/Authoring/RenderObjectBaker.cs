@@ -52,15 +52,21 @@ namespace Renderer
             private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
                 RenderMeshIndex renderMeshIndex, bool isStatic)
             {
+                AddComponent(entity,
+                    new LocalToWorld { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
                 AddComponent(entity, renderMeshIndex);
-                AddComponent(entity, position);
-                AddComponent(entity, rotation);
-                AddComponent(entity, scale);
-                AddComponent(entity, new LocalToWorld { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
 
                 if (isStatic)
                 {
                     AddComponent(entity, new Static());
+                }
+                else
+                {
+                    AddComponent(entity,
+                        new LocalToWorld { Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) });
+                    AddComponent(entity, position);
+                    AddComponent(entity, rotation);
+                    AddComponent(entity, scale);
                 }
             }
         }
