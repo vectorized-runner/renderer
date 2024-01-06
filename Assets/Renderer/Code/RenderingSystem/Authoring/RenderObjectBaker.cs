@@ -49,6 +49,7 @@ namespace Renderer
                 }
             }
 
+            // TODO: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
             private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
                 RenderMeshIndex renderMeshIndex, bool isStatic)
             {
