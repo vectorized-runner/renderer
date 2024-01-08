@@ -50,7 +50,7 @@ namespace Renderer
 		// TODO: What happens if new objects are created when these jobs are running [?]
 		protected override void OnUpdate()
 		{
-			var frustumPlanes = _frustumSystem.NativeFrustumPlanes;
+			var planePackets = _frustumSystem.PlanePackets;
 
 			// TODO: This can be made a job
 			// This should be safe because job should be already completed at this point
@@ -65,7 +65,7 @@ namespace Renderer
 
 			var cullHandle = new ChunkCullingJob
 			{
-				FrustumPlanes = frustumPlanes,
+				PlanePackets = planePackets,
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>()

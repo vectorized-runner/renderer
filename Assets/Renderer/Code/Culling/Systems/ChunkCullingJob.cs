@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using FrustumPlanes = Renderer.UnityPackages.FrustumPlanes;
 
 namespace Renderer
 {
@@ -13,7 +14,7 @@ namespace Renderer
 	{
 		[ReadOnly] public ComponentTypeHandle<WorldRenderBounds> WorldRenderBoundsHandle;
 		[ReadOnly] public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
-		[ReadOnly] public NativeArray<Plane> FrustumPlanes;
+		[ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
@@ -29,7 +30,6 @@ namespace Renderer
 			in v128 chunkEnabledMask)
 		{
 			// TODO: Add culling later. Currently Just add all Entities for Rendering.
-			// TODO: Rethink the culling logic here (partial, full-in, full-out)
 			// TODO: If ChunkRenderBounds isn't visible, don't check the Entities for visibility
 
 			// All entities have different RenderMeshIndex value
@@ -40,7 +40,8 @@ namespace Renderer
 			while (enumerator.NextEntityIndex(out var entityIndex))
 			{
 				var aabb = worldRenderBoundsArray[entityIndex].AABB;
-				var isVisible = IsVisibleByCameraFrustum(FrustumPlanes, aabb);
+				var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
+				var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
 				// TODO: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
 				var lower = entityIndex < 64;
 
@@ -51,35 +52,6 @@ namespace Renderer
 			}
 			
 			chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float GetPlaneSignedDistanceToPoint(Plane plane, float3 point)
-		{
-			// From Unity's plane implementation
-			// The value returned is positive if the point is on the side of the plane into which the plane's normal is facing, and negative otherwise.
-			// public float GetDistanceToPoint(Vector3 point) => Vector3.Dot(this.m_Normal, point) + this.m_Distance;
-			return math.dot(plane.normal, point) + plane.distance;
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool IsVisibleByCameraFrustum(NativeArray<Plane> frustumPlanes6, AABB aabb)
-		{
-			return
-				IsOnForwardOrOnPlane(frustumPlanes6[0], aabb) &&
-				IsOnForwardOrOnPlane(frustumPlanes6[1], aabb) &&
-				IsOnForwardOrOnPlane(frustumPlanes6[2], aabb) &&
-				IsOnForwardOrOnPlane(frustumPlanes6[3], aabb) &&
-				IsOnForwardOrOnPlane(frustumPlanes6[4], aabb) &&
-				IsOnForwardOrOnPlane(frustumPlanes6[5], aabb);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool IsOnForwardOrOnPlane(Plane plane, AABB aabb)
-		{
-			var normalDotExtents = math.dot(aabb.Extents, math.abs(plane.normal));
-			var planeDistanceToCenter = GetPlaneSignedDistanceToPoint(plane, aabb.Center);
-			return planeDistanceToCenter >= -normalDotExtents;
 		}
 	}
 }
