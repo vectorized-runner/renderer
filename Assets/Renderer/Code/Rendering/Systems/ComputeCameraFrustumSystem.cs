@@ -2,6 +2,7 @@ using System;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
+using FrustumPlanes = Renderer.UnityPackages.FrustumPlanes;
 using Object = UnityEngine.Object;
 
 namespace Renderer
@@ -9,35 +10,30 @@ namespace Renderer
 	[UpdateInGroup(typeof(RenderSetupGroup))]
 	public partial class CalculateCameraFrustumPlanesSystem : SystemBase
 	{
+		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
+
 		private Camera _camera;
-
 		private Plane[] _frustumPlanes;
-
-		// TODO: Include this NativeArray on Entity data (Read/Write checks)
-		public NativeArray<Plane> NativeFrustumPlanes;
+		private NativeArray<Plane> _nativeFrustumPlanes;
 
 		protected override void OnCreate()
 		{
-			_camera = Camera.main;
-			if (_camera == null)
-				_camera = Object.FindObjectOfType<Camera>();
-			if (_camera == null)
-				throw new Exception("Couldn't find any camera!");
-
-
+			_camera = Object.FindObjectOfType<Camera>();
 			_frustumPlanes = new Plane[6];
-			NativeFrustumPlanes = new NativeArray<Plane>(6, Allocator.Persistent);
+			_nativeFrustumPlanes = new NativeArray<Plane>(6, Allocator.Persistent);
 		}
 
 		protected override void OnDestroy()
 		{
-			NativeFrustumPlanes.Dispose();
+			_nativeFrustumPlanes.Dispose();
+			PlanePackets.Dispose();
 		}
 
 		protected override void OnUpdate()
 		{
 			GeometryUtility.CalculateFrustumPlanes(_camera, _frustumPlanes);
-			NativeFrustumPlanes.CopyFrom(_frustumPlanes);
+			_nativeFrustumPlanes.CopyFrom(_frustumPlanes);
+			PlanePackets = FrustumPlanes.BuildSOAPlanePackets(_nativeFrustumPlanes, Allocator.TempJob);
 		}
 
 		public void DebugDrawCameraFrustum()
