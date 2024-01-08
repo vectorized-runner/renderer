@@ -35,8 +35,8 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.In:
 				{
 					// All Entities are visible, no need to check Entity AABB's.
-					// TODO:
-
+					var cullResult = new ChunkCullResult { Lower = new BitField64(1), Upper = new BitField64(1) };
+					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					break;
 				}
 				case FrustumPlanes.IntersectResult.Partial:
