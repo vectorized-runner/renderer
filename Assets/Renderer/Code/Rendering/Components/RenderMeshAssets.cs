@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +11,14 @@ namespace Renderer
 
 		private readonly Dictionary<RenderMeshIndex, RenderMesh> _indexCache = new();
 		private readonly Dictionary<RenderMesh, RenderMeshIndex> _meshCache = new();
+
+		public RenderMesh GetRenderMesh(RenderMeshIndex index)
+		{
+			if (!TryGetRenderMesh(index, out var renderMesh))
+				throw new Exception($"Couldn't find RenderMesh for index '{index}'");
+
+			return renderMesh;
+		}
 
 		public bool TryGetRenderMesh(RenderMeshIndex index, out RenderMesh renderMesh)
 		{
@@ -30,7 +39,7 @@ namespace Renderer
 			return true;
 		}
 
-		public RenderMeshIndex RegisterAndGetRenderMeshIndex(RenderMesh renderMesh)
+		public RenderMeshIndex RegisterMeshAndGetIndex(RenderMesh renderMesh)
 		{
 			if (_meshCache.TryGetValue(renderMesh, out var cached))
 			{

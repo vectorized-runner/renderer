@@ -39,7 +39,7 @@ namespace Renderer
 				for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
 				{
 					var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
-					var renderMeshId = RenderMeshRegisterSystem.GetRenderMeshIndex(renderMesh);
+					var renderMeshIndex = RenderMeshRegisterSystem.Instance.RenderMeshAssets.RegisterMeshAndGetIndex(renderMesh);
 
 					if (subMeshIndex == 0)
 					{
@@ -48,7 +48,7 @@ namespace Renderer
 						var rot = new Rotation { Value = tf.rotation };
 						var scale = new Scale { Value = tf.localScale.x };
 
-						AddComponents(entity, pos, rot, scale, renderMeshId, renderBounds, isStatic);
+						AddComponents(entity, pos, rot, scale, renderMeshIndex, renderBounds, isStatic);
 					}
 					else
 					{

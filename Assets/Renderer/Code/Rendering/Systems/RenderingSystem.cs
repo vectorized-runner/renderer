@@ -36,7 +36,7 @@ namespace Renderer
 				if (drawCount == 0)
 					continue;
 
-				var renderMesh = RenderMeshRegisterSystem.Instance.GetRenderMesh(renderMeshIndex);
+				var renderMesh = RenderMeshRegisterSystem.Instance.RenderMeshAssets.GetRenderMesh(new RenderMeshIndex(renderMeshIndex));
 				var fullBatchCount = drawCount / _maxDrawCountPerBatch;
 				int batchIndex;
 
