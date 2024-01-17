@@ -11,7 +11,8 @@ namespace Renderer
 		private NativeArray<float> _averageMsList;
 		private float _lastUpdateTime;
 		private int _replaceIndex;
-
+		private RenderingSystem _renderingSystem;
+		
 		protected override void OnCreate()
 		{
 			_averageMsList = new NativeArray<float>(_collectedFrames, Allocator.Persistent);
@@ -21,6 +22,8 @@ namespace Renderer
 				_averageMsList[i] = 0;
 
 			EntityManager.AddComponent<RenderStats>(SystemHandle);
+
+			_renderingSystem = World.GetExistingSystemManaged<RenderingSystem>();
 		}
 
 		protected override void OnDestroy()
@@ -52,7 +55,8 @@ namespace Renderer
 			EntityManager.SetComponentData(SystemHandle, new RenderStats
 			{
 				AverageMs = averageMs,
-				AverageFps = averageFps
+				AverageFps = averageFps,
+				RenderedCount = _renderingSystem.LastRenderedObjectCount
 			});
 
 			_lastUpdateTime = currentTime;

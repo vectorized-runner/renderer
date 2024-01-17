@@ -9,6 +9,8 @@ namespace Renderer
 	[UpdateInGroup(typeof(PresentationSystemGroup))]
 	public partial class RenderingSystem : SystemBase
 	{
+		public int LastRenderedObjectCount { get; private set; }
+		
 		private const int _maxDrawCountPerBatch = 1023;
 		private static Matrix4x4[] _matrixCache;
 		private ChunkCullingSystem _cullingSystem;
@@ -28,7 +30,8 @@ namespace Renderer
 
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
 			var maxRenderMeshCount = RenderMeshRegisterSystem.MaxSupportedUniqueMeshCount;
-
+			var renderedCount = 0;
+			
 			for (var renderMeshIndex = 0; renderMeshIndex < maxRenderMeshCount; renderMeshIndex++)
 			{
 				var matrices = matricesByRenderMeshIndex[renderMeshIndex];
@@ -45,6 +48,8 @@ namespace Renderer
 					var matrixBatch = matrices.AsSpan(batchIndex * _maxDrawCountPerBatch, _maxDrawCountPerBatch)
 						.Reinterpret<float4x4, Matrix4x4>();
 					DrawMeshInstanced(renderMesh, matrixBatch);
+
+					renderedCount += matrixBatch.Length;
 				}
 
 				var lastBatchDrawCount = drawCount % _maxDrawCountPerBatch;
@@ -53,7 +58,11 @@ namespace Renderer
 					var span = matrices.AsSpan(batchIndex * _maxDrawCountPerBatch, lastBatchDrawCount);
 					var m4x4 = span.Reinterpret<float4x4, Matrix4x4>();
 					DrawMeshInstanced(renderMesh, m4x4);
+
+					renderedCount += span.Length;
 				}
+
+				LastRenderedObjectCount = renderedCount;
 			}
 		}
 

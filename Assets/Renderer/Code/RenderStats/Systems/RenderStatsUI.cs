@@ -8,6 +8,7 @@ namespace Renderer
 	{
 		public TextMeshProUGUI AverageMsText;
 		public TextMeshProUGUI AverageFpsText;
+		public TextMeshProUGUI RenderedCountText;
 
 		private void LateUpdate()
 		{
@@ -18,6 +19,7 @@ namespace Renderer
 
 			AverageMsText.text = $"{renderStats.AverageMs:n2} ms";
 			AverageFpsText.text = $"FPS: {renderStats.AverageFps:n2}";
+			RenderedCountText.text = $"Rendered: {renderStats.RenderedCount}";
 		}
 	}
 }
