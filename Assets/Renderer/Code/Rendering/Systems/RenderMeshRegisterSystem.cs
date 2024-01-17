@@ -32,7 +32,7 @@ namespace Renderer
 
 		public RenderMesh GetRenderMesh(int renderMeshIndex)
 		{
-			return new RenderMesh(Mesh, Material, 0, 0);
+			return new RenderMesh(Mesh, Material, 0);
 			
 			// index = 0, count needs to be 1, then count - 1 needs to be greater than index
 			// if (RenderMeshes.Count - 1 <= renderMeshIndex.Value) return RenderMeshes[renderMeshIndex.Value];

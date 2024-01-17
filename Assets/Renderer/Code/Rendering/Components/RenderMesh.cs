@@ -3,18 +3,17 @@ using UnityEngine;
 
 namespace Renderer
 {
-	public readonly struct RenderMesh : IEquatable<RenderMesh>
+	[Serializable]
+	public struct RenderMesh : IEquatable<RenderMesh>
 	{
-		public readonly Mesh Mesh;
-		public readonly Material Material;
-		public readonly int Layer;
-		public readonly int SubMeshIndex;
+		public Mesh Mesh;
+		public Material Material;
+		public int SubMeshIndex;
 
-		public RenderMesh(Mesh mesh, Material material, int layer, int subMeshIndex)
+		public RenderMesh(Mesh mesh, Material material, int subMeshIndex)
 		{
 			Mesh = mesh;
 			Material = material;
-			Layer = layer;
 			SubMeshIndex = subMeshIndex;
 		}
 
@@ -23,7 +22,6 @@ namespace Renderer
 			return
 				Mesh == other.Mesh &&
 				Material == other.Material &&
-				Layer == other.Layer &&
 				SubMeshIndex == other.SubMeshIndex;
 		}
 
@@ -39,7 +37,6 @@ namespace Renderer
 				var hash = 17;
 				hash = hash * 31 + Mesh.GetHashCode();
 				hash = hash * 31 + Material.GetHashCode();
-				hash = hash * 31 + Layer.GetHashCode();
 				hash = hash * 31 + SubMeshIndex.GetHashCode();
 				return hash;
 			}
