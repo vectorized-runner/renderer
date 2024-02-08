@@ -13,7 +13,8 @@ namespace Renderer
 		[ReadOnly] public ComponentTypeHandle<WorldRenderBounds> WorldRenderBoundsHandle;
 		[ReadOnly] public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
 		[ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
-
+	
+		public AtomicInt CulledObjectCount;
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
@@ -30,6 +31,7 @@ namespace Renderer
 					// No Entity is visible, don't need to check Entity AABB's.
 					var cullResult = new ChunkCullResult { Lower = new BitField64(0), Upper = new BitField64(0) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
+					CulledObjectCount.Add(128);
 					break;
 				}
 				case FrustumPlanes.IntersectResult.In:
@@ -52,6 +54,8 @@ namespace Renderer
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
+							CulledObjectCount.Add(isVisible ? 0 : 1);
+							
 							// TODO: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
 							var lower = entityIndex < 64;
 

@@ -12,6 +12,7 @@ namespace Renderer
 	{
 		public JobHandle FinalJobHandle { get; private set; }
 		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
+		public AtomicInt CulledObjectCount;
 
 		private EntityQuery _chunkCullingQuery;
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
@@ -45,6 +46,7 @@ namespace Renderer
 			}
 
 			MatricesByRenderMeshIndex.Dispose();
+			CulledObjectCount.Dispose();
 		}
 
 		// TODO: What happens if new objects are created when these jobs are running [?]
@@ -59,16 +61,19 @@ namespace Renderer
 				ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(i);
 				matrices.Clear();
 			}
-			
+
 			// TODO: Use the async version of this (?)
 			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
+			CulledObjectCount.Dispose();
+			CulledObjectCount = AtomicInt.Create();
 
 			var cullHandle = new ChunkCullingJob
 			{
 				PlanePackets = planePackets,
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
-				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>()
+				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
+				CulledObjectCount = CulledObjectCount,
 			}.ScheduleParallel(_chunkCullingQuery, Dependency);
 
 			var collectJob = new CollectRenderMatricesJob
