@@ -12,7 +12,7 @@ namespace Renderer
 		private float _lastUpdateTime;
 		private int _replaceIndex;
 		private RenderingSystem _renderingSystem;
-		
+
 		protected override void OnCreate()
 		{
 			_averageMsList = new NativeArray<float>(_collectedFrames, Allocator.Persistent);
@@ -57,6 +57,7 @@ namespace Renderer
 				AverageMs = averageMs,
 				AverageFps = averageFps,
 				RenderedCount = _renderingSystem.RenderedObjectCount,
+				CulledCount = World.GetExistingSystemManaged<ChunkCullingSystem>().CulledObjectCount,
 			});
 
 			_lastUpdateTime = currentTime;

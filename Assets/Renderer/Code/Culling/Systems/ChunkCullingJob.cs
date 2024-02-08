@@ -14,7 +14,7 @@ namespace Renderer
 		[ReadOnly] public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
 		[ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 	
-		public AtomicInt CulledObjectCount;
+		public AtomicCounter CulledObjectCount;
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,

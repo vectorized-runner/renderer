@@ -7,11 +7,17 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Renderer
 {
-	public unsafe struct AtomicInt : IDisposable
+	public unsafe struct AtomicCounter : IDisposable
 	{
 		[NoAlias]
 		[NativeDisableUnsafePtrRestriction]
 		public int* Ptr;
+		
+		public int Value
+		{
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => *Ptr;
+		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Add(int amount)
@@ -21,13 +27,13 @@ namespace Renderer
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static AtomicInt Create()
+		public static AtomicCounter Create()
 		{
-			return new AtomicInt(UnsafeUtil.MallocPersistentInitialized<int>());
+			return new AtomicCounter(UnsafeUtil.MallocPersistentInitialized<int>());
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public AtomicInt(int* ptr)
+		public AtomicCounter(int* ptr)
 		{
 			Ptr = ptr;
 		}

@@ -7,5 +7,6 @@ namespace Renderer
 		public float AverageFps;
 		public float AverageMs;
 		public int RenderedCount;
+		public int CulledCount;
 	}
 }
