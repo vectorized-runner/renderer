@@ -8,6 +8,7 @@ namespace Renderer
 		public float AverageMs;
 		public int RenderedCount;
 		public int CulledCount;
+		public int TotalObjectCount;
 		public int VertexCount;
 		public int TrisCount;
 	}

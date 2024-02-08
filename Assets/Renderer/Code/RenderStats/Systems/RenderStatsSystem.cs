@@ -52,6 +52,9 @@ namespace Renderer
 			var averageMs = totalMs / _collectedFrames;
 			var averageFps = 1000f / averageMs;
 
+			var query = GetEntityQuery(typeof(RenderMeshIndex));
+			var totalObjects = query.CalculateEntityCount();
+
 			EntityManager.SetComponentData(SystemHandle, new RenderStats
 			{
 				AverageMs = averageMs,
@@ -60,6 +63,7 @@ namespace Renderer
 				CulledCount = World.GetExistingSystemManaged<ChunkCullingSystem>().CulledObjectCount,
 				TrisCount = _renderingSystem.RenderedTris,
 				VertexCount = _renderingSystem.RenderedVerts,
+				TotalObjectCount = totalObjects,
 			});
 
 			_lastUpdateTime = currentTime;

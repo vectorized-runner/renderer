@@ -8,6 +8,7 @@ namespace Renderer
 	{
 		public TextMeshProUGUI AverageMsText;
 		public TextMeshProUGUI AverageFpsText;
+		public TextMeshProUGUI TotalObjectsText;
 		public TextMeshProUGUI RenderedCountText;
 		public TextMeshProUGUI CulledCountText;
 		public TextMeshProUGUI RenderTrisText;
@@ -26,6 +27,7 @@ namespace Renderer
 			CulledCountText.text = $"Culled: {renderStats.CulledCount}";
 			RenderVertsText.text = $"Verts: {renderStats.VertexCount}";
 			RenderTrisText.text = $"Tris: {renderStats.TrisCount}";
+			TotalObjectsText.text = $"Total Objects: {renderStats.TotalObjectCount}";
 		}
 	}
 }
