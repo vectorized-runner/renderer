@@ -56,7 +56,7 @@ namespace Renderer
 			{
 				AverageMs = averageMs,
 				AverageFps = averageFps,
-				RenderedCount = _renderingSystem.LastRenderedObjectCount
+				RenderedCount = _renderingSystem.RenderedObjectCount,
 			});
 
 			_lastUpdateTime = currentTime;

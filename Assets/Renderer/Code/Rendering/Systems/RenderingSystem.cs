@@ -9,8 +9,8 @@ namespace Renderer
 	[UpdateInGroup(typeof(PresentationSystemGroup))]
 	public partial class RenderingSystem : SystemBase
 	{
-		public int LastRenderedObjectCount { get; private set; }
-		
+		public int RenderedObjectCount { get; private set; }
+
 		private const int _maxDrawCountPerBatch = 1023;
 		private static Matrix4x4[] _matrixCache;
 		private ChunkCullingSystem _cullingSystem;
@@ -24,14 +24,14 @@ namespace Renderer
 		protected override void OnUpdate()
 		{
 			Debug.Log("RenderingSystem running!");
-			
+
 			// TODO: Check the old thread. How to not call complete on this? I want to make this run like a job
 			_cullingSystem.FinalJobHandle.Complete();
 
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
 			var maxRenderMeshCount = RenderConstants.MaxSupportedUniqueMeshCount;
 			var renderedCount = 0;
-			
+
 			for (var renderMeshIndex = 0; renderMeshIndex < maxRenderMeshCount; renderMeshIndex++)
 			{
 				var matrices = matricesByRenderMeshIndex[renderMeshIndex];
@@ -62,7 +62,7 @@ namespace Renderer
 					renderedCount += span.Length;
 				}
 
-				LastRenderedObjectCount = renderedCount;
+				RenderedObjectCount = renderedCount;
 			}
 		}
 
