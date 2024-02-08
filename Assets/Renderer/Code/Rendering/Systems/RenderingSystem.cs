@@ -10,6 +10,8 @@ namespace Renderer
 	public partial class RenderingSystem : SystemBase
 	{
 		public int RenderedObjectCount { get; private set; }
+		public int RenderedTris { get; private set; }
+		public int RenderedVerts { get; private set; }
 
 		private const int _maxDrawCountPerBatch = 1023;
 		private static Matrix4x4[] _matrixCache;
@@ -40,6 +42,8 @@ namespace Renderer
 					continue;
 
 				var renderMesh = RenderMeshDatabase.Instance.GetRenderMesh(new RenderMeshIndex(renderMeshIndex));
+				var vertexCount = renderMesh.Mesh.vertexCount;
+				var trisCount = renderMesh.Mesh.triangles.Length;
 				var fullBatchCount = drawCount / _maxDrawCountPerBatch;
 				int batchIndex;
 
@@ -49,7 +53,10 @@ namespace Renderer
 						.Reinterpret<float4x4, Matrix4x4>();
 					DrawMeshInstanced(renderMesh, matrixBatch);
 
-					renderedCount += matrixBatch.Length;
+					var count = matrixBatch.Length;
+					renderedCount += count;
+					RenderedVerts += vertexCount * count;
+					RenderedTris += trisCount * count;
 				}
 
 				var lastBatchDrawCount = drawCount % _maxDrawCountPerBatch;
@@ -59,7 +66,10 @@ namespace Renderer
 					var m4x4 = span.Reinterpret<float4x4, Matrix4x4>();
 					DrawMeshInstanced(renderMesh, m4x4);
 
-					renderedCount += span.Length;
+					var count = span.Length;
+					renderedCount += count;
+					RenderedVerts += vertexCount * count;
+					RenderedTris += trisCount * count;
 				}
 
 				RenderedObjectCount = renderedCount;
