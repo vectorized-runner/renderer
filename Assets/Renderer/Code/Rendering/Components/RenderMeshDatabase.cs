@@ -96,7 +96,10 @@ namespace Renderer
 		// TODO: Check this method again, wtf?
 		public RenderMeshIndex RegisterRenderMesh(RenderMesh renderMesh)
 		{
-			Debug.Assert(IsCacheInitialized());
+			// This assertion fails
+			// Debug.Assert(IsCacheInitialized());
+			// This method is only used at bake-time, so lazy initialization should be ok (can't think of a better idea atm)
+			InitializeCacheIfRequired();
 
 			if (_indexByMeshCache.TryGetValue(renderMesh, out var cachedIndex))
 			{
