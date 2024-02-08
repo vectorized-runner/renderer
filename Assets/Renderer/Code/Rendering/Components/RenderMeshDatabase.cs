@@ -14,6 +14,12 @@ namespace Renderer
 		private readonly Dictionary<RenderMeshIndex, RenderMesh> _meshByIndexCache = new();
 		private readonly Dictionary<RenderMesh, RenderMeshIndex> _indexByMeshCache = new();
 
+		private bool IsCacheInitialized()
+		{
+			var renderMeshCount = RenderMeshes.Count;
+
+			return renderMeshCount == _meshByIndexCache.Count && renderMeshCount == _indexByMeshCache.Count;
+		}
 		public static RenderMeshDatabase Instance
 		{
 			get
@@ -37,13 +43,15 @@ namespace Renderer
 
 		public RenderMesh GetRenderMesh(RenderMeshIndex index)
 		{
+			Debug.Assert(IsCacheInitialized());
+
 			if (!TryGetRenderMesh(index, out var renderMesh))
 				throw new Exception($"Couldn't find RenderMesh for index '{index}'");
 
 			return renderMesh;
 		}
 
-		public bool TryGetRenderMesh(RenderMeshIndex index, out RenderMesh renderMesh)
+		private bool TryGetRenderMesh(RenderMeshIndex index, out RenderMesh renderMesh)
 		{
 			if (_meshByIndexCache.TryGetValue(index, out var cached))
 			{
@@ -65,6 +73,8 @@ namespace Renderer
 		// TODO: Check this method again, wtf?
 		public RenderMeshIndex RegisterRenderMesh(RenderMesh renderMesh)
 		{
+			Debug.Assert(IsCacheInitialized());
+
 			if (_indexByMeshCache.TryGetValue(renderMesh, out var cachedIndex))
 			{
 				return cachedIndex;
