@@ -9,6 +9,8 @@ namespace Renderer
 	{
 		public List<RenderMesh> RenderMeshes;
 
+		private static RenderMeshDatabase _instance;
+
 		private readonly Dictionary<RenderMeshIndex, RenderMesh> _meshByIndexCache = new();
 		private readonly Dictionary<RenderMesh, RenderMeshIndex> _indexByMeshCache = new();
 
@@ -32,7 +34,6 @@ namespace Renderer
 			return instance;
 		}
 
-		private static RenderMeshDatabase _instance;
 
 		public RenderMesh GetRenderMesh(RenderMeshIndex index)
 		{
