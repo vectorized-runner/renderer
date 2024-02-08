@@ -22,8 +22,7 @@ namespace Renderer
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Add(int amount)
 		{
-			var location = (long)Ptr;
-			Interlocked.Add(ref location, amount);
+			Interlocked.Add(ref *(long*)Ptr, amount);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
