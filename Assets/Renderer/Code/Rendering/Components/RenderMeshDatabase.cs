@@ -20,6 +20,26 @@ namespace Renderer
 
 			return renderMeshCount == _meshByIndexCache.Count && renderMeshCount == _indexByMeshCache.Count;
 		}
+
+		private void Awake()
+		{
+			InitializeCacheIfRequired();
+		}
+
+		private void InitializeCacheIfRequired()
+		{
+			for (var index = 0; index < RenderMeshes.Count; index++)
+			{
+				var meshIndex = new RenderMeshIndex(index);
+				var mesh = RenderMeshes[index];
+
+				_meshByIndexCache[meshIndex] = mesh;
+				_indexByMeshCache[mesh] = meshIndex;
+			}
+
+			Debug.Assert(IsCacheInitialized());
+		}
+
 		public static RenderMeshDatabase Instance
 		{
 			get
@@ -34,6 +54,8 @@ namespace Renderer
 		private static RenderMeshDatabase LoadInstance()
 		{
 			var instance = Resources.Load<RenderMeshDatabase>("RenderMeshDatabase");
+			instance.InitializeCacheIfRequired();
+
 			if (instance == null)
 				throw new Exception("Couldn't load the instance");
 
