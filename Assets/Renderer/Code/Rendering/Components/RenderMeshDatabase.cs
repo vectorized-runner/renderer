@@ -5,12 +5,34 @@ using UnityEngine;
 namespace Renderer
 {
 	[CreateAssetMenu]
-	public class RenderMeshAssets : ScriptableObject
+	public class RenderMeshDatabase : ScriptableObject
 	{
 		public List<RenderMesh> RenderMeshes;
 
 		private readonly Dictionary<RenderMeshIndex, RenderMesh> _indexCache = new();
-		private readonly Dictionary<RenderMesh, RenderMeshIndex> _meshCache = new();
+		private readonly Dictionary<RenderMesh, RenderMeshIndex> _renderMeshIndexCache = new();
+
+		public static RenderMeshDatabase Instance
+		{
+			get
+			{
+				if (_instance == null)
+					_instance = LoadInstance();
+
+				return _instance;
+			}
+		}
+
+		private static RenderMeshDatabase LoadInstance()
+		{
+			var instance = Resources.Load<RenderMeshDatabase>("RenderMeshDatabase");
+			if (instance == null)
+				throw new Exception("Couldn't load the instance");
+
+			return instance;
+		}
+
+		private static RenderMeshDatabase _instance;
 
 		public RenderMesh GetRenderMesh(RenderMeshIndex index)
 		{
@@ -39,11 +61,12 @@ namespace Renderer
 			return true;
 		}
 
-		public RenderMeshIndex RegisterMeshAndGetIndex(RenderMesh renderMesh)
+		// TODO: Check this method again, wtf?
+		public RenderMeshIndex RegisterRenderMesh(RenderMesh renderMesh)
 		{
-			if (_meshCache.TryGetValue(renderMesh, out var cached))
+			if (_renderMeshIndexCache.TryGetValue(renderMesh, out var cachedIndex))
 			{
-				return cached;
+				return cachedIndex;
 			}
 
 			RenderMeshIndex result;
@@ -53,7 +76,7 @@ namespace Renderer
 				if (RenderMeshes[index].Equals(renderMesh))
 				{
 					result = new RenderMeshIndex(index);
-					_meshCache.Add(renderMesh, result);
+					_renderMeshIndexCache.Add(renderMesh, result);
 					return result;
 				}
 			}
@@ -61,7 +84,7 @@ namespace Renderer
 			var previousCount = RenderMeshes.Count;
 			RenderMeshes.Add(renderMesh);
 			result = new RenderMeshIndex(previousCount);
-			_meshCache.Add(renderMesh, result);
+			_renderMeshIndexCache.Add(renderMesh, result);
 			return result;
 		}
 	}

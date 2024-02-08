@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d63adb7e8b30432cb71946d9e50c3def, type: 3}
-  m_Name: RenderMeshAssets
+  m_Name: RenderMeshDatabase
   m_EditorClassIdentifier: 
   RenderMeshes: []

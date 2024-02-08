@@ -39,7 +39,7 @@ namespace Renderer
 				for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
 				{
 					var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
-					var renderMeshIndex = RenderMeshRegisterSystem.Instance.RenderMeshAssets.RegisterMeshAndGetIndex(renderMesh);
+					var renderMeshIndex = RenderMeshDatabase.Instance.RegisterRenderMesh(renderMesh);
 
 					if (subMeshIndex == 0)
 					{
