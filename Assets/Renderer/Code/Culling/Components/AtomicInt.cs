@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Unity.Burst;
 using Unity.Collections;
@@ -12,22 +13,26 @@ namespace Renderer
 		[NativeDisableUnsafePtrRestriction]
 		public readonly int* Ptr;
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Add(int amount)
 		{
 			var location = (long)Ptr;
 			Interlocked.Add(ref location, amount);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static AtomicInt Create()
 		{
 			return new AtomicInt(UnsafeUtil.MallocPersistentInitialized<int>());
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public AtomicInt(int* ptr)
 		{
 			Ptr = ptr;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Dispose()
 		{
 			UnsafeUtility.Free(Ptr, Allocator.Persistent);
