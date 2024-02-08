@@ -14,9 +14,12 @@ namespace Renderer
 			return ptr;
 		}
 
-		public static T* MallocPersistent<T>() where T : unmanaged
+		public static T* MallocPersistentInitialized<T>() where T : unmanaged
 		{
-			return Malloc<T>(Allocator.Persistent);
+			var ptr = Malloc<T>(Allocator.Persistent);
+			*ptr = default;
+
+			return ptr;
 		}
 	}
 }
