@@ -9,6 +9,9 @@ namespace Renderer
 		public TextMeshProUGUI AverageMsText;
 		public TextMeshProUGUI AverageFpsText;
 		public TextMeshProUGUI RenderedCountText;
+		public TextMeshProUGUI CulledCountText;
+		public TextMeshProUGUI RenderTrisText;
+		public TextMeshProUGUI RenderVertsText;
 
 		private void LateUpdate()
 		{
@@ -20,6 +23,9 @@ namespace Renderer
 			AverageMsText.text = $"{renderStats.AverageMs:n2} ms";
 			AverageFpsText.text = $"FPS: {renderStats.AverageFps:n2}";
 			RenderedCountText.text = $"Rendered: {renderStats.RenderedCount}";
+			CulledCountText.text = $"Culled: {renderStats.CulledCount}";
+			RenderVertsText.text = $"Verts: {renderStats.VertexCount}";
+			RenderTrisText.text = $"Tris: {renderStats.TrisCount}";
 		}
 	}
 }
