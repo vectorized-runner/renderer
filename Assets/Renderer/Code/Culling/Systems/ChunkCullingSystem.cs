@@ -20,7 +20,7 @@ namespace Renderer
 		{
 			_frustumSystem = World.GetExistingSystemManaged<CalculateCameraFrustumPlanesSystem>();
 
-			const int maxMeshCount = RenderMeshRegisterSystem.MaxSupportedUniqueMeshCount;
+			const int maxMeshCount = RenderConstants.MaxSupportedUniqueMeshCount;
 
 			MatricesByRenderMeshIndex =
 				new NativeArray<UnsafeList<float4x4>>(maxMeshCount, Allocator.Persistent);

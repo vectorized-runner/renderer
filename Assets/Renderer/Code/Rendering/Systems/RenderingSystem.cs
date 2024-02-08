@@ -29,7 +29,7 @@ namespace Renderer
 			_cullingSystem.FinalJobHandle.Complete();
 
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
-			var maxRenderMeshCount = RenderMeshRegisterSystem.MaxSupportedUniqueMeshCount;
+			var maxRenderMeshCount = RenderConstants.MaxSupportedUniqueMeshCount;
 			var renderedCount = 0;
 			
 			for (var renderMeshIndex = 0; renderMeshIndex < maxRenderMeshCount; renderMeshIndex++)
