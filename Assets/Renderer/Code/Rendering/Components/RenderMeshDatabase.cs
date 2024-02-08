@@ -7,6 +7,7 @@ namespace Renderer
 	[CreateAssetMenu]
 	public class RenderMeshDatabase : ScriptableObject
 	{
+		// Not supposed to be edited at Runtime (Cache only checks if count is out-of-date)
 		public List<RenderMesh> RenderMeshes;
 
 		private static RenderMeshDatabase _instance;
