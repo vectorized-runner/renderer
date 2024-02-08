@@ -9,8 +9,8 @@ namespace Renderer
 	{
 		public List<RenderMesh> RenderMeshes;
 
-		private readonly Dictionary<RenderMeshIndex, RenderMesh> _indexCache = new();
-		private readonly Dictionary<RenderMesh, RenderMeshIndex> _renderMeshIndexCache = new();
+		private readonly Dictionary<RenderMeshIndex, RenderMesh> _meshByIndexCache = new();
+		private readonly Dictionary<RenderMesh, RenderMeshIndex> _indexByMeshCache = new();
 
 		public static RenderMeshDatabase Instance
 		{
@@ -44,7 +44,7 @@ namespace Renderer
 
 		public bool TryGetRenderMesh(RenderMeshIndex index, out RenderMesh renderMesh)
 		{
-			if (_indexCache.TryGetValue(index, out var cached))
+			if (_meshByIndexCache.TryGetValue(index, out var cached))
 			{
 				renderMesh = cached;
 				return true;
@@ -57,14 +57,14 @@ namespace Renderer
 			}
 
 			renderMesh = RenderMeshes[index.Value];
-			_indexCache.Add(index, renderMesh);
+			_meshByIndexCache.Add(index, renderMesh);
 			return true;
 		}
 
 		// TODO: Check this method again, wtf?
 		public RenderMeshIndex RegisterRenderMesh(RenderMesh renderMesh)
 		{
-			if (_renderMeshIndexCache.TryGetValue(renderMesh, out var cachedIndex))
+			if (_indexByMeshCache.TryGetValue(renderMesh, out var cachedIndex))
 			{
 				return cachedIndex;
 			}
@@ -76,7 +76,7 @@ namespace Renderer
 				if (RenderMeshes[index].Equals(renderMesh))
 				{
 					result = new RenderMeshIndex(index);
-					_renderMeshIndexCache.Add(renderMesh, result);
+					_indexByMeshCache.Add(renderMesh, result);
 					return result;
 				}
 			}
@@ -84,7 +84,7 @@ namespace Renderer
 			var previousCount = RenderMeshes.Count;
 			RenderMeshes.Add(renderMesh);
 			result = new RenderMeshIndex(previousCount);
-			_renderMeshIndexCache.Add(renderMesh, result);
+			_indexByMeshCache.Add(renderMesh, result);
 			return result;
 		}
 	}
