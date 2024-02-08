@@ -7,11 +7,11 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Renderer
 {
-	public readonly unsafe struct AtomicInt : IDisposable
+	public unsafe struct AtomicInt : IDisposable
 	{
 		[NoAlias]
 		[NativeDisableUnsafePtrRestriction]
-		public readonly int* Ptr;
+		public int* Ptr;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Add(int amount)
@@ -35,7 +35,11 @@ namespace Renderer
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Dispose()
 		{
-			UnsafeUtility.Free(Ptr, Allocator.Persistent);
+			if (Ptr != null)
+			{
+				UnsafeUtility.Free(Ptr, Allocator.Persistent);
+				Ptr = null;
+			}
 		}
 	}
 }
