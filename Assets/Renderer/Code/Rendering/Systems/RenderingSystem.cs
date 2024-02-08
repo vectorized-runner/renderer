@@ -33,6 +33,8 @@ namespace Renderer
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
 			var maxRenderMeshCount = RenderConstants.MaxSupportedUniqueMeshCount;
 			var renderedCount = 0;
+			var renderedTris = 0;
+			var renderedVerts = 0;
 
 			for (var renderMeshIndex = 0; renderMeshIndex < maxRenderMeshCount; renderMeshIndex++)
 			{
@@ -55,8 +57,8 @@ namespace Renderer
 
 					var count = matrixBatch.Length;
 					renderedCount += count;
-					RenderedVerts += vertexCount * count;
-					RenderedTris += trisCount * count;
+					renderedVerts += vertexCount * count;
+					renderedTris += trisCount * count;
 				}
 
 				var lastBatchDrawCount = drawCount % _maxDrawCountPerBatch;
@@ -68,11 +70,13 @@ namespace Renderer
 
 					var count = span.Length;
 					renderedCount += count;
-					RenderedVerts += vertexCount * count;
-					RenderedTris += trisCount * count;
+					renderedVerts += vertexCount * count;
+					renderedTris += trisCount * count;
 				}
 
 				RenderedObjectCount = renderedCount;
+				RenderedVerts = renderedVerts;
+				RenderedTris = renderedTris;
 			}
 		}
 
