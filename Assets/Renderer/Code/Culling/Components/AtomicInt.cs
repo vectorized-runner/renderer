@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -7,6 +8,8 @@ namespace Renderer
 {
 	public readonly unsafe struct AtomicInt : IDisposable
 	{
+		[NoAlias]
+		[NativeDisableUnsafePtrRestriction]
 		public readonly int* Ptr;
 
 		public void Add(int amount)
