@@ -348,7 +348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Text: {fileID: 5561013695812551458}
-  DebugModeToggle: {fileID: 0}
+  DebugModeToggle: {fileID: 1661754457453159488}
 --- !u!1 &5042986375351864088
 GameObject:
   m_ObjectHideFlags: 0
