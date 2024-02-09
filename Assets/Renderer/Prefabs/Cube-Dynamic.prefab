@@ -11,10 +11,9 @@ GameObject:
   - component: {fileID: 6605282618865631620}
   - component: {fileID: 2730746794028167829}
   - component: {fileID: 4313840799429505479}
-  - component: {fileID: 8792381551454164192}
   - component: {fileID: 3868012248319190238}
   m_Layer: 0
-  m_Name: Cube-Static
+  m_Name: Cube-Dynamic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -85,27 +84,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &8792381551454164192
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7731718856207036685}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3868012248319190238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,4 +96,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c56df68c5f33488a9bfa1f8f076fbc76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsStatic: 1
+  IsStatic: 0

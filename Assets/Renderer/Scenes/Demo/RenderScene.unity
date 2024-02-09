@@ -171,7 +171,7 @@ Transform:
   m_GameObject: {fileID: 304485149}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -33.48, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -191,7 +191,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SpawnObjects:
   - Prefab: {fileID: 7731718856207036685, guid: ae1264c701d614d988106c0ef21da347, type: 3}
-    Label: Cube-Static
+    Label: Cube-Dynamic
 --- !u!1001 &360584790
 PrefabInstance:
   m_ObjectHideFlags: 0
