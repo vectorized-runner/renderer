@@ -12,7 +12,8 @@ namespace Renderer
 		private float _lastUpdateTime;
 		private int _replaceIndex;
 		private RenderingSystem _renderingSystem;
-
+		private ChunkCullingSystem _cullingSystem;
+		
 		protected override void OnCreate()
 		{
 			_averageMsList = new NativeArray<float>(_collectedFrames, Allocator.Persistent);
@@ -24,6 +25,7 @@ namespace Renderer
 			EntityManager.AddComponent<RenderStats>(SystemHandle);
 
 			_renderingSystem = World.GetExistingSystemManaged<RenderingSystem>();
+			_cullingSystem = World.GetExistingSystemManaged<ChunkCullingSystem>();
 		}
 
 		protected override void OnDestroy()
@@ -61,11 +63,14 @@ namespace Renderer
 				AverageMs = averageMs,
 				AverageFps = averageFps,
 				RenderedCount = _renderingSystem.RenderedObjectCount,
-				CulledCount = World.GetExistingSystemManaged<ChunkCullingSystem>().CulledObjectCount,
+				CulledCount = _cullingSystem.CulledObjectCount,
 				RenderTrisCount = _renderingSystem.RenderedTris,
 				RenderVertsCount = _renderingSystem.RenderedVerts,
 				TotalObjectCount = entityCount,
 				RenderBatchCount = _renderingSystem.RenderBatchCount,
+				OutChunks = _cullingSystem.FrustumOutCount,
+				InChunks = _cullingSystem.FrustumInCount,
+				PartialChunks = _cullingSystem.FrustumPartialCount,
 				ChunkCount = chunkCount
 			});
 

@@ -13,5 +13,8 @@ namespace Renderer
 		public int RenderTrisCount;
 		public int RenderBatchCount;
 		public int ChunkCount;
+		public int OutChunks;
+		public int InChunks;
+		public int PartialChunks;
 	}
 }
