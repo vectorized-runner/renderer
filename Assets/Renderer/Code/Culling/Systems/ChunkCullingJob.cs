@@ -41,7 +41,7 @@ namespace Renderer
 					// No Entity is visible, don't need to check Entity AABB's.
 					var cullResult = new ChunkCullResult { Lower = new BitField64(0), Upper = new BitField64(0) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
-					CulledObjectCount.Increment(128);
+					CulledObjectCount.Increment(chunk.Count);
 					break;
 				}
 				case FrustumPlanes.IntersectResult.In:
