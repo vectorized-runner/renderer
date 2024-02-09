@@ -191,7 +191,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SpawnObjects:
   - Prefab: {fileID: 7731718856207036685, guid: ae1264c701d614d988106c0ef21da347, type: 3}
-    Label: Cube
+    Label: Cube-Static
 --- !u!1001 &360584790
 PrefabInstance:
   m_ObjectHideFlags: 0

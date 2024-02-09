@@ -23,7 +23,7 @@ namespace Renderer
 						Value = new SpawnTrigger
 						{
 							Amount = 100_000,
-							Label = "Cube"
+							Label = "Cube-Static"
 						}
 					});
 				}
@@ -43,19 +43,24 @@ namespace Renderer
 						var label = trigger.Label;
 						var prefab = FindEntity(ref spawnEntities, label);
 						var spawnedEntities = EntityManager.Instantiate(prefab, amount, Allocator.Temp);
-
 						var center = float3.zero;
-						var radius = 100.0f;
+						var distanceMin = 100.0f;
+						var distanceMax = 1000.0f;
+						var scaleMin = 0.5f;
+						var scaleMax = 3.0f;
 
 						for (int entityIndex = 0; entityIndex < spawnedEntities.Length; entityIndex++)
 						{
-							var position = center + random.NextFloat3Direction() * radius;
+							var distance = random.NextFloat(distanceMin, distanceMax);
+							var scale = random.NextFloat(scaleMin, scaleMax);
+							var position = center + random.NextFloat3Direction() * distance;
 							var rotation = random.NextQuaternionRotation();
-							var scale = 1.0f;
 							var spawnedEntity = spawnedEntities[entityIndex];
-							EntityManager.SetComponentData(spawnedEntity, new Position { Value = position });
-							EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
-							EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
+							var matrix = float4x4.TRS(position, rotation, scale);
+							EntityManager.SetComponentData(spawnedEntity, new LocalToWorld { Value = matrix });
+							// EntityManager.SetComponentData(spawnedEntity, new Position { Value = position });
+							// EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
+							// EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
 						}
 					}
 

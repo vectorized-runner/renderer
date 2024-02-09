@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8792381551454164192}
   - component: {fileID: 3868012248319190238}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Cube-Static
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -118,4 +118,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c56df68c5f33488a9bfa1f8f076fbc76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsStatic: 0
+  IsStatic: 1
