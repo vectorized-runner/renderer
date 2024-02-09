@@ -3,12 +3,30 @@ using TMPro;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Renderer
 {
 	public class RenderStatsUI : MonoBehaviour
 	{
 		public TextMeshProUGUI Text;
+		public Toggle DebugModeToggle;
+
+		private void Start()
+		{
+			DebugModeToggle.isOn = RenderConstants.DebugMode;
+			DebugModeToggle.onValueChanged.AddListener(OnDebugToggleChanged);
+		}
+
+		private void OnDestroy()
+		{
+			DebugModeToggle.onValueChanged.RemoveListener(OnDebugToggleChanged);
+		}
+
+		private void OnDebugToggleChanged(bool newValue)
+		{
+			RenderConstants.DebugMode = newValue;
+		}
 
 		private void LateUpdate()
 		{
