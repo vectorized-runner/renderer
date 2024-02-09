@@ -23,17 +23,29 @@ namespace Renderer
 			{
 				var entity = GetEntity(TransformUsageFlags.None);
 				var spawnObjects = authoring.SpawnObjects;
-				var spawnObjectCount = spawnObjects.Length;
-				// TODO: Dispose this Hashmap to not leak memory
-				var hashMap = new UnsafeHashMap<FixedString64Bytes, Entity>(32, Allocator.Persistent);
+				var builder = new BlobBuilder(Allocator.Temp);
+				ref var spawnEntityArray = ref builder.ConstructRoot<SpawnEntityArray>();
 
-				for (int i = 0; i < spawnObjectCount; i++)
+				var count = spawnObjects.Length;
+				var arrayBuilder = builder.Allocate(
+					ref spawnEntityArray.Value,
+					count
+				);
+				
+				for (int i = 0; i < count; i++)
 				{
-					hashMap.Add(new FixedString64Bytes(spawnObjects[i].Label),
-						GetEntity(spawnObjects[i].Prefab, TransformUsageFlags.None));
+					arrayBuilder[i] = new SpawnEntity
+					{
+						Entity = GetEntity(spawnObjects[i].Prefab, TransformUsageFlags.None),
+						Label = spawnObjects[i].Label,
+					};
 				}
 
-				AddComponent(entity, new SpawnerData { PrefabByLabel = hashMap });
+				var spawnEntityArrayRef = builder.CreateBlobAssetReference<SpawnEntityArray>(Allocator.Persistent);
+				builder.Dispose();
+
+				AddComponent(entity, new SpawnerData { SpawnEntityArrayRef = spawnEntityArrayRef });
+				AddBuffer<SpawnTriggerBuffer>(entity);
 			}
 		}
 	}
