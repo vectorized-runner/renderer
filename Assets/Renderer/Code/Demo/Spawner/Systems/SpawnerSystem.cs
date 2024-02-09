@@ -56,12 +56,12 @@ namespace Renderer
 							var position = center + random.NextFloat3Direction() * distance;
 							var rotation = random.NextQuaternionRotation();
 							var spawnedEntity = spawnedEntities[entityIndex];
-							var matrix = float4x4.TRS(position, rotation, scale);
-							EntityManager.SetComponentData(spawnedEntity, new LocalToWorld { Value = matrix });
-							// EntityManager.SetComponentData(spawnedEntity, new Position { Value = position });
-							// EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
-							// EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
+							EntityManager.SetComponentData(spawnedEntity, new Position { Value = position });
+							EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
+							EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
 						}
+
+						EntityManager.AddComponent<MakeStatic>(spawnedEntities);
 					}
 
 					spawnTriggerBuffer.Clear();
