@@ -37,6 +37,8 @@ namespace Renderer
 				ComponentType.ReadOnly<RenderMeshIndex>(),
 				ComponentType.ChunkComponentReadOnly(typeof(ChunkCullResult)));
 			ComponentType.ChunkComponentReadOnly(typeof(ChunkWorldRenderBounds));
+			
+			_culledObjectCounter = new NativeAtomicCounter(Allocator.Persistent);
 		}
 
 		protected override void OnDestroy()
@@ -66,9 +68,8 @@ namespace Renderer
 
 			// TODO: Use the async version of this (?)
 			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
-			_culledObjectCounter.Dispose();
-			_culledObjectCounter = NativeAtomicCounter.Create();
-
+			_culledObjectCounter.Count = 0;
+			
 			var cullHandle = new ChunkCullingJob
 			{
 				PlanePackets = planePackets,

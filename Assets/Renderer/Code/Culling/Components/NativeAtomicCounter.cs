@@ -16,8 +16,6 @@ namespace Renderer
 		[NativeDisableUnsafePtrRestriction]
 		public int* CounterPerThread;
 
-		public bool IsCreated => CounterPerThread != null;
-
 		public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 		public const int ThreadCount = JobsUtility.MaxJobThreadCount;
 
