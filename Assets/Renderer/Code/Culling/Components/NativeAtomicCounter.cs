@@ -24,6 +24,11 @@ namespace Renderer
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get
 			{
+				// Verify that the caller has read permission on this data. 
+				// This is the race condition protection, without these checks the AtomicSafetyHandle is useless
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+#endif
 				var result = 0;
 
 				for (int i = 0; i < ThreadCount; i++)
