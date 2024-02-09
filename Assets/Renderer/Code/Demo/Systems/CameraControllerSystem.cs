@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Renderer.Systems
+namespace Renderer
 {
 	public partial class CameraControllerSystem : SystemBase
 	{
