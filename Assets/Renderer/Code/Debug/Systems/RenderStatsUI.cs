@@ -46,7 +46,10 @@ namespace Renderer
 			sb.AppendLine($"Render Verts: {renderStats.RenderVertsCount:N0}");
 			sb.AppendLine($"Render Tris: {renderStats.RenderTrisCount:N0}");
 			sb.AppendLine($"Render Batches: {renderStats.RenderBatchCount:N0}");
-			sb.AppendLine($"ECS Chunks: {renderStats.ChunkCount}");
+			sb.AppendLine($"ECS Chunks: {renderStats.ChunkCount:N0}");
+			sb.AppendLine($"Chunk Out: {renderStats.OutChunks:N0}");
+			sb.AppendLine($"Chunk In: {renderStats.InChunks:N0}");
+			sb.AppendLine($"Chunk Partial: {renderStats.PartialChunks:N0}");
 
 			Text.text = sb.ToString();
 		}
