@@ -12,6 +12,7 @@ namespace Renderer
 		public int RenderedObjectCount { get; private set; }
 		public int RenderedTris { get; private set; }
 		public int RenderedVerts { get; private set; }
+		public int RenderBatchCount { get; private set; }
 
 		private const int _maxDrawCountPerBatch = 1023;
 		private static Matrix4x4[] _matrixCache;
@@ -35,6 +36,7 @@ namespace Renderer
 			var renderedCount = 0;
 			var renderedTris = 0;
 			var renderedVerts = 0;
+			var renderBatchCount = 0;
 			var renderMeshDatabase = RenderMeshDatabase.Instance;
 
 			for (var renderMeshIndex = 0; renderMeshIndex < maxRenderMeshCount; renderMeshIndex++)
@@ -60,6 +62,7 @@ namespace Renderer
 					renderedCount += count;
 					renderedVerts += vertexCount * count;
 					renderedTris += trisCount * count;
+					renderBatchCount++;
 				}
 
 				var lastBatchDrawCount = drawCount % _maxDrawCountPerBatch;
@@ -73,11 +76,13 @@ namespace Renderer
 					renderedCount += count;
 					renderedVerts += vertexCount * count;
 					renderedTris += trisCount * count;
+					renderBatchCount++;
 				}
 
 				RenderedObjectCount = renderedCount;
 				RenderedVerts = renderedVerts;
 				RenderedTris = renderedTris;
+				RenderBatchCount = renderBatchCount;
 			}
 		}
 

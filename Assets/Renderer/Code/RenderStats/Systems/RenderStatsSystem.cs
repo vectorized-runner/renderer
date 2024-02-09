@@ -54,7 +54,7 @@ namespace Renderer
 			var averageFps = (int)math.floor(1000f / averageMs);
 
 			var query = GetEntityQuery(typeof(RenderMeshIndex));
-			var totalObjects = query.CalculateEntityCount();
+			var entityCount = query.CalculateEntityCount();
 
 			EntityManager.SetComponentData(SystemHandle, new RenderStats
 			{
@@ -64,7 +64,8 @@ namespace Renderer
 				CulledCount = World.GetExistingSystemManaged<ChunkCullingSystem>().CulledObjectCount,
 				RenderTrisCount = _renderingSystem.RenderedTris,
 				RenderVertsCount = _renderingSystem.RenderedVerts,
-				TotalObjectCount = totalObjects,
+				TotalObjectCount = entityCount,
+				RenderBatchCount = _renderingSystem.RenderBatchCount,
 			});
 
 			_lastUpdateTime = currentTime;

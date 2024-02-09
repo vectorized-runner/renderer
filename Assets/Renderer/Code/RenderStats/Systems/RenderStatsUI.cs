@@ -29,6 +29,7 @@ namespace Renderer
 			sb.AppendLine($"Render Verts: {renderStats.RenderVertsCount:N0}");
 			sb.AppendLine($"Total Tris: {renderStats.TotalTrisCount:N0}");
 			sb.AppendLine($"Render Tris: {renderStats.RenderTrisCount:N0}");
+			sb.AppendLine($"Render Batches: {renderStats.RenderBatchCount:N0}");
 
 			Text.text = sb.ToString();
 		}

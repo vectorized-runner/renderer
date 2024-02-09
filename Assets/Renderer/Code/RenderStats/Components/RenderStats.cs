@@ -13,5 +13,6 @@ namespace Renderer
 		public int RenderTrisCount;
 		public int TotalVertsCount;
 		public int TotalTrisCount;
+		public int RenderBatchCount;
 	}
 }
