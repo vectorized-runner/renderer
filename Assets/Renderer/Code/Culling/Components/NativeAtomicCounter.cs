@@ -10,6 +10,7 @@ namespace Renderer
 {
 	[StructLayout(LayoutKind.Sequential)]
 	[NativeContainer]
+	[NativeContainerIsAtomicWriteOnly]
 	public unsafe struct NativeAtomicCounter : IDisposable
 	{
 		[NoAlias]
