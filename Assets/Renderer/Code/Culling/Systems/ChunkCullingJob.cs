@@ -29,10 +29,10 @@ namespace Renderer
 			var chunkWorldRenderBounds = chunk.GetChunkComponentData(ref ChunkWorldRenderBoundsHandle);
 			var chunkAabb = chunkWorldRenderBounds.AABB;
 			var chunkIntersection = FrustumPlanes.Intersect2(PlanePackets, chunkAabb);
-			var frustumMarker = new ProfilerMarker("Frustum");
-			var interlockedMarker = new ProfilerMarker("Interlocked");
-			var setBitsMarker = new ProfilerMarker("SetBits");
-			var partialCullMarker = new ProfilerMarker("PartialCull");
+			// var frustumMarker = new ProfilerMarker("Frustum");
+			// var interlockedMarker = new ProfilerMarker("Interlocked");
+			// var setBitsMarker = new ProfilerMarker("SetBits");
+			// var partialCullMarker = new ProfilerMarker("PartialCull");
 
 			switch (chunkIntersection)
 			{
@@ -55,7 +55,7 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.Partial:
 				{
 					// Check Each Entity individually
-					partialCullMarker.Begin();
+					// partialCullMarker.Begin();
 					{
 						var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
 						var cullResult = new ChunkCullResult();
@@ -65,17 +65,17 @@ namespace Renderer
 						{
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
 
-							frustumMarker.Begin();
+							// frustumMarker.Begin();
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
-							frustumMarker.End();
+							// frustumMarker.End();
 
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
 
-							interlockedMarker.Begin();
+							// interlockedMarker.Begin();
 							CulledObjectCount.Increment(isVisible ? 0 : 1);
-							interlockedMarker.End();
+							// interlockedMarker.End();
 
-							setBitsMarker.Begin();
+							// setBitsMarker.Begin();
 
 							// TODO: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
 							var lower = entityIndex < 64;
@@ -85,12 +85,12 @@ namespace Renderer
 							else
 								cullResult.Upper.SetBits(64 - entityIndex, isVisible);
 
-							setBitsMarker.End();
+							// setBitsMarker.End();
 						}
 
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					}
-					partialCullMarker.End();
+					//partialCullMarker.End();
 
 					break;
 				}
