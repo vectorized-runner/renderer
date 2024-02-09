@@ -1,5 +1,6 @@
 using System;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using UnityEngine;
 
@@ -21,23 +22,18 @@ namespace Renderer
 			public override void Bake(Spawner authoring)
 			{
 				var entity = GetEntity(TransformUsageFlags.None);
-				var runtimeSpawnEntities = new FixedList4096Bytes<RuntimeSpawnEntity>();
 				var spawnObjects = authoring.SpawnObjects;
 				var spawnObjectCount = spawnObjects.Length;
-
-				if (runtimeSpawnEntities.Capacity < spawnObjectCount)
-					throw new Exception("Insufficient FixedList capacity.");
+				// TODO: Dispose this Hashmap to not leak memory
+				var hashMap = new UnsafeHashMap<FixedString64Bytes, Entity>(32, Allocator.Persistent);
 
 				for (int i = 0; i < spawnObjectCount; i++)
 				{
-					runtimeSpawnEntities.Add(new RuntimeSpawnEntity
-					{
-						Entity = GetEntity(spawnObjects[i].Prefab, TransformUsageFlags.None),
-						Label = new FixedString64Bytes(spawnObjects[i].Label)
-					});
+					hashMap.Add(new FixedString64Bytes(spawnObjects[i].Label),
+						GetEntity(spawnObjects[i].Prefab, TransformUsageFlags.None));
 				}
 
-				AddComponent(entity, new SpawnerData { RuntimeSpawnEntities = runtimeSpawnEntities });
+				AddComponent(entity, new SpawnerData { PrefabByLabel = hashMap });
 			}
 		}
 	}
