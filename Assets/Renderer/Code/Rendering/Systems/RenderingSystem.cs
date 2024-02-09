@@ -32,7 +32,7 @@ namespace Renderer
 			_cullingSystem.FinalJobHandle.Complete();
 
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
-			var maxRenderMeshCount = RenderConstants.MaxSupportedUniqueMeshCount;
+			var maxRenderMeshCount = RenderSettings.MaxSupportedUniqueMeshCount;
 			var renderedCount = 0;
 			var renderedTris = 0;
 			var renderedVerts = 0;
