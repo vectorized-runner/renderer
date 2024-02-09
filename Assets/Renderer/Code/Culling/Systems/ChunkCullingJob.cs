@@ -15,7 +15,7 @@ namespace Renderer
 		[ReadOnly] public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
 		[ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
-		public AtomicCounter CulledObjectCount;
+		public NativeAtomicCounter CulledObjectCount;
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
@@ -36,7 +36,7 @@ namespace Renderer
 					// No Entity is visible, don't need to check Entity AABB's.
 					var cullResult = new ChunkCullResult { Lower = new BitField64(0), Upper = new BitField64(0) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
-					CulledObjectCount.Add(128);
+					CulledObjectCount.Increment(128);
 					break;
 				}
 				case FrustumPlanes.IntersectResult.In:
@@ -66,7 +66,7 @@ namespace Renderer
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
 							
 							interlockedMarker.Begin();
-							CulledObjectCount.Add(isVisible ? 0 : 1);
+							CulledObjectCount.Increment(isVisible ? 0 : 1);
 							interlockedMarker.End();
 
 							setBitsMarker.Begin();

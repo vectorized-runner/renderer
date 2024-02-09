@@ -13,9 +13,9 @@ namespace Renderer
 		public JobHandle FinalJobHandle { get; private set; }
 		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
 
-		public int CulledObjectCount => _culledObjectCounter.Value;
+		public int CulledObjectCount => _culledObjectCounter.Count;
 
-		private AtomicCounter _culledObjectCounter;
+		private NativeAtomicCounter _culledObjectCounter;
 		private EntityQuery _chunkCullingQuery;
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
 
@@ -67,7 +67,7 @@ namespace Renderer
 			// TODO: Use the async version of this (?)
 			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 			_culledObjectCounter.Dispose();
-			_culledObjectCounter = AtomicCounter.Create();
+			_culledObjectCounter = NativeAtomicCounter.Create();
 
 			var cullHandle = new ChunkCullingJob
 			{
