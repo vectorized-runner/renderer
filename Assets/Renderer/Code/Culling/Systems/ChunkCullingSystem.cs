@@ -14,7 +14,13 @@ namespace Renderer
 		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
 
 		public int CulledObjectCount => _culledObjectCounter.Count;
+		public int FrustumInCount => _frustumInCount.Count;
+		public int FrustumOutCount => _frustumOutCount.Count;
+		public int FrustumPartialCount => _frustumPartialCount.Count;
 
+		private NativeAtomicCounter _frustumInCount;
+		private NativeAtomicCounter _frustumOutCount;
+		private NativeAtomicCounter _frustumPartialCount;
 		private NativeAtomicCounter _culledObjectCounter;
 		private EntityQuery _chunkCullingQuery;
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
@@ -39,6 +45,9 @@ namespace Renderer
 			ComponentType.ChunkComponentReadOnly(typeof(ChunkWorldRenderBounds));
 			
 			_culledObjectCounter = new NativeAtomicCounter(Allocator.Persistent);
+			_frustumInCount = new NativeAtomicCounter(Allocator.Persistent);
+			_frustumOutCount = new NativeAtomicCounter(Allocator.Persistent);
+			_frustumPartialCount = new NativeAtomicCounter(Allocator.Persistent);
 		}
 
 		protected override void OnDestroy()
@@ -51,6 +60,9 @@ namespace Renderer
 
 			MatricesByRenderMeshIndex.Dispose();
 			_culledObjectCounter.Dispose();
+			_frustumInCount.Dispose();
+			_frustumPartialCount.Dispose();
+			_frustumOutCount.Dispose();
 		}
 
 		// TODO: What happens if new objects are created when these jobs are running [?]
@@ -69,6 +81,9 @@ namespace Renderer
 			// TODO: Use the async version of this (?)
 			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 			_culledObjectCounter.Count = 0;
+			_frustumPartialCount.Count = 0;
+			_frustumOutCount.Count = 0;
+			_frustumInCount.Count = 0;
 			
 			var cullHandle = new ChunkCullingJob
 			{
@@ -77,6 +92,9 @@ namespace Renderer
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				CulledObjectCount = _culledObjectCounter,
+				FrustumOutCount = _frustumOutCount,
+				FrustumInCount = _frustumInCount,
+				FrustumPartialCount = _frustumPartialCount
 			}.ScheduleParallel(_chunkCullingQuery, Dependency);
 
 			var collectJob = new CollectRenderMatricesJob

@@ -21,6 +21,9 @@ namespace Renderer
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
 		public NativeAtomicCounter.ParallelWriter CulledObjectCount;
+		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
+		public NativeAtomicCounter.ParallelWriter FrustumInCount;
+		public NativeAtomicCounter.ParallelWriter FrustumPartialCount;
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
@@ -42,6 +45,7 @@ namespace Renderer
 					var cullResult = new ChunkCullResult { Lower = new BitField64(0), Upper = new BitField64(0) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					CulledObjectCount.Increment(chunk.Count);
+					FrustumOutCount.Increment();
 					break;
 				}
 				case FrustumPlanes.IntersectResult.In:
@@ -50,10 +54,14 @@ namespace Renderer
 					var cullResult = new ChunkCullResult
 						{ Lower = new BitField64(ulong.MaxValue), Upper = new BitField64(ulong.MaxValue) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
+
+					FrustumInCount.Increment();
 					break;
 				}
 				case FrustumPlanes.IntersectResult.Partial:
 				{
+					FrustumPartialCount.Increment();
+
 					// Check Each Entity individually
 					// partialCullMarker.Begin();
 					{
