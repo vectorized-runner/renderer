@@ -77,27 +77,22 @@ namespace Renderer
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-			
+
 			CounterPerThread[ThreadIndex * IntsPerCacheLine] += amount;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public NativeAtomicCounter(Allocator allocator)
 		{
-			var cacheLineSize = JobsUtility.CacheLineSize;
-			var memory = (int*)UnsafeUtility.Malloc(cacheLineSize * ThreadCount, cacheLineSize, allocator);
-
-			for (int i = 0; i < ThreadCount; i++)
-			{
-				memory[i * IntsPerCacheLine] = 0;
-			}
+			CounterPerThread = (int*)UnsafeUtility.Malloc(JobsUtility.CacheLineSize * ThreadCount,
+				JobsUtility.CacheLineSize, allocator);
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0, allocator);
 #endif
 			_allocator = allocator;
-			CounterPerThread = memory;
 			ThreadIndex = 0;
+			Count = 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
