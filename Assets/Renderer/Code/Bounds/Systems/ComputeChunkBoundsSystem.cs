@@ -14,8 +14,9 @@ namespace Renderer
 				ComponentType.ChunkComponent<ChunkWorldRenderBounds>(),
 				ComponentType.ReadOnly<WorldRenderBounds>());
 
+			// TODO: Change filtering doesn't work when spawning Entities dynamically (through SpawnerSystem) -- I couldn't figure out how to fix
 			// We only need to recalculate ChunkWorldRenderBounds if any of the 'WorldRenderBounds' of Entities is changed
-			_changedChunksQuery.SetChangedVersionFilter(ComponentType.ReadOnly<WorldRenderBounds>());
+			// _changedChunksQuery.SetChangedVersionFilter(ComponentType.ReadOnly<WorldRenderBounds>());
 		}
 
 		protected override void OnUpdate()
