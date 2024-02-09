@@ -69,6 +69,11 @@ namespace Renderer
 			Debug.DrawLine(farClipCorners[1], farClipCorners[2], color);
 			Debug.DrawLine(farClipCorners[2], farClipCorners[3], color);
 			Debug.DrawLine(farClipCorners[3], farClipCorners[0], color);
+			
+			Debug.DrawLine(nearClipCorners[0], farClipCorners[0], color);
+			Debug.DrawLine(nearClipCorners[1], farClipCorners[1], color);
+			Debug.DrawLine(nearClipCorners[2], farClipCorners[2], color);
+			Debug.DrawLine(nearClipCorners[3], farClipCorners[3], color);
 		}
 
 		private void DebugDrawAABB(AABB aabb, Color color)
