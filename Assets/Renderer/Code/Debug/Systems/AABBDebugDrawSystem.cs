@@ -38,24 +38,37 @@ namespace Renderer
 				DebugDrawAABB(aabb, Color.green);
 			}
 			
-			DebugDrawCameraFrustum();
+			DebugDrawCameraFrustum(Color.yellow);
 
 			// Debug.Log($"ObjectBounds: {objectAABBs.Length} ChunkBounds: {chunkAABBs.Length}");
 		}
 
-		public void DebugDrawCameraFrustum()
+		public void DebugDrawCameraFrustum(Color color)
 		{
 			var cam = RenderSettings.RenderCamera;
-			var corners = new Vector3[4];
-			cam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), cam.farClipPlane,
-				Camera.MonoOrStereoscopicEye.Mono,
-				corners);
+			var farClipCorners = new Vector3[4];
+			var nearClipCorners = new Vector3[4];
+			cam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), cam.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, farClipCorners);
+			cam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), cam.nearClipPlane, Camera.MonoOrStereoscopicEye.Mono, nearClipCorners);
 			
-			for (var i = 0; i < corners.Length; i++)
+			for (var i = 0; i < farClipCorners.Length; i++)
 			{
-				var worldSpaceCorner = cam.transform.TransformVector(corners[i]);
-				Debug.DrawRay(cam.transform.position, worldSpaceCorner, Color.blue);
+				farClipCorners[i] = cam.transform.TransformPoint(farClipCorners[i]);
 			}
+			for (var i = 0; i < nearClipCorners.Length; i++)
+			{
+				nearClipCorners[i] = cam.transform.TransformPoint(nearClipCorners[i]);
+			}
+			
+			Debug.DrawLine(nearClipCorners[0], nearClipCorners[1], color);
+			Debug.DrawLine(nearClipCorners[1], nearClipCorners[2], color);
+			Debug.DrawLine(nearClipCorners[2], nearClipCorners[3], color);
+			Debug.DrawLine(nearClipCorners[3], nearClipCorners[0], color);
+			
+			Debug.DrawLine(farClipCorners[0], farClipCorners[1], color);
+			Debug.DrawLine(farClipCorners[1], farClipCorners[2], color);
+			Debug.DrawLine(farClipCorners[2], farClipCorners[3], color);
+			Debug.DrawLine(farClipCorners[3], farClipCorners[0], color);
 		}
 
 		private void DebugDrawAABB(AABB aabb, Color color)
