@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace Renderer
 {
@@ -50,7 +51,7 @@ namespace Renderer
 			for (var i = 0; i < _collectedFrames; i++) totalMs += _averageMsList[i];
 
 			var averageMs = totalMs / _collectedFrames;
-			var averageFps = 1000f / averageMs;
+			var averageFps = (int)math.floor(1000f / averageMs);
 
 			var query = GetEntityQuery(typeof(RenderMeshIndex));
 			var totalObjects = query.CalculateEntityCount();

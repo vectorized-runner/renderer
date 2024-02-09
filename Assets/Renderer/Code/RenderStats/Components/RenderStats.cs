@@ -4,7 +4,7 @@ namespace Renderer
 {
 	public struct RenderStats : IComponentData
 	{
-		public float AverageFps;
+		public int AverageFps;
 		public float AverageMs;
 		public int RenderedCount;
 		public int CulledCount;
