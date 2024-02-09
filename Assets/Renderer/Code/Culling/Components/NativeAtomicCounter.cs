@@ -59,6 +59,10 @@ namespace Renderer
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Increment(int amount = 1)
 		{
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+#endif
+			
 			CounterPerThread[ThreadIndex * IntsPerCacheLine] += amount;
 		}
 
