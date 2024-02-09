@@ -14,10 +14,14 @@ namespace Renderer
 		[NativeDisableUnsafePtrRestriction]
 		public int* CounterPerThread;
 
+		public bool IsCreated => CounterPerThread != null;
+
 		public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 		public const int ThreadCount = JobsUtility.MaxJobThreadCount;
 
 		[NativeSetThreadIndex] public int ThreadIndex;
+
+		private Allocator _allocator;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle m_Safety;
@@ -76,41 +80,34 @@ namespace Renderer
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static NativeAtomicCounter Create()
+		public NativeAtomicCounter(Allocator allocator)
 		{
 			var cacheLineSize = JobsUtility.CacheLineSize;
-			var memory = (int*)UnsafeUtility.Malloc(cacheLineSize * ThreadCount, cacheLineSize, Allocator.Persistent);
+			var memory = (int*)UnsafeUtility.Malloc(cacheLineSize * ThreadCount, cacheLineSize, allocator);
 
 			for (int i = 0; i < ThreadCount; i++)
 			{
 				memory[i * IntsPerCacheLine] = 0;
 			}
 
-			return new NativeAtomicCounter(memory);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public NativeAtomicCounter(int* counterPerThread)
-		{
-			CounterPerThread = counterPerThread;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0, allocator);
 #endif
+			_allocator = allocator;
+			CounterPerThread = memory;
 			ThreadIndex = 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Dispose()
 		{
-			if (CounterPerThread != null)
-			{
-				UnsafeUtility.Free(CounterPerThread, Allocator.Persistent);
-				CounterPerThread = null;
-			}
 			// Let the dispose sentinel know that the data has been freed so it does not report any memory leaks
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			DisposeSentinel.Dispose(ref m_Safety, ref m_DisposeSentinel);
 #endif
+
+			UnsafeUtility.Free(CounterPerThread, Allocator.Persistent);
+			CounterPerThread = null;
 		}
 	}
 }
