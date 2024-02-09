@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(InitializationSystemGroup))]
 	public partial class CameraControllerSystem : SystemBase
 	{
 		private float2 _lastMousePosition;
