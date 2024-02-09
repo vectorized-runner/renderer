@@ -20,6 +20,7 @@ namespace Renderer
 		[ReadOnly]
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
+		// TODO: Make these counters debug mode only behind define
 		public NativeAtomicCounter.ParallelWriter CulledObjectCount;
 		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
 		public NativeAtomicCounter.ParallelWriter FrustumInCount;
