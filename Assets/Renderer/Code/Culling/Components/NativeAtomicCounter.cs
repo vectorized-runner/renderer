@@ -38,6 +38,22 @@ namespace Renderer
 
 				return result;
 			}
+			set
+			{
+				// Verify that the caller has write permission on this data. 
+				// This is the race condition protection, without these checks the AtomicSafetyHandle is useless
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+#endif
+				// Clear all locally cached counts, 
+				// set the first one to the required value
+				for (int i = 1; i < JobsUtility.MaxJobThreadCount; ++i)
+				{
+					CounterPerThread[IntsPerCacheLine * i] = 0;
+				}
+
+				*CounterPerThread = value;
+			}
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
