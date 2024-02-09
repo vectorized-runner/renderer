@@ -25,9 +25,7 @@ namespace Renderer
 			sb.AppendLine($"Render Objects: {renderStats.RenderedCount:N0}");
 			sb.AppendLine($"Culled Objects: {renderStats.CulledCount:N0}");
 			sb.AppendLine($"Culled Percentage: {culledPercentage}%");
-			sb.AppendLine($"Total Verts: {renderStats.TotalVertsCount:N0}");
 			sb.AppendLine($"Render Verts: {renderStats.RenderVertsCount:N0}");
-			sb.AppendLine($"Total Tris: {renderStats.TotalTrisCount:N0}");
 			sb.AppendLine($"Render Tris: {renderStats.RenderTrisCount:N0}");
 			sb.AppendLine($"Render Batches: {renderStats.RenderBatchCount:N0}");
 			sb.AppendLine($"ECS Chunks: {renderStats.ChunkCount}");
