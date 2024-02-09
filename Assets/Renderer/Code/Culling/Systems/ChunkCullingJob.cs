@@ -12,7 +12,7 @@ namespace Renderer
 	{
 		[ReadOnly] public ComponentTypeHandle<WorldRenderBounds> WorldRenderBoundsHandle;
 		[ReadOnly] public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
-		[DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
+		[ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
 		public AtomicCounter CulledObjectCount;
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;

@@ -26,13 +26,15 @@ namespace Renderer
 		protected override void OnDestroy()
 		{
 			_nativeFrustumPlanes.Dispose();
-			PlanePackets.Dispose();
+			PlanePackets.DisposeIfCreated();
 		}
 
 		protected override void OnUpdate()
 		{
 			GeometryUtility.CalculateFrustumPlanes(_camera, _frustumPlanes);
 			_nativeFrustumPlanes.CopyFrom(_frustumPlanes);
+			
+			PlanePackets.DisposeIfCreated();
 			PlanePackets = FrustumPlanes.BuildSOAPlanePackets(_nativeFrustumPlanes, Allocator.TempJob);
 		}
 

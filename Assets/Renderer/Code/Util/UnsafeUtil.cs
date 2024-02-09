@@ -24,5 +24,14 @@ namespace Renderer
 
 			return ptr;
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void DisposeIfCreated<T>(this NativeArray<T> array) where T : unmanaged
+		{
+			if (array.IsCreated)
+			{
+				array.Dispose();
+			}
+		}
 	}
 }
