@@ -61,8 +61,8 @@ namespace Renderer
 				AverageFps = averageFps,
 				RenderedCount = _renderingSystem.RenderedObjectCount,
 				CulledCount = World.GetExistingSystemManaged<ChunkCullingSystem>().CulledObjectCount,
-				TrisCount = _renderingSystem.RenderedTris,
-				VertexCount = _renderingSystem.RenderedVerts,
+				RenderTrisCount = _renderingSystem.RenderedTris,
+				RenderVertsCount = _renderingSystem.RenderedVerts,
 				TotalObjectCount = totalObjects,
 			});
 

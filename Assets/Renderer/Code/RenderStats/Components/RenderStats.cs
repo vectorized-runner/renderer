@@ -9,7 +9,9 @@ namespace Renderer
 		public int RenderedCount;
 		public int CulledCount;
 		public int TotalObjectCount;
-		public int VertexCount;
-		public int TrisCount;
+		public int RenderVertsCount;
+		public int RenderTrisCount;
+		public int TotalVertsCount;
+		public int TotalTrisCount;
 	}
 }
