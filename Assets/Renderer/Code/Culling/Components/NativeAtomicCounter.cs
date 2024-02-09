@@ -103,7 +103,7 @@ namespace Renderer
 			DisposeSentinel.Dispose(ref m_Safety, ref m_DisposeSentinel);
 #endif
 
-			UnsafeUtility.Free(CounterPerThread, Allocator.Persistent);
+			UnsafeUtility.Free(CounterPerThread, _allocator);
 			CounterPerThread = null;
 		}
 	}
