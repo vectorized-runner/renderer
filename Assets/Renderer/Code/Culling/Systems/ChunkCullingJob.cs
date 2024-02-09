@@ -11,9 +11,14 @@ namespace Renderer
 	[BurstCompile]
 	public struct ChunkCullingJob : IJobChunk
 	{
-		[ReadOnly] public ComponentTypeHandle<WorldRenderBounds> WorldRenderBoundsHandle;
-		[ReadOnly] public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
-		[ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
+		[ReadOnly]
+		public ComponentTypeHandle<WorldRenderBounds> WorldRenderBoundsHandle;
+
+		[ReadOnly]
+		public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
+
+		[ReadOnly]
+		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
 		public NativeAtomicCounter CulledObjectCount;
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;

@@ -10,10 +10,18 @@ namespace Renderer
 	[BurstCompile]
 	public struct CollectRenderMatricesJob : IJob
 	{
-		[DeallocateOnJobCompletion] [ReadOnly] public NativeArray<ArchetypeChunk> Chunks;
-		[ReadOnly] public ComponentTypeHandle<ChunkCullResult> CullResultHandle;
-		[ReadOnly] public ComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
-		[ReadOnly] public ComponentTypeHandle<LocalToWorld> LocalToWorldHandle;
+		[DeallocateOnJobCompletion]
+		[ReadOnly]
+		public NativeArray<ArchetypeChunk> Chunks;
+
+		[ReadOnly]
+		public ComponentTypeHandle<ChunkCullResult> CullResultHandle;
+
+		[ReadOnly]
+		public ComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
+
+		[ReadOnly]
+		public ComponentTypeHandle<LocalToWorld> LocalToWorldHandle;
 
 		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
 
