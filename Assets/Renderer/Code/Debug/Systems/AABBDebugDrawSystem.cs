@@ -37,8 +37,25 @@ namespace Renderer
 			{
 				DebugDrawAABB(aabb, Color.green);
 			}
+			
+			DebugDrawCameraFrustum();
 
 			// Debug.Log($"ObjectBounds: {objectAABBs.Length} ChunkBounds: {chunkAABBs.Length}");
+		}
+
+		public void DebugDrawCameraFrustum()
+		{
+			var cam = RenderSettings.RenderCamera;
+			var corners = new Vector3[4];
+			cam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), cam.farClipPlane,
+				Camera.MonoOrStereoscopicEye.Mono,
+				corners);
+			
+			for (var i = 0; i < corners.Length; i++)
+			{
+				var worldSpaceCorner = cam.transform.TransformVector(corners[i]);
+				Debug.DrawRay(cam.transform.position, worldSpaceCorner, Color.blue);
+			}
 		}
 
 		private void DebugDrawAABB(AABB aabb, Color color)

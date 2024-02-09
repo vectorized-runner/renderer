@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Renderer
 {
 	public static class RenderSettings
@@ -7,5 +9,6 @@ namespace Renderer
 		public const int MaxSupportedUniqueMeshCount = ushort.MaxValue;
 
 		public static bool DebugMode;
+		public static Camera RenderCamera;
 	}
 }

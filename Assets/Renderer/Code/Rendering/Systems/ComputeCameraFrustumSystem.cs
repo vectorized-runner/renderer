@@ -12,13 +12,12 @@ namespace Renderer
 	{
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
-		private Camera _camera;
 		private Plane[] _frustumPlanes;
 		private NativeArray<Plane> _nativeFrustumPlanes;
-
+		
 		protected override void OnCreate()
 		{
-			_camera = Object.FindObjectOfType<Camera>();
+			RenderSettings.RenderCamera = Object.FindObjectOfType<Camera>();
 			_frustumPlanes = new Plane[6];
 			_nativeFrustumPlanes = new NativeArray<Plane>(6, Allocator.Persistent);
 		}
@@ -31,24 +30,11 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			GeometryUtility.CalculateFrustumPlanes(_camera, _frustumPlanes);
+			GeometryUtility.CalculateFrustumPlanes(RenderSettings.RenderCamera, _frustumPlanes);
 			_nativeFrustumPlanes.CopyFrom(_frustumPlanes);
 			
 			PlanePackets.DisposeIfCreated();
 			PlanePackets = FrustumPlanes.BuildSOAPlanePackets(_nativeFrustumPlanes, Allocator.TempJob);
-		}
-
-		public void DebugDrawCameraFrustum()
-		{
-			var corners = new Vector3[4];
-			_camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), _camera.farClipPlane,
-				Camera.MonoOrStereoscopicEye.Mono,
-				corners);
-			for (var i = 0; i < corners.Length; i++)
-			{
-				var worldSpaceCorner = _camera.transform.TransformVector(corners[i]);
-				Debug.DrawRay(_camera.transform.position, worldSpaceCorner, Color.blue);
-			}
 		}
 	}
 }
