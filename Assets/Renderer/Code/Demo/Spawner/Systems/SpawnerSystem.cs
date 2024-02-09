@@ -16,9 +16,9 @@ namespace Renderer
 			{
 				if (Input.GetKeyDown(KeyCode.Space))
 				{
-					var spawnTrigger = SystemAPI.GetSingletonEntity<SpawnerData>();
-					var buffer = EntityManager.GetBuffer<SpawnTriggerBuffer>(spawnTrigger);
-					buffer.Add(new SpawnTriggerBuffer
+					var spawnTrigger = SystemAPI.GetSingletonEntity<SpawnEntityElement>();
+					var buffer = EntityManager.GetBuffer<SpawnTriggerElement>(spawnTrigger);
+					buffer.Add(new SpawnTriggerElement
 					{
 						Value = new SpawnTrigger
 						{
@@ -31,7 +31,8 @@ namespace Renderer
 
 			var seed = (uint)Stopwatch.GetTimestamp();
 
-			Entities.ForEach((ref DynamicBuffer<SpawnTriggerBuffer> spawnTriggerBuffer, in SpawnerData spawnerData) =>
+			Entities.ForEach((ref DynamicBuffer<SpawnTriggerElement> spawnTriggerBuffer,
+					ref DynamicBuffer<SpawnEntityElement> spawnEntities) =>
 				{
 					var random = new Random(seed);
 
@@ -40,8 +41,7 @@ namespace Renderer
 						var trigger = spawnTriggerBuffer[triggerIndex].Value;
 						var amount = trigger.Amount;
 						var label = trigger.Label;
-						ref var entityArray = ref spawnerData.SpawnEntityArrayRef.Value.Value;
-						var prefab = FindEntity(ref entityArray, label);
+						var prefab = FindEntity(ref spawnEntities, label);
 						var spawnedEntities = EntityManager.Instantiate(prefab, amount, Allocator.Temp);
 
 						var center = float3.zero;
@@ -65,13 +65,13 @@ namespace Renderer
 				.Run();
 		}
 
-		private Entity FindEntity(ref BlobArray<SpawnEntity> entities, FixedString64Bytes label)
+		private Entity FindEntity(ref DynamicBuffer<SpawnEntityElement> entities, FixedString64Bytes label)
 		{
 			for (int i = 0; i < entities.Length; i++)
 			{
-				if (entities[i].Label == label)
+				if (entities[i].Value.Label == label)
 				{
-					return entities[i].Entity;
+					return entities[i].Value.Entity;
 				}
 			}
 

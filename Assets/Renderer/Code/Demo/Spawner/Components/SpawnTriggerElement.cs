@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace Renderer
 {
-	public struct SpawnTriggerBuffer : IBufferElementData
+	public struct SpawnTriggerElement : IBufferElementData
 	{
 		public SpawnTrigger Value;
 	}

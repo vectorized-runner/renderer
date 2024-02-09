@@ -23,29 +23,23 @@ namespace Renderer
 			{
 				var entity = GetEntity(TransformUsageFlags.None);
 				var spawnObjects = authoring.SpawnObjects;
-				var builder = new BlobBuilder(Allocator.Temp);
-				ref var spawnEntityArray = ref builder.ConstructRoot<SpawnEntityArray>();
-
 				var count = spawnObjects.Length;
-				var arrayBuilder = builder.Allocate(
-					ref spawnEntityArray.Value,
-					count
-				);
+
+				var buffer = AddBuffer<SpawnEntityElement>(entity);
 				
 				for (int i = 0; i < count; i++)
 				{
-					arrayBuilder[i] = new SpawnEntity
+					buffer.Add(new SpawnEntityElement
 					{
-						Entity = GetEntity(spawnObjects[i].Prefab, TransformUsageFlags.None),
-						Label = spawnObjects[i].Label,
-					};
+						Value = new SpawnEntity
+						{
+							Entity = GetEntity(spawnObjects[i].Prefab, TransformUsageFlags.None),
+							Label = spawnObjects[i].Label,
+						}
+					});
 				}
 
-				var spawnEntityArrayRef = builder.CreateBlobAssetReference<SpawnEntityArray>(Allocator.Persistent);
-				builder.Dispose();
-
-				AddComponent(entity, new SpawnerData { SpawnEntityArrayRef = spawnEntityArrayRef });
-				AddBuffer<SpawnTriggerBuffer>(entity);
+				AddBuffer<SpawnTriggerElement>(entity);
 			}
 		}
 	}
