@@ -30,6 +30,7 @@ namespace Renderer
 			sb.AppendLine($"Total Tris: {renderStats.TotalTrisCount:N0}");
 			sb.AppendLine($"Render Tris: {renderStats.RenderTrisCount:N0}");
 			sb.AppendLine($"Render Batches: {renderStats.RenderBatchCount:N0}");
+			sb.AppendLine($"ECS Chunks: {renderStats.ChunkCount}");
 
 			Text.text = sb.ToString();
 		}

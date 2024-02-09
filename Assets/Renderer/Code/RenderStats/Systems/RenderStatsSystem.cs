@@ -55,6 +55,7 @@ namespace Renderer
 
 			var query = GetEntityQuery(typeof(RenderMeshIndex));
 			var entityCount = query.CalculateEntityCount();
+			var chunkCount = query.CalculateChunkCount();
 
 			EntityManager.SetComponentData(SystemHandle, new RenderStats
 			{
@@ -66,6 +67,7 @@ namespace Renderer
 				RenderVertsCount = _renderingSystem.RenderedVerts,
 				TotalObjectCount = entityCount,
 				RenderBatchCount = _renderingSystem.RenderBatchCount,
+				ChunkCount = chunkCount
 			});
 
 			_lastUpdateTime = currentTime;
