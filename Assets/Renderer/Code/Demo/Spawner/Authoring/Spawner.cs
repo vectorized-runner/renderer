@@ -42,8 +42,6 @@ namespace Renderer
 						}
 					});
 				}
-
-				AddBuffer<SpawnTriggerElement>(entity);
 			}
 		}
 	}
