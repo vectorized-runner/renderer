@@ -19,6 +19,15 @@ namespace Renderer
 
 		[NativeSetThreadIndex] public int ThreadIndex;
 
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+		AtomicSafetyHandle m_Safety;
+
+		// The dispose sentinel tracks memory leaks. It is a managed type so it is cleared to null when scheduling a job
+		// The job cannot dispose the container, and no one else can dispose it until the job has run, so it is ok to not pass it along
+		// This attribute is required, without it this NativeContainer cannot be passed to a job; since that would give the job access to a managed object
+		[NativeSetClassTypeToNullOnSchedule] DisposeSentinel m_DisposeSentinel;
+#endif
+
 		public int Count
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -84,6 +93,9 @@ namespace Renderer
 		public NativeAtomicCounter(int* counterPerThread)
 		{
 			CounterPerThread = counterPerThread;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0, allocator);
+#endif
 			ThreadIndex = 0;
 		}
 
@@ -95,6 +107,10 @@ namespace Renderer
 				UnsafeUtility.Free(CounterPerThread, Allocator.Persistent);
 				CounterPerThread = null;
 			}
+			// Let the dispose sentinel know that the data has been freed so it does not report any memory leaks
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+			DisposeSentinel.Dispose(ref m_Safety, ref m_DisposeSentinel);
+#endif
 		}
 	}
 }
