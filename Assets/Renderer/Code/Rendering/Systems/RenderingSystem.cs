@@ -35,6 +35,7 @@ namespace Renderer
 			var renderedCount = 0;
 			var renderedTris = 0;
 			var renderedVerts = 0;
+			var renderMeshDatabase = RenderMeshDatabase.Instance;
 
 			for (var renderMeshIndex = 0; renderMeshIndex < maxRenderMeshCount; renderMeshIndex++)
 			{
@@ -43,7 +44,7 @@ namespace Renderer
 				if (drawCount == 0)
 					continue;
 
-				var renderMesh = RenderMeshDatabase.Instance.GetRenderMesh(new RenderMeshIndex(renderMeshIndex));
+				var renderMesh = renderMeshDatabase.GetRenderMesh(new RenderMeshIndex(renderMeshIndex));
 				var vertexCount = renderMesh.Mesh.vertexCount;
 				var trisCount = renderMesh.Mesh.triangles.Length;
 				var fullBatchCount = drawCount / _maxDrawCountPerBatch;
