@@ -7,10 +7,18 @@ namespace Renderer
 	[UpdateBefore(typeof(ComputeWorldMatrixSystem))]
 	public partial class MakeStaticSystem : SystemBase
 	{
-		private EntityQuery _query;
+		private EntityQuery _makeStaticQuery;
+
+		protected override void OnCreate()
+		{
+			_makeStaticQuery = GetEntityQuery(typeof(MakeStatic));
+		}
 
 		protected override void OnUpdate()
 		{
+			if (_makeStaticQuery.CalculateEntityCount() == 0)
+				return;
+			
 			Entities.WithAll<MakeStatic>().ForEach((ref WorldRenderBounds worldRenderBounds,
 					ref LocalToWorld localToWorld, in Position position, in Rotation rotation, in Scale scale,
 					in RenderBounds renderBounds) =>
@@ -18,14 +26,14 @@ namespace Renderer
 					localToWorld = new LocalToWorld
 						{ Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
 					worldRenderBounds = ComputeWorldRenderBoundsSystem.CalculateWorldBounds(renderBounds, localToWorld);
-				})
-				.WithStoreEntityQueryInField(ref _query).Run();
+				}).Run();
 
-			EntityManager.RemoveComponent<MakeStatic>(_query);
-			EntityManager.RemoveComponent<Position>(_query);
-			EntityManager.RemoveComponent<Rotation>(_query);
-			EntityManager.RemoveComponent<Scale>(_query);		
-			EntityManager.RemoveComponent<RenderBounds>(_query);
+			EntityManager.RemoveComponent<Position>(_makeStaticQuery);
+			EntityManager.RemoveComponent<Rotation>(_makeStaticQuery);
+			EntityManager.RemoveComponent<Scale>(_makeStaticQuery);		
+			EntityManager.RemoveComponent<RenderBounds>(_makeStaticQuery);
+			// Notice this has to be done last
+			EntityManager.RemoveComponent<MakeStatic>(_makeStaticQuery);
 		}
 	}
 }
