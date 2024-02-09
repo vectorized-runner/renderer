@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -7,6 +8,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 
 namespace Renderer
 {
+	[StructLayout(LayoutKind.Sequential)]
 	[NativeContainer]
 	public unsafe struct NativeAtomicCounter : IDisposable
 	{
