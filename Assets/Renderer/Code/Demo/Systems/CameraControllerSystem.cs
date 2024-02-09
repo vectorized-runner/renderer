@@ -24,28 +24,30 @@ namespace Renderer.Systems
 			var mousePos = GetCurrentMousePos();
 			var mousePosDiff = mousePos - _lastMousePosition;
 			var camera = RenderSettings.RenderCamera;
-			var panInput = GetPanInput(mousePosDiff);
+			var panAmount = GetPanAmount(mousePosDiff);
 			var moveInput = GetMoveInput();
 			var currentRot = camera.transform.rotation;
 			var moveAmount = GetMoveAmount(currentRot, moveInput);
-
-			var rotateY = quaternion.RotateY(panInput.x);
-			var rotateX = quaternion.RotateX(panInput.y);
+			
+			var rotateY = quaternion.RotateY(panAmount.x);
+			var rotateX = quaternion.RotateX(-panAmount.y);
 
 			var newRot = math.mul(math.mul(currentRot, rotateX), rotateY);
 			camera.transform.rotation = newRot;
 
 			camera.transform.position += moveAmount;
+
+			_lastMousePosition = mousePos;
 		}
 
-		private float2 GetPanInput(float2 mousePosDiff)
+		private float2 GetPanAmount(float2 mousePosDiff)
 		{
 			if (math.length(mousePosDiff) <= 0.0f)
 				return float2.zero;
 			if (!Input.GetMouseButton(1))
 				return float2.zero;
 
-			return mousePosDiff * RenderSettings.PanSpeed;
+			return mousePosDiff * RenderSettings.PanSpeed * UnityEngine.Time.deltaTime * 0.001f;
 		}
 
 		private Vector3 GetMoveAmount(quaternion cameraRot, float3 moveInput)
