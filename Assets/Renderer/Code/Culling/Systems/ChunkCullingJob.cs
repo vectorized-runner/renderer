@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Profiling;
 using FrustumPlanes = Renderer.UnityPackages.FrustumPlanes;
 
 namespace Renderer
@@ -23,6 +24,10 @@ namespace Renderer
 			var chunkWorldRenderBounds = chunk.GetChunkComponentData(ref ChunkWorldRenderBoundsHandle);
 			var chunkAabb = chunkWorldRenderBounds.AABB;
 			var chunkIntersection = FrustumPlanes.Intersect2(PlanePackets, chunkAabb);
+			var frustumMarker = new ProfilerMarker("Frustum");
+			var interlockedMarker = new ProfilerMarker("Interlocked");
+			var setBitsMarker = new ProfilerMarker("SetBits");
+			var partialCullMarker = new ProfilerMarker("PartialCull");
 
 			switch (chunkIntersection)
 			{
@@ -44,17 +49,27 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.Partial:
 				{
 					// Check Each Entity individually
+					partialCullMarker.Begin();
 					{
 						var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
 						var cullResult = new ChunkCullResult();
-
 						var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+						
 						while (enumerator.NextEntityIndex(out var entityIndex))
 						{
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
+							
+							frustumMarker.Begin();
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
+							frustumMarker.End();
+							
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
+							
+							interlockedMarker.Begin();
 							CulledObjectCount.Add(isVisible ? 0 : 1);
+							interlockedMarker.End();
+
+							setBitsMarker.Begin();
 							
 							// TODO: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
 							var lower = entityIndex < 64;
@@ -63,10 +78,14 @@ namespace Renderer
 								cullResult.Lower.SetBits(entityIndex, isVisible);
 							else
 								cullResult.Upper.SetBits(64 - entityIndex, isVisible);
+							
+							setBitsMarker.End();
 						}
 
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					}
+					partialCullMarker.End();
+					
 					break;
 				}
 				default:
