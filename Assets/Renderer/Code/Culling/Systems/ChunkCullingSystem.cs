@@ -6,12 +6,13 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
-	// TODO: This System has data dependency to camera, get that shit working please?
+	// TODO-Renderer: This System has data dependency to camera, get that shit working please?
 	[UpdateInGroup(typeof(CullingGroup))]
 	public partial class ChunkCullingSystem : SystemBase
 	{
 		public JobHandle FinalJobHandle { get; private set; }
 		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
+		public UnsafeList<UnsafeAtomicCounter> RenderCountByRenderMeshIndex;
 
 		public int CulledObjectCount => _culledObjectCounter.Count;
 		public int FrustumInCount => _frustumInCount.Count;
@@ -34,6 +35,13 @@ namespace Renderer
 			MatricesByRenderMeshIndex =
 				new NativeArray<UnsafeList<float4x4>>(maxMeshCount, Allocator.Persistent);
 
+			RenderCountByRenderMeshIndex = new UnsafeList<UnsafeAtomicCounter>(maxMeshCount, Allocator.Persistent);
+
+			for (int i = 0; i < maxMeshCount; i++)
+			{
+				RenderCountByRenderMeshIndex.Add(new UnsafeAtomicCounter(Allocator.Persistent));
+			}
+
 			for (var i = 0; i < maxMeshCount; i++)
 				MatricesByRenderMeshIndex[i] = new UnsafeList<float4x4>(0, Allocator.Persistent);
 
@@ -43,7 +51,7 @@ namespace Renderer
 				ComponentType.ReadOnly<RenderMeshIndex>(),
 				ComponentType.ChunkComponentReadOnly(typeof(ChunkCullResult)));
 			ComponentType.ChunkComponentReadOnly(typeof(ChunkWorldRenderBounds));
-			
+
 			_culledObjectCounter = new NativeAtomicCounter(Allocator.Persistent);
 			_frustumInCount = new NativeAtomicCounter(Allocator.Persistent);
 			_frustumOutCount = new NativeAtomicCounter(Allocator.Persistent);
@@ -59,18 +67,27 @@ namespace Renderer
 			}
 
 			MatricesByRenderMeshIndex.Dispose();
+
+			for (int i = 0; i < RenderCountByRenderMeshIndex.Length; i++)
+			{
+				ref var counter = ref RenderCountByRenderMeshIndex.ElementAt(i);
+				counter.Dispose();
+			}
+
+			RenderCountByRenderMeshIndex.Dispose();
+
 			_culledObjectCounter.Dispose();
 			_frustumInCount.Dispose();
 			_frustumPartialCount.Dispose();
 			_frustumOutCount.Dispose();
 		}
 
-		// TODO: What happens if new objects are created when these jobs are running [?]
+		// TODO-Renderer: What happens if new objects are created when these jobs are running [?]
 		protected override void OnUpdate()
 		{
 			var planePackets = _frustumSystem.PlanePackets;
 
-			// TODO: This can be made a job
+			// TODO-Renderer: This can be made a job
 			// This should be safe because job should be already completed at this point
 			for (int i = 0; i < MatricesByRenderMeshIndex.Length; i++)
 			{
@@ -78,24 +95,35 @@ namespace Renderer
 				matrices.Clear();
 			}
 
-			// TODO: Use the async version of this (?)
+			// TODO-Renderer: Use the async version of this (?)
 			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 			_culledObjectCounter.Count = 0;
 			_frustumPartialCount.Count = 0;
 			_frustumOutCount.Count = 0;
 			_frustumInCount.Count = 0;
-			
+
+			for (int i = 0; i < RenderCountByRenderMeshIndex.Length; i++)
+			{
+				// Setting through pointer, shouldn't require ref access
+				var counter = RenderCountByRenderMeshIndex[i];
+				counter.Count = 0;
+			}
+
 			var cullHandle = new ChunkCullingJob
 			{
 				PlanePackets = planePackets,
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
+				RenderMeshIndexHandle = GetComponentTypeHandle<RenderMeshIndex>(),
 				CulledObjectCount = _culledObjectCounter,
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
-				FrustumPartialCount = _frustumPartialCount
+				FrustumPartialCount = _frustumPartialCount,
+				RenderCounterByMeshIndex = RenderCountByRenderMeshIndex,
 			}.ScheduleParallel(_chunkCullingQuery, Dependency);
+
+			// At this point, how many objects will be drawn is known, just initialize the list to that count
 
 			var collectJob = new CollectRenderMatricesJob
 			{
@@ -107,6 +135,16 @@ namespace Renderer
 			}.Schedule(cullHandle);
 
 			Dependency = FinalJobHandle = collectJob;
+		}
+
+		public struct InitializeParallelWritersJob : IJob
+		{
+			public NativeArray<UnsafeList<float4x4>.ParallelWriter> MatricesByRenderMeshIndex;
+
+			public void Execute()
+			{
+				throw new System.NotImplementedException();
+			}
 		}
 	}
 }

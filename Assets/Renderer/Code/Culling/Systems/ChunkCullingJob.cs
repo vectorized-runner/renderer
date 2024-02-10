@@ -2,8 +2,8 @@ using System;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
-using Unity.Profiling;
 using FrustumPlanes = Renderer.UnityPackages.FrustumPlanes;
 
 namespace Renderer
@@ -18,13 +18,22 @@ namespace Renderer
 		public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
 
 		[ReadOnly]
+		public ComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
+		
+		[ReadOnly]
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
-		// TODO: Make these counters debug mode only behind define
+		[NativeSetThreadIndex]
+		public int ThreadIndex;
+
+		public UnsafeList<UnsafeAtomicCounter> RenderCounterByMeshIndex;
+		
+		// TODO-Renderer: Make these counters debug mode only behind define
 		public NativeAtomicCounter.ParallelWriter CulledObjectCount;
 		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
 		public NativeAtomicCounter.ParallelWriter FrustumInCount;
 		public NativeAtomicCounter.ParallelWriter FrustumPartialCount;
+
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
@@ -34,7 +43,6 @@ namespace Renderer
 			var chunkAabb = chunkWorldRenderBounds.AABB;
 			var chunkIntersection = FrustumPlanes.Intersect2(PlanePackets, chunkAabb);
 			// var frustumMarker = new ProfilerMarker("Frustum");
-			// var interlockedMarker = new ProfilerMarker("Interlocked");
 			// var setBitsMarker = new ProfilerMarker("SetBits");
 			// var partialCullMarker = new ProfilerMarker("PartialCull");
 
@@ -57,6 +65,16 @@ namespace Renderer
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 
 					FrustumInCount.Increment();
+
+					var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+					var renderMeshIndexArray = chunk.GetNativeArray(ref RenderMeshIndexHandle);
+					
+					while (enumerator.NextEntityIndex(out var entityIndex))
+					{
+						var renderMeshIndex = renderMeshIndexArray[entityIndex].Value;
+						RenderCounterByMeshIndex[renderMeshIndex].Increment(ThreadIndex, 1);
+					}
+
 					break;
 				}
 				case FrustumPlanes.IntersectResult.Partial:
@@ -67,26 +85,32 @@ namespace Renderer
 					// partialCullMarker.Begin();
 					{
 						var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
+						var renderMeshIndexArray = chunk.GetNativeArray(ref RenderMeshIndexHandle);
 						var cullResult = new ChunkCullResult();
 						var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
 
 						while (enumerator.NextEntityIndex(out var entityIndex))
 						{
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
+							var renderMeshIndex = renderMeshIndexArray[entityIndex].Value;
 
 							// frustumMarker.Begin();
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
 							// frustumMarker.End();
 
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
-
-							// interlockedMarker.Begin();
-							CulledObjectCount.Increment(isVisible ? 0 : 1);
-							// interlockedMarker.End();
+							if (isVisible)
+							{
+								RenderCounterByMeshIndex[renderMeshIndex].Increment(ThreadIndex, 1);
+							}
+							else
+							{
+								CulledObjectCount.Increment();
+							}
 
 							// setBitsMarker.Begin();
 
-							// TODO: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
+							// TODO-Renderer: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
 							var lower = entityIndex < 64;
 
 							if (lower)

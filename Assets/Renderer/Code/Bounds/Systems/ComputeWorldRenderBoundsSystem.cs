@@ -9,7 +9,7 @@ namespace Renderer
 	{
 		protected override void OnUpdate()
 		{
-			// TODO: Instead of LocalToWorld, use Translation, Rotation, Scale change filter
+			// TODO-Renderer: Instead of LocalToWorld, use Translation, Rotation, Scale change filter
 			// Static Entities don't have RenderBounds anyway, but still adding the filter.
 			Entities
 				.WithNone<Static>()

@@ -11,9 +11,9 @@ namespace Renderer
 
 		private class RenderObjectBakerBaker : Baker<RenderObjectBaker>
 		{
-			// TODO: Collect SharedMaterials
-			// TODO: Collect Children objects
-			// TODO: Consider Transform Hierarchy
+			// TODO-Renderer: Collect SharedMaterials
+			// TODO-Renderer: Collect Children objects
+			// TODO-Renderer: Consider Transform Hierarchy
 			public override void Bake(RenderObjectBaker authoring)
 			{
 				var entity = GetEntity(TransformUsageFlags.None);
@@ -57,7 +57,7 @@ namespace Renderer
 				}
 			}
 
-			// TODO: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
+			// TODO-Renderer: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
 			private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
 				RenderMeshIndex renderMeshIndex, RenderBounds renderBounds, bool isStatic)
 			{

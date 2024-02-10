@@ -93,7 +93,7 @@ namespace Renderer
 			return true;
 		}
 
-		// TODO: Check this method again, wtf?
+		// TODO-Renderer: Check this method again, wtf?
 		public RenderMeshIndex RegisterRenderMesh(RenderMesh renderMesh)
 		{
 			// This assertion fails

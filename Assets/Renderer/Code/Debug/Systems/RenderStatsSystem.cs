@@ -58,6 +58,14 @@ namespace Renderer
 			var entityCount = query.CalculateEntityCount();
 			var chunkCount = query.CalculateChunkCount();
 
+			var cullingPassCount = 0;
+			var counters = _cullingSystem.RenderCountByRenderMeshIndex;
+
+			for (int i = 0; i < counters.Length; i++)
+			{
+				cullingPassCount += counters[i].Count;
+			}
+			
 			EntityManager.SetComponentData(SystemHandle, new RenderStats
 			{
 				AverageMs = averageMs,
@@ -71,6 +79,7 @@ namespace Renderer
 				OutChunks = _cullingSystem.FrustumOutCount,
 				InChunks = _cullingSystem.FrustumInCount,
 				PartialChunks = _cullingSystem.FrustumPartialCount,
+				CullingPassCount = cullingPassCount,
 				ChunkCount = chunkCount
 			});
 
