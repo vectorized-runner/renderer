@@ -17,7 +17,7 @@ namespace Renderer
 		protected override void OnUpdate()
 		{
 			EntityManager.AddChunkComponentData(_worldLackQuery, new ChunkWorldRenderBounds());
-			EntityManager.AddChunkComponentData(_cullLackQuery, new ChunkCullResult());
+			EntityManager.AddChunkComponentData(_cullLackQuery, new ChunkCullResult { Value = new BitField128(0, 0)});
 		}
 	}
 }

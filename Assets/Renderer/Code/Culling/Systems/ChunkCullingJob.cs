@@ -39,7 +39,7 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.Out:
 				{
 					// No Entity is visible, don't need to check Entity AABB's.
-					var cullResult = new ChunkCullResult { Lower = new BitField64(0), Upper = new BitField64(0) };
+					var cullResult = new ChunkCullResult { Value = new BitField128(0, 0) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					CulledObjectCount.Increment(chunk.Count);
 					FrustumOutCount.Increment();
@@ -48,10 +48,8 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.In:
 				{
 					// All Entities are visible, no need to check Entity AABB's.
-					var cullResult = new ChunkCullResult
-						{ Lower = new BitField64(ulong.MaxValue), Upper = new BitField64(ulong.MaxValue) };
+					var cullResult = new ChunkCullResult { Value = new BitField128(ulong.MaxValue, ulong.MaxValue) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
-
 					FrustumInCount.Increment();
 					break;
 				}
@@ -69,22 +67,9 @@ namespace Renderer
 						{
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
-
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
-							if (!isVisible)
-							{
-								CulledObjectCount.Increment();
-							}
-
-
-							// TODO-Renderer: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
-							var lower = entityIndex < 64;
-
-							if (lower)
-								cullResult.Lower.SetBits(entityIndex, isVisible);
-							else
-								cullResult.Upper.SetBits(64 - entityIndex, isVisible);
-
+							CulledObjectCount.Increment(isVisible ? 0 : 1);
+							cullResult.Value.SetBits(entityIndex, isVisible);
 						}
 
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);

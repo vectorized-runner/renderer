@@ -37,24 +37,10 @@ namespace Renderer
 				var localToWorldArray = chunk.GetNativeArray(ref LocalToWorldHandle);
 				var entityCount = chunk.Count;
 				var entityIndex = 0;
-				var count = math.min(64, entityCount);
-
-				while (entityIndex < count)
-				{
-					if (cullResult.Lower.IsSet(entityIndex))
-					{
-						var renderMeshIndex = renderMeshArray[entityIndex].Value;
-						var matrix = localToWorldArray[entityIndex];
-						ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(renderMeshIndex);
-						matrices.Add(matrix.Value);
-					}
-
-					entityIndex++;
-				}
 
 				while (entityIndex < entityCount)
 				{
-					if (cullResult.Upper.IsSet(64 - entityIndex))
+					if (cullResult.Value.IsSet(entityIndex))
 					{
 						var renderMeshIndex = renderMeshArray[entityIndex].Value;
 						var matrix = localToWorldArray[entityIndex];
