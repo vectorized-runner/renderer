@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace Renderer
 {
-	[UpdateInGroup(typeof(InitializationSystemGroup))]
+	[UpdateInGroup(typeof(RenderSetupGroup))]
+	[UpdateBefore(typeof(CalculateCameraFrustumPlanesSystem))]
 	public partial class CameraControllerSystem : SystemBase
 	{
 		private float2 _lastMousePosition;

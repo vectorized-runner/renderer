@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace Renderer
 {
-	[UpdateInGroup(typeof(RenderSetupGroup))]
+	[UpdateInGroup(typeof(RenderBoundsGroup), OrderFirst = true)]
 	public partial class AttachChunkComponentsSystem : SystemBase
 	{
 		private EntityQuery _worldLackQuery;

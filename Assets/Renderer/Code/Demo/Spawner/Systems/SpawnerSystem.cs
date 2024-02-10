@@ -8,6 +8,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace Renderer
 {
+	[UpdateInGroup(typeof(RenderSetupGroup), OrderFirst = true)]
 	public partial class SpawnerSystem : SystemBase
 	{
 		protected override void OnUpdate()
