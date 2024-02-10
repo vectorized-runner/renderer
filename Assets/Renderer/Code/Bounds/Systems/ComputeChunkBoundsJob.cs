@@ -31,12 +31,14 @@ namespace Renderer
 				return;
 			}
 
-			var resultAABB = worldRenderBoundsArray[entityIndex].AABB;
+			var firstAABB = worldRenderBoundsArray[entityIndex].AABB;
+			var resultAABB = firstAABB;
 
 			while (enumerator.NextEntityIndex(out entityIndex))
-				// TODO-Renderer: This can be optimized by unrolling and removing 'resultAABB' data dependency?
-				// Unroll and do multiple Encapsulate operations on Local Variables.
-				resultAABB = Encapsulate(resultAABB, worldRenderBoundsArray[entityIndex].AABB);
+			{
+				var nextAABB = worldRenderBoundsArray[entityIndex].AABB;
+				resultAABB = Encapsulate(firstAABB, nextAABB);
+			}
 
 			chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle,
 				new ChunkWorldRenderBounds { AABB = resultAABB });
@@ -47,7 +49,12 @@ namespace Renderer
 		{
 			var newMin = math.min(first.Min, second.Min);
 			var newMax = math.max(first.Max, second.Max);
-			return AABB.FromMinMax(newMin, newMax);
+			
+			return new AABB
+			{
+				Center = (newMin + newMax) * 0.5f,
+				Extents = (newMax - newMin) * 0.5f
+			};
 		}
 	}
 }
