@@ -17,9 +17,6 @@ namespace Renderer
 		public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
 
 		[ReadOnly]
-		public ComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
-
-		[ReadOnly]
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
 		// TODO-Renderer: Make these counters debug mode only behind define
@@ -69,14 +66,12 @@ namespace Renderer
 					// partialCullMarker.Begin();
 					{
 						var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
-						var renderMeshIndexArray = chunk.GetNativeArray(ref RenderMeshIndexHandle);
 						var cullResult = new ChunkCullResult();
 						var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
 
 						while (enumerator.NextEntityIndex(out var entityIndex))
 						{
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
-							var renderMeshIndex = renderMeshIndexArray[entityIndex].Value;
 
 							// frustumMarker.Begin();
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
