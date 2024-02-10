@@ -25,7 +25,7 @@ namespace Renderer
 			{
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>()
-			}.Schedule(_changedChunksQuery, Dependency);
+			}.ScheduleParallel(_changedChunksQuery, Dependency);
 		}
 	}
 }
