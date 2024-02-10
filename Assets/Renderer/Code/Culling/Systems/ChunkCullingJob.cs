@@ -28,7 +28,7 @@ namespace Renderer
 
 		public UnsafeList<UnsafeAtomicCounter> RenderCounterByMeshIndex;
 		
-		// TODO: Make these counters debug mode only behind define
+		// TODO-Renderer: Make these counters debug mode only behind define
 		public NativeAtomicCounter.ParallelWriter CulledObjectCount;
 		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
 		public NativeAtomicCounter.ParallelWriter FrustumInCount;
@@ -110,7 +110,7 @@ namespace Renderer
 
 							// setBitsMarker.Begin();
 
-							// TODO: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
+							// TODO-Renderer: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
 							var lower = entityIndex < 64;
 
 							if (lower)

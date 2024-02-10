@@ -34,7 +34,7 @@ namespace Renderer
 			var resultAABB = worldRenderBoundsArray[entityIndex].AABB;
 
 			while (enumerator.NextEntityIndex(out entityIndex))
-				// TODO: This can be optimized by unrolling and removing 'resultAABB' data dependency?
+				// TODO-Renderer: This can be optimized by unrolling and removing 'resultAABB' data dependency?
 				// Unroll and do multiple Encapsulate operations on Local Variables.
 				resultAABB = Encapsulate(resultAABB, worldRenderBoundsArray[entityIndex].AABB);
 

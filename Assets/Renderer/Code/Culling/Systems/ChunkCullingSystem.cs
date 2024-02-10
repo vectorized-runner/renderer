@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
-	// TODO: This System has data dependency to camera, get that shit working please?
+	// TODO-Renderer: This System has data dependency to camera, get that shit working please?
 	[UpdateInGroup(typeof(CullingGroup))]
 	public partial class ChunkCullingSystem : SystemBase
 	{
@@ -82,12 +82,12 @@ namespace Renderer
 			_frustumOutCount.Dispose();
 		}
 
-		// TODO: What happens if new objects are created when these jobs are running [?]
+		// TODO-Renderer: What happens if new objects are created when these jobs are running [?]
 		protected override void OnUpdate()
 		{
 			var planePackets = _frustumSystem.PlanePackets;
 
-			// TODO: This can be made a job
+			// TODO-Renderer: This can be made a job
 			// This should be safe because job should be already completed at this point
 			for (int i = 0; i < MatricesByRenderMeshIndex.Length; i++)
 			{
@@ -95,7 +95,7 @@ namespace Renderer
 				matrices.Clear();
 			}
 
-			// TODO: Use the async version of this (?)
+			// TODO-Renderer: Use the async version of this (?)
 			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 			_culledObjectCounter.Count = 0;
 			_frustumPartialCount.Count = 0;

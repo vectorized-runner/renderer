@@ -28,7 +28,7 @@ namespace Renderer
 		{
 			Debug.Log("RenderingSystem running!");
 
-			// TODO: Check the old thread. How to not call complete on this? I want to make this run like a job
+			// TODO-Renderer: Check the old thread. How to not call complete on this? I want to make this run like a job
 			_cullingSystem.FinalJobHandle.Complete();
 
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
