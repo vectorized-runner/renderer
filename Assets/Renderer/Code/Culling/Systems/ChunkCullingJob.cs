@@ -2,7 +2,6 @@ using System;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using FrustumPlanes = Renderer.UnityPackages.FrustumPlanes;
 
@@ -19,15 +18,10 @@ namespace Renderer
 
 		[ReadOnly]
 		public ComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
-		
+
 		[ReadOnly]
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
-		[NativeSetThreadIndex]
-		public int ThreadIndex;
-
-		public UnsafeList<UnsafeAtomicCounter> RenderCounterByMeshIndex;
-		
 		// TODO-Renderer: Make these counters debug mode only behind define
 		public NativeAtomicCounter.ParallelWriter CulledObjectCount;
 		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
@@ -65,16 +59,6 @@ namespace Renderer
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 
 					FrustumInCount.Increment();
-
-					var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
-					var renderMeshIndexArray = chunk.GetNativeArray(ref RenderMeshIndexHandle);
-					
-					while (enumerator.NextEntityIndex(out var entityIndex))
-					{
-						var renderMeshIndex = renderMeshIndexArray[entityIndex].Value;
-						RenderCounterByMeshIndex[renderMeshIndex].Increment(ThreadIndex, 1);
-					}
-
 					break;
 				}
 				case FrustumPlanes.IntersectResult.Partial:
@@ -99,11 +83,7 @@ namespace Renderer
 							// frustumMarker.End();
 
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
-							if (isVisible)
-							{
-								RenderCounterByMeshIndex[renderMeshIndex].Increment(ThreadIndex, 1);
-							}
-							else
+							if (!isVisible)
 							{
 								CulledObjectCount.Increment();
 							}

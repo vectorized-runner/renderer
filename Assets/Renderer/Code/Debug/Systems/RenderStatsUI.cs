@@ -41,7 +41,6 @@ namespace Renderer
 			sb.AppendLine($"FPS: {renderStats.AverageFps}");
 			sb.AppendLine($"Total Objects: {renderStats.TotalObjectCount:N0}");
 			sb.AppendLine($"Render Objects: {renderStats.RenderedCount:N0}");
-			sb.AppendLine($"Culling Pass: {renderStats.CullingPassCount:N0}");
 			sb.AppendLine($"Culled Objects: {renderStats.CulledCount:N0}");
 			sb.AppendLine($"Culled Percentage: {culledPercentage}%");
 			sb.AppendLine($"Render Verts: {renderStats.RenderVertsCount:N0}");
