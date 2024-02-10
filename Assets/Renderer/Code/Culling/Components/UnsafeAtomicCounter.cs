@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -18,7 +17,6 @@ namespace Renderer
 		public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 		public const int ThreadCount = JobsUtility.MaxJobThreadCount;
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Increment(int threadIndex, int amount)
 		{
 			CounterPerThread[threadIndex * IntsPerCacheLine] += amount;
@@ -26,7 +24,6 @@ namespace Renderer
 
 		public int Count
 		{
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get
 			{
 				var result = 0;
@@ -49,7 +46,6 @@ namespace Renderer
 			}
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public UnsafeAtomicCounter(Allocator allocator)
 		{
 			CounterPerThread = (int*)UnsafeUtility.Malloc(JobsUtility.CacheLineSize * ThreadCount,
@@ -59,7 +55,6 @@ namespace Renderer
 			Count = 0;
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Dispose()
 		{
 			UnsafeUtility.Free(CounterPerThread, Allocator);
