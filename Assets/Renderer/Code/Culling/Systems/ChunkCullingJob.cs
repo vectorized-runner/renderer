@@ -33,9 +33,6 @@ namespace Renderer
 			var chunkWorldRenderBounds = chunk.GetChunkComponentData(ref ChunkWorldRenderBoundsHandle);
 			var chunkAabb = chunkWorldRenderBounds.AABB;
 			var chunkIntersection = FrustumPlanes.Intersect2(PlanePackets, chunkAabb);
-			// var frustumMarker = new ProfilerMarker("Frustum");
-			// var setBitsMarker = new ProfilerMarker("SetBits");
-			// var partialCullMarker = new ProfilerMarker("PartialCull");
 
 			switch (chunkIntersection)
 			{
@@ -63,7 +60,6 @@ namespace Renderer
 					FrustumPartialCount.Increment();
 
 					// Check Each Entity individually
-					// partialCullMarker.Begin();
 					{
 						var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
 						var cullResult = new ChunkCullResult();
@@ -72,10 +68,7 @@ namespace Renderer
 						while (enumerator.NextEntityIndex(out var entityIndex))
 						{
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
-
-							// frustumMarker.Begin();
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
-							// frustumMarker.End();
 
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
 							if (!isVisible)
@@ -83,7 +76,6 @@ namespace Renderer
 								CulledObjectCount.Increment();
 							}
 
-							// setBitsMarker.Begin();
 
 							// TODO-Renderer: Remove Lower/Upper branch here. Could inline ChunkEntityEnumerator here
 							var lower = entityIndex < 64;
@@ -93,13 +85,10 @@ namespace Renderer
 							else
 								cullResult.Upper.SetBits(64 - entityIndex, isVisible);
 
-							// setBitsMarker.End();
 						}
 
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					}
-					//partialCullMarker.End();
-
 					break;
 				}
 				default:
