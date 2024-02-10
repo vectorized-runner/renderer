@@ -27,7 +27,6 @@ namespace Renderer
 				var aabb = new AABB { Center = float.MaxValue, Extents = float3.zero };
 				chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle,
 					new ChunkWorldRenderBounds { AABB = aabb });
-
 				return;
 			}
 
@@ -37,7 +36,7 @@ namespace Renderer
 			while (enumerator.NextEntityIndex(out entityIndex))
 			{
 				var nextAABB = worldRenderBoundsArray[entityIndex].AABB;
-				resultAABB = Encapsulate(firstAABB, nextAABB);
+				resultAABB = Encapsulate(resultAABB, nextAABB);
 			}
 
 			chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle,
@@ -49,7 +48,7 @@ namespace Renderer
 		{
 			var newMin = math.min(first.Min, second.Min);
 			var newMax = math.max(first.Max, second.Max);
-			
+
 			return new AABB
 			{
 				Center = (newMin + newMax) * 0.5f,
