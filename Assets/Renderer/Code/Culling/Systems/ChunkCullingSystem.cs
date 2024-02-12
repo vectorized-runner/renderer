@@ -45,8 +45,7 @@ namespace Renderer
 			_chunkCullingQuery = GetEntityQuery(
 				ComponentType.ReadOnly<WorldRenderBounds>(),
 				ComponentType.ReadOnly<LocalToWorld>(),
-				ComponentType.ReadOnly<RenderMeshIndex>(),
-				ComponentType.ChunkComponentReadOnly(typeof(ChunkCullResult)));
+				ComponentType.ReadOnly<RenderMeshIndex>());
 			ComponentType.ChunkComponentReadOnly(typeof(ChunkWorldRenderBounds));
 
 			_culledObjectCounter = new NativeAtomicCounter(Allocator.Persistent);
@@ -84,8 +83,6 @@ namespace Renderer
 				matrices.Clear();
 			}
 
-			// TODO-Renderer: Use the async version of this (?)
-			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 			_culledObjectCounter.Count = 0;
 			_frustumPartialCount.Count = 0;
 			_frustumOutCount.Count = 0;
@@ -96,23 +93,15 @@ namespace Renderer
 				PlanePackets = planePackets,
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
-				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
+				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>(),
+				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
 				CulledObjectCount = _culledObjectCounter,
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
 				FrustumPartialCount = _frustumPartialCount,
 			}.ScheduleParallel(_chunkCullingQuery, Dependency);
 
-			var collectJob = new CollectRenderMatricesJob
-			{
-				Chunks = chunks,
-				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
-				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
-				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
-				RenderMeshIndexHandle = GetComponentTypeHandle<RenderMeshIndex>()
-			}.Schedule(cullHandle);
-
-			Dependency = FinalJobHandle = collectJob;
+			Dependency = FinalJobHandle = cullHandle;
 		}
 	}
 }
