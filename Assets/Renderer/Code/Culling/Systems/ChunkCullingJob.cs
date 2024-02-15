@@ -36,6 +36,8 @@ namespace Renderer
 
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
+		// UseEnabledMask here is provided by Unity. If RenderMesh was enable-able component, it would save us from checking 
+		// if(IsComponentEnabled) checks
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
 		{
@@ -57,8 +59,17 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.In:
 				{
 					// All Entities are visible, no need to check Entity AABB's.
+					
+					// Notice optimization: Not setting the actual bitmask here, other job can check it
+					// (Entity count + Enabled/Disabled components)
+					var visibleEntityCount = useEnabledMask ? new BitField128(chunkEnabledMask).CountBits() : chunk.Count;
 					var cullResult = new ChunkCullResult { Value = new BitField128(new v128(ulong.MaxValue)) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
+					
+					var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
+					ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
+					counter.Add(ThreadIndex, visibleEntityCount);
+					
 					FrustumInCount.Increment();
 					break;
 				}
