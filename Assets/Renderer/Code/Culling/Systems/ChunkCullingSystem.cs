@@ -86,6 +86,8 @@ namespace Renderer
 				MatricesByRenderMeshIndex.Add(new UnsafeList<float4x4>(0, Allocator.Persistent));
 				_renderCountByRenderMeshIndex.Add(new UnsafeAtomicCounter(Allocator.Persistent));
 			}
+			var countAsArray = _renderCountByRenderMeshIndex.AsArray();
+			var matrixAsArray = MatricesByRenderMeshIndex.AsArray();
 
 			var clearCountersJob = new ClearCountersJob
 			{
