@@ -97,7 +97,7 @@ namespace Renderer
 				CountByRenderMeshIndex = _renderCountByRenderMeshIndex,
 			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, Dependency);
 
-			var cullHandle = new ChunkCullingJob
+			var chunkCullingJob = new ChunkCullingJob
 			{
 				PlanePackets = planePackets,
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
@@ -109,6 +109,12 @@ namespace Renderer
 				FrustumPartialCount = _frustumPartialCount,
 			}.ScheduleParallel(_chunkCullingQuery, clearCountersJob);
 
+			var initializeRenderBatchesJob = new InitializeRenderBatchesJob
+			{
+				RenderMatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
+				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex,
+			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, chunkCullingJob);
+
 			var collectJob = new CollectRenderMatricesJob
 			{
 				Chunks = chunks,
@@ -116,7 +122,7 @@ namespace Renderer
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>()
-			}.Schedule(cullHandle);
+			}.Schedule(initializeRenderBatchesJob);
 
 			Dependency = FinalJobHandle = collectJob;
 		}
