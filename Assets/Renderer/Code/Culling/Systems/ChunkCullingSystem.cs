@@ -16,14 +16,14 @@ namespace Renderer
 	public partial class ChunkCullingSystem : SystemBase
 	{
 		public JobHandle FinalJobHandle { get; private set; }
-		public NativeArray<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
+		public NativeList<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
 
 		public int CulledObjectCount => _culledObjectCounter.Count;
 		public int FrustumInCount => _frustumInCount.Count;
 		public int FrustumOutCount => _frustumOutCount.Count;
 		public int FrustumPartialCount => _frustumPartialCount.Count;
 
-		private NativeArray<UnsafeAtomicCounter> _renderCountByRenderMeshIndex;
+		private NativeList<UnsafeAtomicCounter> _renderCountByRenderMeshIndex;
 		private NativeAtomicCounter _frustumInCount;
 		private NativeAtomicCounter _frustumOutCount;
 		private NativeAtomicCounter _frustumPartialCount;
@@ -35,19 +35,9 @@ namespace Renderer
 		{
 			_frustumSystem = World.GetExistingSystemManaged<CalculateCameraFrustumPlanesSystem>();
 
-			const int maxMeshCount = RenderSettings.MaxSupportedUniqueMeshCount;
-
-			MatricesByRenderMeshIndex =
-				new NativeArray<UnsafeList<float4x4>>(maxMeshCount, Allocator.Persistent);
-
-			_renderCountByRenderMeshIndex = new NativeArray<UnsafeAtomicCounter>(maxMeshCount, Allocator.Persistent);
-
-			for (var i = 0; i < maxMeshCount; i++)
-			{
-				MatricesByRenderMeshIndex[i] = new UnsafeList<float4x4>(0, Allocator.Persistent);
-				_renderCountByRenderMeshIndex[i] = new UnsafeAtomicCounter(Allocator.Persistent);
-			}
-
+			MatricesByRenderMeshIndex = new NativeList<UnsafeList<float4x4>>(0, Allocator.Persistent);
+			_renderCountByRenderMeshIndex = new NativeList<UnsafeAtomicCounter>(0, Allocator.Persistent);
+			
 			_chunkCullingQuery = GetEntityQuery(
 				ComponentType.ReadOnly<WorldRenderBounds>(),
 				ComponentType.ReadOnly<LocalToWorld>(),
@@ -89,10 +79,17 @@ namespace Renderer
 			_frustumPartialCount.Count = 0;
 			_frustumOutCount.Count = 0;
 			_frustumInCount.Count = 0;
+			
+			var uniqueMeshCount = RenderMeshDatabase.Instance.RenderMeshes.Count;
+			while (MatricesByRenderMeshIndex.Length < uniqueMeshCount)
+			{
+				MatricesByRenderMeshIndex.Add(new UnsafeList<float4x4>(0, Allocator.Persistent));
+				_renderCountByRenderMeshIndex.Add(new UnsafeAtomicCounter(Allocator.Persistent));
+			}
 
 			var clearCountersJob = new ClearCountersJob
 			{
-				CountByRenderMeshIndex = _renderCountByRenderMeshIndex,
+				CountByRenderMeshIndex = _renderCountByRenderMeshIndex.AsArray(),
 			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, Dependency);
 
 			var chunkCullingJob = new ChunkCullingJob
@@ -102,7 +99,7 @@ namespace Renderer
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>(),
-				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex,
+				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex.AsArray(),
 				CulledObjectCount = _culledObjectCounter,
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
@@ -111,13 +108,13 @@ namespace Renderer
 
 			var initializeRenderBatchesJob = new InitializeRenderBatchesJob
 			{
-				RenderMatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
-				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex,
+				RenderMatricesByRenderMeshIndex = MatricesByRenderMeshIndex.AsArray(),
+				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex.AsArray(),
 			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, chunkCullingJob);
 
 			var collectRenderBatchesJob = new CollectRenderBatchesJob
 			{
-				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
+				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex.AsArray(),
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>()

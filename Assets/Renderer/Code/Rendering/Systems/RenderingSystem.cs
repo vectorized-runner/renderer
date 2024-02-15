@@ -32,14 +32,13 @@ namespace Renderer
 			_cullingSystem.FinalJobHandle.Complete();
 
 			var matricesByRenderMeshIndex = _cullingSystem.MatricesByRenderMeshIndex;
-			var maxRenderMeshCount = RenderSettings.MaxSupportedUniqueMeshCount;
 			var renderedCount = 0;
 			var renderedTris = 0;
 			var renderedVerts = 0;
 			var renderBatchCount = 0;
 			var renderMeshDatabase = RenderMeshDatabase.Instance;
 
-			for (var renderMeshIndex = 0; renderMeshIndex < maxRenderMeshCount; renderMeshIndex++)
+			for (var renderMeshIndex = 0; renderMeshIndex < matricesByRenderMeshIndex.Length; renderMeshIndex++)
 			{
 				var matrices = matricesByRenderMeshIndex[renderMeshIndex];
 				var drawCount = matrices.Length;
