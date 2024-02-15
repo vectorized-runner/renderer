@@ -16,7 +16,7 @@ namespace Renderer
 		
 		public void Execute(int index)
 		{
-			ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(index);
+			ref readonly var counter = ref RenderCountByRenderMeshIndex.ElementAsReadonlyRef(index);
 			var count = counter.Count;
 			ref var matrices = ref RenderMatricesByRenderMeshIndex.ElementAsRef(index);
 

@@ -115,16 +115,15 @@ namespace Renderer
 				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex,
 			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, chunkCullingJob);
 
-			var collectJob = new CollectRenderMatricesJob
+			var collectRenderBatchesJob = new CollectRenderBatchesJob
 			{
-				Chunks = chunks,
 				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>()
-			}.Schedule(initializeRenderBatchesJob);
+			}.ScheduleParallel(_chunkCullingQuery, initializeRenderBatchesJob);
 
-			Dependency = FinalJobHandle = collectJob;
+			Dependency = FinalJobHandle = collectRenderBatchesJob;
 		}
 	}
 }
