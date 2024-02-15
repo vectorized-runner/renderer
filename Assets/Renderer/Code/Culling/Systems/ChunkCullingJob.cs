@@ -19,6 +19,8 @@ namespace Renderer
 		[ReadOnly]
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
+		public NativeArray<UnsafeAtomicCounter> RenderCountByRenderMeshIndex;
+
 		// TODO-Renderer: Make these counters debug mode only behind define
 		public NativeAtomicCounter.ParallelWriter CulledObjectCount;
 		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
@@ -39,7 +41,7 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.Out:
 				{
 					// No Entity is visible, don't need to check Entity AABB's.
-					var cullResult = new ChunkCullResult { Value = new BitField128(0, 0) };
+					var cullResult = new ChunkCullResult { Value = new BitField128(new v128(0)) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					CulledObjectCount.Increment(chunk.Count);
 					FrustumOutCount.Increment();
@@ -48,7 +50,7 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.In:
 				{
 					// All Entities are visible, no need to check Entity AABB's.
-					var cullResult = new ChunkCullResult { Value = new BitField128(ulong.MaxValue, ulong.MaxValue) };
+					var cullResult = new ChunkCullResult { Value = new BitField128(new v128(ulong.MaxValue)) };
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					FrustumInCount.Increment();
 					break;

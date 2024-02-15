@@ -22,11 +22,11 @@ namespace Renderer
 		[FieldOffset(0)]
 		public v128 v128;
 
-		public BitField128(ulong lowerBits, ulong upperBits)
+		public BitField128(v128 value)
 		{
-			v128 = new v128(0);
-			Lower = new BitField64(lowerBits);
-			Upper = new BitField64(upperBits);
+			Lower = default;
+			Upper = default;
+			v128 = value;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -47,6 +47,7 @@ namespace Renderer
 			return asBitField.IsSet(newPos);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public int CountBits()
 		{
 			return Lower.CountBits() + Upper.CountBits();
