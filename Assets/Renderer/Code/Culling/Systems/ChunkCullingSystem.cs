@@ -23,6 +23,7 @@ namespace Renderer
 		public int FrustumOutCount => _frustumOutCount.Count;
 		public int FrustumPartialCount => _frustumPartialCount.Count;
 
+		private NativeArray<UnsafeAtomicCounter> _renderCountByRenderMeshIndex;
 		private NativeAtomicCounter _frustumInCount;
 		private NativeAtomicCounter _frustumOutCount;
 		private NativeAtomicCounter _frustumPartialCount;
@@ -39,8 +40,13 @@ namespace Renderer
 			MatricesByRenderMeshIndex =
 				new NativeArray<UnsafeList<float4x4>>(maxMeshCount, Allocator.Persistent);
 
+			_renderCountByRenderMeshIndex = new NativeArray<UnsafeAtomicCounter>(maxMeshCount, Allocator.Persistent);
+
 			for (var i = 0; i < maxMeshCount; i++)
+			{
 				MatricesByRenderMeshIndex[i] = new UnsafeList<float4x4>(0, Allocator.Persistent);
+				_renderCountByRenderMeshIndex[i] = new UnsafeAtomicCounter(Allocator.Persistent);
+			}
 
 			_chunkCullingQuery = GetEntityQuery(
 				ComponentType.ReadOnly<WorldRenderBounds>(),
@@ -60,9 +66,13 @@ namespace Renderer
 			{
 				ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(i);
 				matrices.Dispose();
+
+				ref var counter = ref _renderCountByRenderMeshIndex.ElementAsRef(i);
+				counter.Dispose();
 			}
 
 			MatricesByRenderMeshIndex.Dispose();
+			_renderCountByRenderMeshIndex.Dispose();
 
 			_culledObjectCounter.Dispose();
 			_frustumInCount.Dispose();
@@ -70,23 +80,21 @@ namespace Renderer
 			_frustumOutCount.Dispose();
 		}
 
-		// TODO-Renderer: What happens if new objects are created when these jobs are running [?]
+
 		protected override void OnUpdate()
 		{
 			var planePackets = _frustumSystem.PlanePackets;
-
-			// TODO-Renderer: This can be made a job
-			// This should be safe because job should be already completed at this point
-			for (int i = 0; i < MatricesByRenderMeshIndex.Length; i++)
-			{
-				ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(i);
-				matrices.Clear();
-			}
 
 			_culledObjectCounter.Count = 0;
 			_frustumPartialCount.Count = 0;
 			_frustumOutCount.Count = 0;
 			_frustumInCount.Count = 0;
+
+			var clearArraysJob = new ClearArraysJob
+			{
+				CountByRenderMeshIndex = _renderCountByRenderMeshIndex,
+				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex
+			}.Schedule(Dependency);
 
 			var cullHandle = new ChunkCullingJob
 			{
@@ -99,7 +107,7 @@ namespace Renderer
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
 				FrustumPartialCount = _frustumPartialCount,
-			}.ScheduleParallel(_chunkCullingQuery, Dependency);
+			}.ScheduleParallel(_chunkCullingQuery, clearArraysJob);
 
 			Dependency = FinalJobHandle = cullHandle;
 		}
