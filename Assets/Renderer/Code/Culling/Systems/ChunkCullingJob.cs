@@ -59,17 +59,34 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.In:
 				{
 					// All Entities are visible, no need to check Entity AABB's.
-					
-					// Notice optimization: Not setting the actual bitmask here, other job can check it
-					// (Entity count + Enabled/Disabled components)
-					var visibleEntityCount = useEnabledMask ? new BitField128(chunkEnabledMask).CountBits() : chunk.Count;
-					var cullResult = new ChunkCullResult { Value = new BitField128(new v128(ulong.MaxValue)) };
+					var cullResult = new ChunkCullResult();
+					var visibleEntityCount = 0;
+
+					if (!useEnabledMask)
+					{
+						// All entities of the Chunk are visible, but might not have 128 entities
+						cullResult.Value.SetBits(0, true, chunk.Count);
+						visibleEntityCount = chunk.Count;
+					}
+					else
+					{
+						// Check individually
+						var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+
+						while (enumerator.NextEntityIndex(out var entityIndex))
+						{
+							cullResult.Value.SetBits(entityIndex, true);
+						}
+
+						visibleEntityCount = cullResult.Value.CountBits();
+					}
+
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
-					
+
 					var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
 					ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 					counter.Add(ThreadIndex, visibleEntityCount);
-					
+
 					FrustumInCount.Increment();
 					break;
 				}
@@ -96,7 +113,7 @@ namespace Renderer
 						var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
 						ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 						counter.Add(ThreadIndex, visibleEntityCount);
-						
+
 						var culledEntityCount = chunk.Count - visibleEntityCount;
 						CulledObjectCount.Increment(culledEntityCount);
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
