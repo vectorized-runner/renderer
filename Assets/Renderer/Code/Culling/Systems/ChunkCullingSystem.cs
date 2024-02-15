@@ -95,7 +95,7 @@ namespace Renderer
 			var clearCountersJob = new ClearCountersJob
 			{
 				CountByRenderMeshIndex = _renderCountByRenderMeshIndex,
-			}.Schedule(Dependency);
+			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, Dependency);
 
 			var cullHandle = new ChunkCullingJob
 			{

@@ -5,17 +5,14 @@ using Unity.Jobs;
 namespace Renderer
 {
 	[BurstCompile]
-	public struct ClearCountersJob : IJob
+	public struct ClearCountersJob : IJobParallelFor
 	{
 		public NativeArray<UnsafeAtomicCounter> CountByRenderMeshIndex;
 
-		public void Execute()
+		public void Execute(int index)
 		{
-			for (int i = 0; i < RenderSettings.MaxSupportedUniqueMeshCount; i++)
-			{
-				ref var counter = ref CountByRenderMeshIndex.ElementAsRef(i);
-				counter.Count = 0;
-			}
+			ref var counter = ref CountByRenderMeshIndex.ElementAsRef(index);
+			counter.Count = 0;
 		}
 	}
 }
