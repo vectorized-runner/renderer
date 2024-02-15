@@ -27,6 +27,7 @@ namespace Renderer
 		{
 			var cullResult = chunk.GetChunkComponentData(ref CullResultHandle);
 			var renderCount = cullResult.Value.CountBits();
+			
 			if (renderCount == 0)
 			{
 				return;

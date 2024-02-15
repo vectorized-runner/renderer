@@ -6,12 +6,6 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
-	// TODO-Renderer: This System has data dependency to camera, get that shit working please?
-	// TODO-Renderer: New workflow, collect all the Render Matrices while iterating in the Job.
-	// Requirement: RenderMesh count needs to be known (all memory will be pre-allocated just as if all objects will be rendered) -- required for per-chunk
-	// OR -- No pre-allocation, Collect NativeArray<Chunk> per RenderMeshIndex, run the Job on per RenderMeshIndex
-	// Possible optimizations: Collect indices first, increment once
-	// Make RenderMesh shared component first
 	[UpdateInGroup(typeof(CullingGroup))]
 	public partial class ChunkCullingSystem : SystemBase
 	{
