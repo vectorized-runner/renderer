@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -17,8 +18,13 @@ namespace Renderer
 		[FieldOffset(0)]
 		public fixed ulong Mem[2];
 
+		// This can be used with chunk entity enumerator
+		[FieldOffset(0)]
+		public v128 v128;
+
 		public BitField128(ulong lowerBits, ulong upperBits)
 		{
+			v128 = new v128(0);
 			Lower = new BitField64(lowerBits);
 			Upper = new BitField64(upperBits);
 		}
