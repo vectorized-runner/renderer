@@ -17,7 +17,7 @@ namespace Renderer
 		public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 		public const int ThreadCount = JobsUtility.MaxJobThreadCount;
 
-		public void Increment(int threadIndex, int amount)
+		public void Add(int threadIndex, int amount)
 		{
 			CounterPerThread[threadIndex * IntsPerCacheLine] += amount;
 		}

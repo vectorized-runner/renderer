@@ -12,33 +12,31 @@ namespace Renderer
 
 		private static RenderMeshDatabase _instance;
 
-		private readonly Dictionary<RenderMeshIndex, RenderMesh> _meshByIndexCache = new();
-		private readonly Dictionary<RenderMesh, RenderMeshIndex> _indexByMeshCache = new();
+		private readonly Dictionary<RenderMesh, RenderMeshIndex> _indexByMesh = new();
 
-		private bool IsCacheInitialized()
+		private bool IsInitialized()
 		{
-			var renderMeshCount = RenderMeshes.Count;
-
-			return renderMeshCount == _meshByIndexCache.Count && renderMeshCount == _indexByMeshCache.Count;
+			return RenderMeshes.Count == _indexByMesh.Count;
 		}
 
 		private void Awake()
 		{
-			InitializeCacheIfRequired();
+			InitializeLookupIfRequired();
 		}
 
-		private void InitializeCacheIfRequired()
+		private void InitializeLookupIfRequired()
 		{
+			if (IsInitialized())
+				return;
+
 			for (var index = 0; index < RenderMeshes.Count; index++)
 			{
 				var meshIndex = new RenderMeshIndex(index);
 				var mesh = RenderMeshes[index];
-
-				_meshByIndexCache[meshIndex] = mesh;
-				_indexByMeshCache[mesh] = meshIndex;
+				_indexByMesh[mesh] = meshIndex;
 			}
 
-			Debug.Assert(IsCacheInitialized());
+			Debug.Assert(IsInitialized());
 		}
 
 		public static RenderMeshDatabase Instance
@@ -55,7 +53,7 @@ namespace Renderer
 		private static RenderMeshDatabase LoadInstance()
 		{
 			var instance = Resources.Load<RenderMeshDatabase>("RenderMeshDatabase");
-			instance.InitializeCacheIfRequired();
+			instance.InitializeLookupIfRequired();
 
 			if (instance == null)
 				throw new Exception("Couldn't load the instance");
@@ -66,7 +64,7 @@ namespace Renderer
 
 		public RenderMesh GetRenderMesh(RenderMeshIndex index)
 		{
-			Debug.Assert(IsCacheInitialized());
+			Debug.Assert(IsInitialized());
 
 			if (!TryGetRenderMesh(index, out var renderMesh))
 				throw new Exception($"Couldn't find RenderMesh for index '{index}'");
@@ -76,12 +74,6 @@ namespace Renderer
 
 		private bool TryGetRenderMesh(RenderMeshIndex index, out RenderMesh renderMesh)
 		{
-			if (_meshByIndexCache.TryGetValue(index, out var cached))
-			{
-				renderMesh = cached;
-				return true;
-			}
-
 			if (index.Value >= RenderMeshes.Count)
 			{
 				renderMesh = default;
@@ -89,7 +81,6 @@ namespace Renderer
 			}
 
 			renderMesh = RenderMeshes[index.Value];
-			_meshByIndexCache.Add(index, renderMesh);
 			return true;
 		}
 
@@ -99,30 +90,18 @@ namespace Renderer
 			// This assertion fails
 			// Debug.Assert(IsCacheInitialized());
 			// This method is only used at bake-time, so lazy initialization should be ok (can't think of a better idea atm)
-			InitializeCacheIfRequired();
+			InitializeLookupIfRequired();
 
-			if (_indexByMeshCache.TryGetValue(renderMesh, out var cachedIndex))
+			if (_indexByMesh.TryGetValue(renderMesh, out var cachedIndex))
 			{
 				return cachedIndex;
 			}
 
-			RenderMeshIndex result;
-
-			for (var index = 0; index < RenderMeshes.Count; index++)
-			{
-				if (RenderMeshes[index].Equals(renderMesh))
-				{
-					result = new RenderMeshIndex(index);
-					_indexByMeshCache.Add(renderMesh, result);
-					return result;
-				}
-			}
-
-			var previousCount = RenderMeshes.Count;
+			var newIndex = new RenderMeshIndex(RenderMeshes.Count);
 			RenderMeshes.Add(renderMesh);
-			result = new RenderMeshIndex(previousCount);
-			_indexByMeshCache.Add(renderMesh, result);
-			return result;
+			_indexByMesh.Add(renderMesh, newIndex);
+
+			return newIndex;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -17,10 +18,15 @@ namespace Renderer
 		[FieldOffset(0)]
 		public fixed ulong Mem[2];
 
-		public BitField128(ulong lowerBits, ulong upperBits)
+		// This can be used with chunk entity enumerator
+		[FieldOffset(0)]
+		public v128 v128;
+
+		public BitField128(v128 value)
 		{
-			Lower = new BitField64(lowerBits);
-			Upper = new BitField64(upperBits);
+			Lower = default;
+			Upper = default;
+			v128 = value;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -39,6 +45,12 @@ namespace Renderer
 			var newPos = pos - idx * 64;
 			ref var asBitField = ref UnsafeUtility.As<ulong, BitField64>(ref Mem[idx]);
 			return asBitField.IsSet(newPos);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public int CountBits()
+		{
+			return Lower.CountBits() + Upper.CountBits();
 		}
 	}
 }
