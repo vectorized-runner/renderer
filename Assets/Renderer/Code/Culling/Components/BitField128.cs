@@ -46,5 +46,10 @@ namespace Renderer
 			ref var asBitField = ref UnsafeUtility.As<ulong, BitField64>(ref Mem[idx]);
 			return asBitField.IsSet(newPos);
 		}
+
+		public int CountBits()
+		{
+			return Lower.CountBits() + Upper.CountBits();
+		}
 	}
 }
