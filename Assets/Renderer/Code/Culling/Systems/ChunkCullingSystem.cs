@@ -81,7 +81,6 @@ namespace Renderer
 			_frustumOutCount.Dispose();
 		}
 
-
 		protected override void OnUpdate()
 		{
 			var planePackets = _frustumSystem.PlanePackets;
@@ -93,10 +92,9 @@ namespace Renderer
 			_frustumOutCount.Count = 0;
 			_frustumInCount.Count = 0;
 
-			var clearArraysJob = new ClearArraysJob
+			var clearCountersJob = new ClearCountersJob
 			{
 				CountByRenderMeshIndex = _renderCountByRenderMeshIndex,
-				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex
 			}.Schedule(Dependency);
 
 			var cullHandle = new ChunkCullingJob
@@ -109,7 +107,7 @@ namespace Renderer
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
 				FrustumPartialCount = _frustumPartialCount,
-			}.ScheduleParallel(_chunkCullingQuery, clearArraysJob);
+			}.ScheduleParallel(_chunkCullingQuery, clearCountersJob);
 
 			var collectJob = new CollectRenderMatricesJob
 			{
