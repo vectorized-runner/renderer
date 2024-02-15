@@ -89,8 +89,8 @@ namespace Renderer
 
 			var clearCountersJob = new ClearCountersJob
 			{
-				CountByRenderMeshIndex = _renderCountByRenderMeshIndex.AsArray(),
-			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, Dependency);
+				CountByRenderMeshIndex = countAsArray,
+			}.Schedule(uniqueMeshCount, 64, Dependency);
 
 			var chunkCullingJob = new ChunkCullingJob
 			{
@@ -99,7 +99,7 @@ namespace Renderer
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>(),
-				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex.AsArray(),
+				RenderCountByRenderMeshIndex = countAsArray,
 				CulledObjectCount = _culledObjectCounter,
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
@@ -108,13 +108,13 @@ namespace Renderer
 
 			var initializeRenderBatchesJob = new InitializeRenderBatchesJob
 			{
-				RenderMatricesByRenderMeshIndex = MatricesByRenderMeshIndex.AsArray(),
-				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex.AsArray(),
-			}.Schedule(_renderCountByRenderMeshIndex.Length, 64, chunkCullingJob);
+				RenderMatricesByRenderMeshIndex = matrixAsArray,
+				RenderCountByRenderMeshIndex = countAsArray,
+			}.Schedule(uniqueMeshCount, 64, chunkCullingJob);
 
 			var collectRenderBatchesJob = new CollectRenderBatchesJob
 			{
-				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex.AsArray(),
+				MatricesByRenderMeshIndex = matrixAsArray,
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>()
