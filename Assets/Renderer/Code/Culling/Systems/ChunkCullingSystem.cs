@@ -85,8 +85,6 @@ namespace Renderer
 		{
 			var planePackets = _frustumSystem.PlanePackets;
 
-			// TODO-Renderer: Use the async version of this (?)
-			var chunks = _chunkCullingQuery.ToArchetypeChunkArray(Allocator.TempJob);
 			_culledObjectCounter.Count = 0;
 			_frustumPartialCount.Count = 0;
 			_frustumOutCount.Count = 0;
