@@ -2,6 +2,7 @@ using System;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using FrustumPlanes = Renderer.UnityPackages.FrustumPlanes;
 
@@ -18,6 +19,12 @@ namespace Renderer
 
 		[ReadOnly]
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
+
+		[ReadOnly]
+		public SharedComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
+
+		[NativeSetThreadIndex]
+		public int ThreadIndex;
 
 		public NativeArray<UnsafeAtomicCounter> RenderCountByRenderMeshIndex;
 
@@ -75,6 +82,10 @@ namespace Renderer
 							cullResult.Value.SetBits(entityIndex, isVisible);
 						}
 
+						var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
+						ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
+						counter.Add(ThreadIndex, visibleEntityCount);
+						
 						var culledEntityCount = chunk.Count - visibleEntityCount;
 						CulledObjectCount.Increment(culledEntityCount);
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);

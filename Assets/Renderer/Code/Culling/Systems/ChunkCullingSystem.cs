@@ -103,6 +103,8 @@ namespace Renderer
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
+				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>(),
+				RenderCountByRenderMeshIndex = _renderCountByRenderMeshIndex,
 				CulledObjectCount = _culledObjectCounter,
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
