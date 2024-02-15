@@ -2,7 +2,7 @@ using Unity.Entities;
 
 namespace Renderer
 {
-	public struct RenderMeshIndex : ISharedComponentData
+	public struct RenderMeshIndex : IComponentData
 	{
 		public int Value;
 
