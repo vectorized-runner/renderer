@@ -61,6 +61,7 @@ namespace Renderer
 
 					// Check Each Entity individually
 					{
+						var visibleEntityCount = 0;
 						var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
 						var cullResult = new ChunkCullResult();
 						var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
@@ -70,10 +71,12 @@ namespace Renderer
 							var aabb = worldRenderBoundsArray[entityIndex].AABB;
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
-							CulledObjectCount.Increment(isVisible ? 0 : 1);
+							visibleEntityCount += isVisible ? 1 : 0;
 							cullResult.Value.SetBits(entityIndex, isVisible);
 						}
 
+						var culledEntityCount = chunk.Count - visibleEntityCount;
+						CulledObjectCount.Increment(culledEntityCount);
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					}
 					break;
