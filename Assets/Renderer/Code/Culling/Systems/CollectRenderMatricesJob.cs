@@ -18,7 +18,7 @@ namespace Renderer
 		public ComponentTypeHandle<ChunkCullResult> CullResultHandle;
 
 		[ReadOnly]
-		public ComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
+		public SharedComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
 
 		[ReadOnly]
 		public ComponentTypeHandle<LocalToWorld> LocalToWorldHandle;
@@ -33,7 +33,7 @@ namespace Renderer
 			{
 				var chunk = Chunks[chunkIndex];
 				var cullResult = chunk.GetChunkComponentData(ref CullResultHandle);
-				var renderMeshArray = chunk.GetNativeArray(ref RenderMeshIndexHandle);
+				var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
 				var localToWorldArray = chunk.GetNativeArray(ref LocalToWorldHandle);
 				var entityCount = chunk.Count;
 				var entityIndex = 0;
@@ -42,7 +42,6 @@ namespace Renderer
 				{
 					if (cullResult.Value.IsSet(entityIndex))
 					{
-						var renderMeshIndex = renderMeshArray[entityIndex].Value;
 						var matrix = localToWorldArray[entityIndex];
 						ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 						matrices.Add(matrix.Value);

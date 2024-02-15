@@ -117,7 +117,7 @@ namespace Renderer
 				MatricesByRenderMeshIndex = MatricesByRenderMeshIndex,
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
-				RenderMeshIndexHandle = GetComponentTypeHandle<RenderMeshIndex>()
+				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>()
 			}.Schedule(cullHandle);
 
 			Dependency = FinalJobHandle = collectJob;
