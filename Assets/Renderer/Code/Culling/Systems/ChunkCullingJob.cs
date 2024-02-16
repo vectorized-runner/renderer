@@ -36,8 +36,6 @@ namespace Renderer
 
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
-		// UseEnabledMask here is provided by Unity. If RenderMesh was enable-able component, it would save us from checking 
-		// if(IsComponentEnabled) checks
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
 		{
@@ -60,8 +58,9 @@ namespace Renderer
 				{
 					// All Entities are visible, no need to check Entity AABB's.
 					var cullResult = new ChunkCullResult();
-					var visibleEntityCount = 0;
+					int visibleEntityCount;
 
+					// Fast path
 					if (!useEnabledMask)
 					{
 						// All entities of the Chunk are visible, but might not have 128 entities
