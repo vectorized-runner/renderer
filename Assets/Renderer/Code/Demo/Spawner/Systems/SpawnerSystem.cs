@@ -61,7 +61,7 @@ namespace Renderer
 						}
 					}
 
-					EntityManager.AddComponent<MakeStatic>(spawnedEntities);
+					// EntityManager.AddComponent<MakeStatic>(spawnedEntities);
 				})
 				.WithStructuralChanges()
 				.Run();
