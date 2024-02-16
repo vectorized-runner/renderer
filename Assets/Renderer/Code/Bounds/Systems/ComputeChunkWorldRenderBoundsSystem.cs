@@ -6,17 +6,18 @@ namespace Renderer
 	[UpdateAfter(typeof(ComputeWorldRenderBoundsSystem))]
 	public partial class ComputeChunkWorldRenderBoundsSystem : SystemBase
 	{
-		private EntityQuery _dynamicChunksQuery;
+		private EntityQuery _changedChunksQuery;
 
 		protected override void OnCreate()
 		{
-			_dynamicChunksQuery = GetEntityQuery(
+			// Notice: We shouldn't exclude Static entities,
+			// Because new Static entities might get added into an existing count, requiring bounds re-calculation
+			_changedChunksQuery = GetEntityQuery(
 				ComponentType.ChunkComponent<ChunkWorldRenderBounds>(), 
-				ComponentType.Exclude<Static>(),
 				ComponentType.ReadOnly<WorldRenderBounds>());
 
 			// We only need to recalculate ChunkWorldRenderBounds if any of the 'WorldRenderBounds' of Entities is changed
-			_dynamicChunksQuery.SetChangedVersionFilter(ComponentType.ReadOnly<WorldRenderBounds>());
+			_changedChunksQuery.SetChangedVersionFilter(ComponentType.ReadOnly<WorldRenderBounds>());
 		}
 
 		protected override void OnUpdate()
@@ -25,7 +26,7 @@ namespace Renderer
 			{
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>()
-			}.ScheduleParallel(_dynamicChunksQuery, Dependency);
+			}.ScheduleParallel(_changedChunksQuery, Dependency);
 		}
 	}
 }
