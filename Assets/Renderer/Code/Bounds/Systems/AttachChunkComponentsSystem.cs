@@ -7,20 +7,25 @@ namespace Renderer
 	[UpdateInGroup(typeof(RenderBoundsGroup), OrderFirst = true)]
 	public partial class AttachChunkComponentsSystem : SystemBase
 	{
-		private EntityQuery _worldLackQuery;
-		private EntityQuery _cullLackQuery;
+		private EntityQuery _requireChunkBoundsQuery;
+		private EntityQuery _requireCullResultQuery;
 
 		protected override void OnCreate()
 		{
-			_worldLackQuery = GetEntityQuery(ComponentType.ChunkComponentExclude<ChunkWorldRenderBounds>());
-			_cullLackQuery = GetEntityQuery(ComponentType.ChunkComponentExclude<ChunkCullResult>());
+			_requireChunkBoundsQuery = GetEntityQuery(
+				ComponentType.ChunkComponentExclude<ChunkWorldRenderBounds>(),
+				ComponentType.ReadOnly<WorldRenderBounds>());
+
+			_requireCullResultQuery = GetEntityQuery(
+				ComponentType.ChunkComponentExclude<ChunkCullResult>(),
+				ComponentType.ReadOnly<WorldRenderBounds>());
 		}
 
 		protected override void OnUpdate()
 		{
-			EntityManager.AddChunkComponentData(_worldLackQuery,
+			EntityManager.AddChunkComponentData(_requireChunkBoundsQuery,
 				new ChunkWorldRenderBounds(new AABB { Center = new float3(-1), Extents = new float3(-1) }));
-			EntityManager.AddChunkComponentData(_cullLackQuery,
+			EntityManager.AddChunkComponentData(_requireCullResultQuery,
 				new ChunkCullResult { Value = new BitField128(new v128(0)) });
 		}
 	}
