@@ -7,7 +7,7 @@ namespace Renderer
 		public static float PanSpeed = 20.0f;
 		public static float MoveSpeed = 10.0f;
 
-		public static bool DebugMode;
+		public static bool DebugMode = true;
 		public static Camera RenderCamera;
 	}
 }
