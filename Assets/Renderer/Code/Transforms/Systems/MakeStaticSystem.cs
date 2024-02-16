@@ -25,7 +25,7 @@ namespace Renderer
 				{
 					localToWorld = new LocalToWorld
 						{ Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
-					worldRenderBounds = ComputeWorldRenderBoundsSystem.CalculateWorldBounds(renderBounds, localToWorld);
+					worldRenderBounds = RenderMath.CalculateWorldBounds(renderBounds, localToWorld);
 				}).Run();
 
 			EntityManager.RemoveComponent<Position>(_makeStaticQuery);
