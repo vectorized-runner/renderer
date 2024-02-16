@@ -64,7 +64,7 @@ namespace Renderer
 					if (!useEnabledMask)
 					{
 						// All entities of the Chunk are visible, but might not have 128 entities
-						cullResult.Value.SetBits(0, true, chunk.Count);
+						cullResult.Value.SetBitsFromStart(true, chunk.Count);
 						visibleEntityCount = chunk.Count;
 					}
 					else
@@ -74,7 +74,7 @@ namespace Renderer
 
 						while (enumerator.NextEntityIndex(out var entityIndex))
 						{
-							cullResult.Value.SetBits(entityIndex, true);
+							cullResult.Value.SetBit(entityIndex, true);
 						}
 
 						visibleEntityCount = cullResult.Value.CountBits();
@@ -106,7 +106,7 @@ namespace Renderer
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
 							visibleEntityCount += isVisible ? 1 : 0;
-							cullResult.Value.SetBits(entityIndex, isVisible);
+							cullResult.Value.SetBit(entityIndex, isVisible);
 						}
 
 						var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;

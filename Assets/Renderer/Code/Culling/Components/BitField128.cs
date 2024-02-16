@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace Renderer
 {
@@ -28,14 +29,33 @@ namespace Renderer
 			Upper = default;
 			v128 = value;
 		}
-
+		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetBits(int pos, bool value, int numBits = 1)
+		public void SetBit(int pos, bool value)
 		{
 			var idx = pos / 64;
 			var newPos = pos - idx * 64;
 			ref var asBitField = ref UnsafeUtility.As<ulong, BitField64>(ref Mem[idx]);
-			asBitField.SetBits(newPos, value, numBits);
+			asBitField.SetBits(newPos, value, 1);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void SetBitsFromStart(bool value, int numBits)
+		{
+			if (numBits > 64)
+			{
+				// 64 -> 0
+				// 80 -> 16
+				// 128 -> 64
+				Upper.SetBits(0, value, numBits - 64);
+			}
+			
+			// 0 -> 0
+			// 16 -> 16
+			// 64 -> 64
+			// 80 -> 64
+			// 128 -> 64
+			Lower.SetBits(0, value, math.min(64, numBits));
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
