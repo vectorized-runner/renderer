@@ -4,7 +4,7 @@ namespace Renderer
 {
 	[UpdateInGroup(typeof(RenderBoundsGroup))]
 	[UpdateAfter(typeof(ComputeWorldRenderBoundsSystem))]
-	public partial class ComputeChunkBoundsSystem : SystemBase
+	public partial class UpdateChunkWorldRenderBoundsSystem : SystemBase
 	{
 		private EntityQuery _changedChunksQuery;
 
