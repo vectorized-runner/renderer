@@ -23,10 +23,7 @@ namespace Renderer
 
 			if (!enumerator.NextEntityIndex(out var entityIndex))
 			{
-				// The Chunk doesn't have any Entities, it shouldn't pass culling test towards any camera
-				var aabb = new AABB { Center = float.MaxValue, Extents = float3.zero };
-				chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle,
-					new ChunkWorldRenderBounds { AABB = aabb });
+				// The Chunk doesn't have any Entities, updating Render Bounds shouldn't matter.
 				return;
 			}
 
