@@ -1,5 +1,6 @@
 using Unity.Burst.Intrinsics;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace Renderer
 {
@@ -17,8 +18,10 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			EntityManager.AddChunkComponentData(_worldLackQuery, new ChunkWorldRenderBounds());
-			EntityManager.AddChunkComponentData(_cullLackQuery, new ChunkCullResult { Value = new BitField128(new v128(0))});
+			EntityManager.AddChunkComponentData(_worldLackQuery,
+				new ChunkWorldRenderBounds { AABB = new AABB { Center = new float3(-1), Extents = new float3(-1) } });
+			EntityManager.AddChunkComponentData(_cullLackQuery,
+				new ChunkCullResult { Value = new BitField128(new v128(0)) });
 		}
 	}
 }
