@@ -37,7 +37,7 @@ namespace Renderer
 			}
 
 			chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle,
-				new ChunkWorldRenderBounds { AABB = resultAABB });
+				new ChunkWorldRenderBounds(resultAABB));
 		}
 	}
 }

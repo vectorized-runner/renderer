@@ -2,8 +2,13 @@ using Unity.Entities;
 
 namespace Renderer
 {
-	public struct ChunkWorldRenderBounds : IComponentData
+	public readonly struct ChunkWorldRenderBounds : IComponentData
 	{
-		public AABB AABB;
+		public readonly AABB AABB;
+
+		public ChunkWorldRenderBounds(AABB aabb)
+		{
+			AABB = aabb;
+		}
 	}
 }
