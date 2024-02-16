@@ -6,17 +6,17 @@ namespace Renderer
 	[UpdateAfter(typeof(ComputeWorldRenderBoundsSystem))]
 	public partial class UpdateChunkWorldRenderBoundsSystem : SystemBase
 	{
-		private EntityQuery _changedChunksQuery;
+		private EntityQuery _dynamicChunksQuery;
 
 		protected override void OnCreate()
 		{
-			_changedChunksQuery = GetEntityQuery(
-				ComponentType.ChunkComponent<ChunkWorldRenderBounds>(),
+			_dynamicChunksQuery = GetEntityQuery(
+				ComponentType.ChunkComponent<ChunkWorldRenderBounds>(), 
+				ComponentType.Exclude<Static>(),
 				ComponentType.ReadOnly<WorldRenderBounds>());
 
-			// TODO-Renderer: Change filtering doesn't work when spawning Entities dynamically (through SpawnerSystem) -- I couldn't figure out how to fix
 			// We only need to recalculate ChunkWorldRenderBounds if any of the 'WorldRenderBounds' of Entities is changed
-			// _changedChunksQuery.SetChangedVersionFilter(ComponentType.ReadOnly<WorldRenderBounds>());
+			_dynamicChunksQuery.SetChangedVersionFilter(ComponentType.ReadOnly<WorldRenderBounds>());
 		}
 
 		protected override void OnUpdate()
@@ -25,7 +25,7 @@ namespace Renderer
 			{
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>()
-			}.ScheduleParallel(_changedChunksQuery, Dependency);
+			}.ScheduleParallel(_dynamicChunksQuery, Dependency);
 		}
 	}
 }
