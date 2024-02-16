@@ -5,7 +5,6 @@ namespace Renderer
 {
 	[UpdateInGroup(typeof(TransformsGroup))]
 	[UpdateBefore(typeof(ComputeWorldMatrixSystem))]
-	[UpdateBefore(typeof(ComputeWorldRenderBoundsSystem))]
 	public partial class MakeStaticSystem : SystemBase
 	{
 		private EntityQuery _makeStaticQuery;
