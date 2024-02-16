@@ -65,7 +65,7 @@ namespace Renderer
 					{ Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
 				AddComponent(entity, localToWorld);
 				AddSharedComponent(entity, renderMeshIndex);
-				var worldBounds = ComputeWorldRenderBoundsSystem.CalculateWorldBounds(renderBounds, localToWorld);
+				var worldBounds = RenderMath.CalculateWorldBounds(renderBounds, localToWorld);
 				AddComponent(entity, worldBounds);
 
 				if (isStatic)
