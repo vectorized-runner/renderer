@@ -91,8 +91,8 @@ namespace Renderer
 			var chunkCullingJob = new ChunkCullingJob
 			{
 				PlanePackets = planePackets,
-				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
-				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(),
+				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
+				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>(),
 				RenderCountByRenderMeshIndex = countAsArray,
@@ -111,8 +111,8 @@ namespace Renderer
 			var collectRenderBatchesJob = new CollectRenderBatchesJob
 			{
 				MatricesByRenderMeshIndex = matrixAsArray,
-				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
-				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
+				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
+				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(true),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>()
 			}.ScheduleParallel(_chunkCullingQuery, initializeRenderBatchesJob);
 
