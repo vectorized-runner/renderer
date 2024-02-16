@@ -36,24 +36,11 @@ namespace Renderer
 			while (enumerator.NextEntityIndex(out entityIndex))
 			{
 				var nextAABB = worldRenderBoundsArray[entityIndex].AABB;
-				resultAABB = Encapsulate(resultAABB, nextAABB);
+				resultAABB = RenderMath.EncapsuleAABBs(resultAABB, nextAABB);
 			}
 
 			chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle,
 				new ChunkWorldRenderBounds { AABB = resultAABB });
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static AABB Encapsulate(AABB first, AABB second)
-		{
-			var newMin = math.min(first.Min, second.Min);
-			var newMax = math.max(first.Max, second.Max);
-
-			return new AABB
-			{
-				Center = (newMin + newMax) * 0.5f,
-				Extents = (newMax - newMin) * 0.5f
-			};
 		}
 	}
 }
