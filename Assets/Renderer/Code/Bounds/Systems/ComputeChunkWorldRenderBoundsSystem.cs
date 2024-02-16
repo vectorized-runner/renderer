@@ -25,7 +25,7 @@ namespace Renderer
 			Dependency = new ComputeChunkBoundsJob
 			{
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(),
-				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>()
+				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true)
 			}.ScheduleParallel(_changedChunksQuery, Dependency);
 		}
 	}
