@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Random = Unity.Mathematics.Random;
 
 namespace Renderer
@@ -46,15 +47,26 @@ namespace Renderer
 						var position = center + random.NextFloat3Direction() * distance;
 						var rotation = random.NextQuaternionRotation();
 						var spawnedEntity = spawnedEntities[entityIndex];
-						EntityManager.SetComponentData(spawnedEntity, new Position { Value = position });
-						EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
-						EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
+
+						if (EntityManager.HasComponent<Static>(spawnedEntity))
+						{
+							EntityManager.SetComponentData(spawnedEntity,
+								new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) });
+						}
+						else
+						{
+							EntityManager.SetComponentData(spawnedEntity, new Position { Value = position });
+							EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
+							EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
+						}
 					}
 
 					EntityManager.AddComponent<MakeStatic>(spawnedEntities);
 				})
 				.WithStructuralChanges()
 				.Run();
+
+			Debug.Log("Spawned Entities.");
 
 			EntityManager.RemoveComponent<SpawnTrigger>(spawnTrigger);
 		}
