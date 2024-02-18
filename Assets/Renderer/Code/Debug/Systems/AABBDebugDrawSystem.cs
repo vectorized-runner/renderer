@@ -78,9 +78,11 @@ namespace Renderer
 
 		private void DebugDrawAABB(AABB aabb, Color color)
 		{
+			// Debug.Log($"Drawing AABB: {aabb}");
+			
 			var center = aabb.Center;
 			var extents = aabb.Extents;
-			var ex = extents.y;
+			var ex = extents.x;
 			var ey = extents.y;
 			var ez = extents.z;
 			var p0 = center + new float3(-ex, -ey, -ez);
