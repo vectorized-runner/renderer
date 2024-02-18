@@ -28,7 +28,11 @@ namespace Renderer
 				throw new InvalidOperationException($"Invalid length '{length}'");
 
 			CheckElementAccess(index, count);
-			CheckElementAccess(index + length, count);
+
+			if (length > 0)
+			{
+				CheckElementAccess(index + length - 1, count);
+			}
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
