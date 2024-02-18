@@ -16,10 +16,11 @@ namespace Renderer
 		[FieldOffset(8)]
 		public BitField64 Upper;
 
+		// Used for making SetBit branch-less
 		[FieldOffset(0)]
 		public fixed ulong Mem[2];
 
-		// This can be used with chunk entity enumerator
+		// Used for easy ChunkEntityEnumerator construction
 		[FieldOffset(0)]
 		public v128 v128;
 
