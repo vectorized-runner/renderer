@@ -21,8 +21,8 @@ namespace Renderer
 			var spawnTrigger = SystemAPI.GetSingletonEntity<SpawnEntityElement>();
 			EntityManager.AddComponentData(spawnTrigger, new SpawnTrigger
 			{
-				Amount = 100_000,
-				Label = "Cube-Dynamic"
+				Amount = 1_000,
+				Label = "Cube-Static"
 			});
 
 			var seed = (uint)Stopwatch.GetTimestamp();
@@ -63,6 +63,7 @@ namespace Renderer
 							EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
 							EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
 						}
+
 					}
 
 					// EntityManager.AddComponent<MakeStatic>(spawnedEntities);
