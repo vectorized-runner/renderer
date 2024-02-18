@@ -22,7 +22,7 @@ namespace Renderer
 
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static WorldRenderBounds CalculateWorldBounds(RenderBounds localBounds, LocalToWorld localToWorld)
+		public static WorldRenderBounds ComputeWorldRenderBounds(RenderBounds localBounds, LocalToWorld localToWorld)
 		{
 			var aabb = localBounds.AABB;
 			// Scaled orientation (?)

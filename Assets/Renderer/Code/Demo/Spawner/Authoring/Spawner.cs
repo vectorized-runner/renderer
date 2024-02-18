@@ -28,17 +28,20 @@ namespace Renderer
 				var entity = GetEntity(TransformUsageFlags.None);
 				var spawnObjects = authoring.SpawnObjects;
 				var count = spawnObjects.Length;
-
 				var buffer = AddBuffer<SpawnEntityElement>(entity);
 
 				for (int i = 0; i < count; i++)
 				{
+					var prefab = spawnObjects[i].Prefab;
+					var aabb = RenderMath.ComputeMeshAABB(prefab.GetComponent<MeshFilter>().sharedMesh);
+
 					buffer.Add(new SpawnEntityElement
 					{
 						Value = new SpawnEntity
 						{
-							Entity = GetEntity(spawnObjects[i].Prefab, TransformUsageFlags.ManualOverride),
+							Entity = GetEntity(prefab, TransformUsageFlags.ManualOverride),
 							Label = spawnObjects[i].Label,
+							AABB = aabb,
 						}
 					});
 				}

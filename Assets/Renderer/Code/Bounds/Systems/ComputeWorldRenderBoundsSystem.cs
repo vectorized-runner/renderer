@@ -14,7 +14,7 @@ namespace Renderer
 					in RenderBounds renderBounds,
 					in LocalToWorld localToWorld) =>
 				{
-					worldRenderBounds = RenderMath.CalculateWorldBounds(renderBounds, localToWorld);
+					worldRenderBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
 				})
 				.ScheduleParallel();
 		}

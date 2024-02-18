@@ -32,7 +32,7 @@ namespace Renderer
 					var random = new Random(seed);
 					var amount = spawnTrigger.Amount;
 					var label = spawnTrigger.Label;
-					var prefab = FindEntity(ref spawnEntities, label);
+					var (prefab, aabb) = FindEntity(ref spawnEntities, label);
 					var spawnedEntities = EntityManager.Instantiate(prefab, amount, Allocator.Temp);
 					var center = float3.zero;
 					var distanceMin = 100.0f;
@@ -50,8 +50,12 @@ namespace Renderer
 
 						if (EntityManager.HasComponent<Static>(spawnedEntity))
 						{
-							EntityManager.SetComponentData(spawnedEntity,
-								new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) });
+							var localToWorld = new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) };
+							var renderBounds = new RenderBounds { AABB = aabb };
+							var worldRenderBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
+
+							EntityManager.AddComponentData(spawnedEntity, worldRenderBounds);
+							EntityManager.SetComponentData(spawnedEntity, localToWorld);
 						}
 						else
 						{
@@ -71,13 +75,13 @@ namespace Renderer
 			EntityManager.RemoveComponent<SpawnTrigger>(spawnTrigger);
 		}
 
-		private Entity FindEntity(ref DynamicBuffer<SpawnEntityElement> entities, FixedString64Bytes label)
+		private (Entity, AABB) FindEntity(ref DynamicBuffer<SpawnEntityElement> entities, FixedString64Bytes label)
 		{
 			for (int i = 0; i < entities.Length; i++)
 			{
 				if (entities[i].Value.Label == label)
 				{
-					return entities[i].Value.Entity;
+					return (entities[i].Value.Entity, entities[i].Value.AABB);
 				}
 			}
 

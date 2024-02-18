@@ -7,5 +7,6 @@ namespace Renderer
 	{
 		public Entity Entity;
 		public FixedString64Bytes Label;
+		public AABB AABB;
 	}
 }
