@@ -34,7 +34,7 @@ namespace Renderer
 
 		private static RenderMeshDatabase _instance;
 
-		private readonly Dictionary<RenderMesh, RenderMeshInfo> _indexByMesh = new();
+		private readonly Dictionary<RenderMesh, RenderMeshIndex> _indexByMesh = new();
 
 #if UNITY_EDITOR
 		[Button]
