@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
+using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Renderer
 {
@@ -17,8 +19,8 @@ namespace Renderer
 				Extents = (newMax - newMin) * 0.5f
 			};
 		}
-		
-		
+
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static WorldRenderBounds CalculateWorldBounds(RenderBounds localBounds, LocalToWorld localToWorld)
 		{
@@ -56,6 +58,30 @@ namespace Renderer
 					Center = center,
 					Extents = worldExtents
 				}
+			};
+		}
+
+		public static AABB ComputeLocalAABB(Mesh.MeshData meshData)
+		{
+			var vertexCount = meshData.vertexCount;
+			var vertices = new NativeArray<float3>(vertexCount, Allocator.Temp);
+			var asVector3 = vertices.Reinterpret<Vector3>();
+			meshData.GetVertices(asVector3);
+
+			float3 allMin = float.MaxValue;
+			float3 allMax = float.MinValue;
+
+			for (int i = 0; i < vertexCount; i++)
+			{
+				var vertex = vertices[i];
+				allMin = math.min(vertex, allMin);
+				allMax = math.max(vertex, allMax);
+			}
+
+			return new AABB
+			{
+				Center = (allMax + allMin) * 0.5f,
+				Extents = (allMax - allMin) * 0.5f
 			};
 		}
 	}
