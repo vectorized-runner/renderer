@@ -1,18 +1,84 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Sirenix.OdinInspector;
+using Unity.Collections;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Renderer
 {
+	[Serializable]
+	public struct MeshAABBPair
+	{
+		public Mesh Mesh;
+		public AABB AABB;
+	}
+
 	[CreateAssetMenu]
 	public class RenderMeshDatabase : ScriptableObject
 	{
-		// Not supposed to be edited at Runtime (Cache only checks if count is out-of-date)
-		public List<RenderMesh> RenderMeshes;
+		// These lists are supposed to be built at Editor-time.
+		[SerializeField]
+		private List<RenderMesh> RenderMeshes;
+
+		[SerializeField]
+		private MeshAABBPair[] MeshAABBPairs;
+
+		// Indexed by RenderMeshIndex
+		public NativeArray<AABB> MeshAABBs;
+
+		public int MeshCount => RenderMeshes.Count;
 
 		private static RenderMeshDatabase _instance;
 
-		private readonly Dictionary<RenderMesh, RenderMeshIndex> _indexByMesh = new();
+		private readonly Dictionary<RenderMesh, RenderMeshInfo> _indexByMesh = new();
+
+#if UNITY_EDITOR
+		[Button]
+		private static void SerializeMeshAABBs()
+		{
+			var allMeshes = AssetDatabase.LoadAllAssetsAtPath("Assets").OfType<Mesh>().ToArray();
+			var meshCount = allMeshes.Length;
+			if (meshCount == 0)
+				return;
+
+			var allMeshPaths = allMeshes.Select(AssetDatabase.GetAssetPath);
+
+			foreach (var meshPath in allMeshPaths)
+			{
+				var meshImporter = AssetImporter.GetAtPath(meshPath) as ModelImporter;
+				meshImporter.isReadable = true;
+				meshImporter.SaveAndReimport();
+			}
+
+			var meshAABBPairs = new MeshAABBPair[meshCount];
+
+			using var allMeshData = Mesh.AcquireReadOnlyMeshData(allMeshes);
+
+			for (int i = 0; i < meshCount; i++)
+			{
+				meshAABBPairs[i] = new MeshAABBPair
+				{
+					Mesh = allMeshes[i],
+					AABB = RenderMath.ComputeLocalAABB(allMeshData[i])
+				};
+			}
+
+			foreach (var meshPath in allMeshPaths)
+			{
+				var meshImporter = AssetImporter.GetAtPath(meshPath) as ModelImporter;
+				meshImporter.isReadable = false;
+				meshImporter.SaveAndReimport();
+			}
+
+			_instance.MeshAABBPairs = meshAABBPairs;
+			EditorUtility.SetDirty(_instance);
+			AssetDatabase.SaveAssets();
+		}
+#endif
 
 		private bool IsInitialized()
 		{
