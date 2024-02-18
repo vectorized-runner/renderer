@@ -61,7 +61,14 @@ namespace Renderer
 			};
 		}
 
-		public static AABB ComputeLocalAABB(Mesh.MeshData meshData)
+		public static AABB ComputeMeshAABB(Mesh mesh)
+		{
+			using var meshDataArray = Mesh.AcquireReadOnlyMeshData(mesh);
+			var aabb = ComputeMeshAABB(meshDataArray[0]);
+			return aabb;
+		}
+		
+		public static AABB ComputeMeshAABB(Mesh.MeshData meshData)
 		{
 			var vertexCount = meshData.vertexCount;
 			var vertices = new NativeArray<float3>(vertexCount, Allocator.Temp);

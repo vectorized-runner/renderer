@@ -63,7 +63,7 @@ namespace Renderer
 				meshAABBPairs[i] = new MeshAABBPair
 				{
 					Mesh = allMeshes[i],
-					AABB = RenderMath.ComputeLocalAABB(allMeshData[i])
+					AABB = RenderMath.ComputeMeshAABB(allMeshData[i])
 				};
 			}
 
