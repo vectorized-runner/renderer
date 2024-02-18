@@ -98,6 +98,7 @@ namespace Renderer
 			}
 
 			maxIndex += 1;
+			sharedComponentCounter.Dispose();
 
 			while (MatricesByRenderMeshIndex.Length < maxIndex)
 			{
