@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
 
 namespace Renderer
 {
@@ -17,7 +16,6 @@ namespace Renderer
 			in v128 chunkEnabledMask)
 		{
 			var sharedComponentIndex = chunk.GetSharedComponentIndex(RenderMeshHandle);
-			Debug.Log($"SharedComponentIndexValue: {sharedComponentIndex}");
 			Counter.Add(sharedComponentIndex);
 		}
 	}
