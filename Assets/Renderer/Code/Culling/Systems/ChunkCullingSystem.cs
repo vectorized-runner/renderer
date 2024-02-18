@@ -83,12 +83,23 @@ namespace Renderer
 			}.Run(_cullingQuery);
 
 			var uniqueMeshCount = sharedComponentCounter.Count();
+			// No mesh, no culling
+			if (uniqueMeshCount == 0)
+				return;
 
-			// +1, because when we have 1 mesh, Unity returns SharedComponentIndex of 1
-			// We need to offset it by leaving the zero index empty
-			var requiredArraySize = uniqueMeshCount + 1;
+			// Stupid Unity returns SharedComponentIndex of 2, when there's only 1 shared component
+			// So this is a hack to allocate extra matrix arrays even though it wouldn't be required in an ideal case
+			var renderMeshIndexValues = sharedComponentCounter.ToNativeArray(Allocator.Temp);
+			var maxIndex = 0;
 
-			while (MatricesByRenderMeshIndex.Length < requiredArraySize)
+			foreach (var renderMeshIndex in renderMeshIndexValues)
+			{
+				maxIndex = math.max(renderMeshIndex, maxIndex);
+			}
+
+			maxIndex += 1;
+
+			while (MatricesByRenderMeshIndex.Length < maxIndex)
 			{
 				MatricesByRenderMeshIndex.Add(new UnsafeList<float4x4>(0, Allocator.Persistent));
 				_renderCountByRenderMeshIndex.Add(new UnsafeAtomicCounter(Allocator.Persistent));
@@ -100,7 +111,7 @@ namespace Renderer
 			var clearCountersJob = new ClearCountersJob
 			{
 				CountByRenderMeshIndex = countAsArray,
-			}.Schedule(requiredArraySize, 64, Dependency);
+			}.Schedule(maxIndex, 64, Dependency);
 
 			var chunkCullingJob = new ChunkCullingJob
 			{
@@ -120,7 +131,7 @@ namespace Renderer
 			{
 				RenderMatricesByRenderMeshIndex = matrixAsArray,
 				RenderCountByRenderMeshIndex = countAsArray,
-			}.Schedule(requiredArraySize, 64, chunkCullingJob);
+			}.Schedule(maxIndex, 64, chunkCullingJob);
 
 			var collectRenderBatchesJob = new CollectRenderBatchesJob
 			{
