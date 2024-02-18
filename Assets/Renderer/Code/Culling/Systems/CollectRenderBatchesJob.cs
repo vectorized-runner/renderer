@@ -15,7 +15,7 @@ namespace Renderer
 		public ComponentTypeHandle<ChunkCullResult> CullResultHandle;
 
 		[ReadOnly]
-		public SharedComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
+		public SharedComponentTypeHandle<RenderMesh> RenderMeshIndexHandle;
 
 		[ReadOnly]
 		public ComponentTypeHandle<LocalToWorld> LocalToWorldHandle;
@@ -33,7 +33,7 @@ namespace Renderer
 				return;
 			}
 
-			var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
+			var renderMeshIndex = chunk.GetSharedComponentIndex(RenderMeshIndexHandle);
 			ref var matrices = ref MatricesByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 			// Notice optimization: Increment once
 			var newLength = Interlocked.Add(ref matrices.m_length, renderCount);
