@@ -2,9 +2,9 @@ using Unity.Entities;
 
 namespace Renderer
 {
-	public struct RenderMeshIndex : ISharedComponentData
+	public readonly struct RenderMeshIndex : ISharedComponentData
 	{
-		public int Value;
+		public readonly int Value;
 
 		public RenderMeshIndex(int value)
 		{
