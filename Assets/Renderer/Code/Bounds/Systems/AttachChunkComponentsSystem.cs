@@ -24,7 +24,8 @@ namespace Renderer
 		protected override void OnUpdate()
 		{
 			EntityManager.AddChunkComponentData(_requireChunkBoundsQuery,
-				new ChunkWorldRenderBounds(new AABB { Center = new float3(-1), Extents = new float3(-1) }));
+				new ChunkWorldRenderBounds
+					{ AABB = new AABB { Center = new float3(-1), Extents = new float3(-1) } });
 			EntityManager.AddChunkComponentData(_requireCullResultQuery,
 				new ChunkCullResult { Value = new BitField128(new v128(0)) });
 		}

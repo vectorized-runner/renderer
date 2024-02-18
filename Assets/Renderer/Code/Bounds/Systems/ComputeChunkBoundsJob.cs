@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
@@ -21,23 +20,26 @@ namespace Renderer
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
 			var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
 
-			if (!enumerator.NextEntityIndex(out var entityIndex))
+			float3 min = float.MaxValue;
+			float3 max = float.MinValue;
+
+			while (enumerator.NextEntityIndex(out var entityIndex))
 			{
-				// The Chunk doesn't have any Entities, updating Render Bounds shouldn't matter.
-				return;
+				var aabb = worldRenderBoundsArray[entityIndex].AABB;
+				min = math.min(min, aabb.Min);
+				max = math.max(max, aabb.Max);
 			}
 
-			var firstAABB = worldRenderBoundsArray[entityIndex].AABB;
-			var resultAABB = firstAABB;
-
-			while (enumerator.NextEntityIndex(out entityIndex))
+			var chunkBounds = new ChunkWorldRenderBounds
 			{
-				var nextAABB = worldRenderBoundsArray[entityIndex].AABB;
-				resultAABB = RenderMath.EncapsuleAABBs(resultAABB, nextAABB);
-			}
+				AABB = new AABB
+				{
+					Center = (max + min) * 0.5f,
+					Extents = (max - min) * 0.5f
+				}
+			};
 
-			chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle,
-				new ChunkWorldRenderBounds(resultAABB));
+			chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle, chunkBounds);
 		}
 	}
 }
