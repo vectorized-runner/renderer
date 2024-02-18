@@ -36,9 +36,11 @@ namespace Renderer
 			var renderedVerts = 0;
 			var renderBatchCount = 0;
 			var renderMeshes = new List<RenderMesh>();
+			
+			// This returns the unused Shared components too.
 			EntityManager.GetAllUniqueSharedComponentsManaged(renderMeshes);
 
-			Debug.Assert(matricesByRenderMeshIndex.Length == renderMeshes.Count, $"MBI: {matricesByRenderMeshIndex.Length} RMI {renderMeshes.Count}");
+			Debug.Assert(matricesByRenderMeshIndex.Length <= renderMeshes.Count, $"MBI: {matricesByRenderMeshIndex.Length} RMI {renderMeshes.Count}");
 
 			for (var renderMeshIndex = 0; renderMeshIndex < matricesByRenderMeshIndex.Length; renderMeshIndex++)
 			{
