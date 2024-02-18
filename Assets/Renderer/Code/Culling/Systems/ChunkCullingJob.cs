@@ -21,7 +21,7 @@ namespace Renderer
 		public NativeArray<FrustumPlanes.PlanePacket4> PlanePackets;
 
 		[ReadOnly]
-		public SharedComponentTypeHandle<RenderMeshIndex> RenderMeshIndexHandle;
+		public SharedComponentTypeHandle<RenderMesh> RenderMeshHandle;
 
 		[NativeSetThreadIndex]
 		public int ThreadIndex;
@@ -42,6 +42,7 @@ namespace Renderer
 			var chunkWorldRenderBounds = chunk.GetChunkComponentData(ref ChunkWorldRenderBoundsHandle);
 			var chunkAabb = chunkWorldRenderBounds.AABB;
 			var chunkIntersection = FrustumPlanes.Intersect2(PlanePackets, chunkAabb);
+			var renderMeshIndex = chunk.GetSharedComponentIndex(RenderMeshHandle);
 
 			switch (chunkIntersection)
 			{
@@ -82,7 +83,6 @@ namespace Renderer
 
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 
-					var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
 					ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 					counter.Add(ThreadIndex, visibleEntityCount);
 
@@ -109,7 +109,6 @@ namespace Renderer
 							cullResult.Value.SetBit(entityIndex, isVisible);
 						}
 
-						var renderMeshIndex = chunk.GetSharedComponent(RenderMeshIndexHandle).Value;
 						ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 						counter.Add(ThreadIndex, visibleEntityCount);
 

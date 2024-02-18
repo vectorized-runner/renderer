@@ -1,10 +1,11 @@
 using System;
+using Unity.Entities;
 using UnityEngine;
 
 namespace Renderer
 {
 	[Serializable]
-	public struct RenderMesh : IEquatable<RenderMesh>
+	public struct RenderMesh : IEquatable<RenderMesh>, ISharedComponentData
 	{
 		public Mesh Mesh;
 		public Material Material;

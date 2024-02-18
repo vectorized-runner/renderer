@@ -1,8 +1,11 @@
+using Unity.Burst;
+using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Renderer
 {
@@ -22,7 +25,7 @@ namespace Renderer
 		private NativeAtomicCounter _frustumOutCount;
 		private NativeAtomicCounter _frustumPartialCount;
 		private NativeAtomicCounter _culledObjectCounter;
-		private EntityQuery _chunkCullingQuery;
+		private EntityQuery _cullingQuery;
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
 
 		protected override void OnCreate()
@@ -31,11 +34,11 @@ namespace Renderer
 
 			MatricesByRenderMeshIndex = new NativeList<UnsafeList<float4x4>>(0, Allocator.Persistent);
 			_renderCountByRenderMeshIndex = new NativeList<UnsafeAtomicCounter>(0, Allocator.Persistent);
-			
-			_chunkCullingQuery = GetEntityQuery(
+
+			_cullingQuery = GetEntityQuery(
 				ComponentType.ReadOnly<WorldRenderBounds>(),
 				ComponentType.ReadOnly<LocalToWorld>(),
-				ComponentType.ReadOnly<RenderMeshIndex>(),
+				ComponentType.ReadOnly<RenderMesh>(),
 				ComponentType.ChunkComponentReadOnly(typeof(ChunkCullResult)));
 			ComponentType.ChunkComponentReadOnly(typeof(ChunkWorldRenderBounds));
 
@@ -65,6 +68,22 @@ namespace Renderer
 			_frustumOutCount.Dispose();
 		}
 
+		[BurstCompile]
+		public struct CountSharedComponentsJob : IJobChunk
+		{
+			public SharedComponentTypeHandle<RenderMesh> RenderMeshHandle;
+
+			public NativeParallelHashSet<int> Counter;
+
+			public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
+				in v128 chunkEnabledMask)
+			{
+				var sharedComponentIndex = chunk.GetSharedComponentIndex(RenderMeshHandle);
+				Debug.Log($"SharedComponentIndexValue: {sharedComponentIndex}");
+				Counter.Add(sharedComponentIndex);
+			}
+		}
+
 		protected override void OnUpdate()
 		{
 			var planePackets = _frustumSystem.PlanePackets;
@@ -73,20 +92,34 @@ namespace Renderer
 			_frustumPartialCount.Count = 0;
 			_frustumOutCount.Count = 0;
 			_frustumInCount.Count = 0;
-			
-			var uniqueMeshCount = RenderMeshDatabase.Instance.RenderMeshes.Count;
-			while (MatricesByRenderMeshIndex.Length < uniqueMeshCount)
+
+			var sharedComponentCounter = new NativeParallelHashSet<int>(32, Allocator.TempJob);
+
+			new CountSharedComponentsJob
+			{
+				Counter = sharedComponentCounter,
+				RenderMeshHandle = GetSharedComponentTypeHandle<RenderMesh>()
+			}.Run(_cullingQuery);
+
+			var uniqueMeshCount = sharedComponentCounter.Count();
+
+			// +1, because when we have 1 mesh, Unity returns SharedComponentIndex of 1
+			// We need to offset it by leaving the zero index empty
+			var requiredArraySize = uniqueMeshCount + 1;
+
+			while (MatricesByRenderMeshIndex.Length < requiredArraySize)
 			{
 				MatricesByRenderMeshIndex.Add(new UnsafeList<float4x4>(0, Allocator.Persistent));
 				_renderCountByRenderMeshIndex.Add(new UnsafeAtomicCounter(Allocator.Persistent));
 			}
+
 			var countAsArray = _renderCountByRenderMeshIndex.AsArray();
 			var matrixAsArray = MatricesByRenderMeshIndex.AsArray();
 
 			var clearCountersJob = new ClearCountersJob
 			{
 				CountByRenderMeshIndex = countAsArray,
-			}.Schedule(uniqueMeshCount, 64, Dependency);
+			}.Schedule(requiredArraySize, 64, Dependency);
 
 			var chunkCullingJob = new ChunkCullingJob
 			{
@@ -94,27 +127,27 @@ namespace Renderer
 				ChunkWorldRenderBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
 				WorldRenderBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
-				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>(),
+				RenderMeshHandle = GetSharedComponentTypeHandle<RenderMesh>(),
 				RenderCountByRenderMeshIndex = countAsArray,
 				CulledObjectCount = _culledObjectCounter,
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
 				FrustumPartialCount = _frustumPartialCount,
-			}.ScheduleParallel(_chunkCullingQuery, clearCountersJob);
+			}.ScheduleParallel(_cullingQuery, clearCountersJob);
 
 			var initializeRenderBatchesJob = new InitializeRenderBatchesJob
 			{
 				RenderMatricesByRenderMeshIndex = matrixAsArray,
 				RenderCountByRenderMeshIndex = countAsArray,
-			}.Schedule(uniqueMeshCount, 64, chunkCullingJob);
+			}.Schedule(requiredArraySize, 64, chunkCullingJob);
 
 			var collectRenderBatchesJob = new CollectRenderBatchesJob
 			{
 				MatricesByRenderMeshIndex = matrixAsArray,
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(true),
-				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMeshIndex>()
-			}.ScheduleParallel(_chunkCullingQuery, initializeRenderBatchesJob);
+				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMesh>()
+			}.ScheduleParallel(_cullingQuery, initializeRenderBatchesJob);
 
 			Dependency = FinalJobHandle = collectRenderBatchesJob;
 		}

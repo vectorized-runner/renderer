@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -26,8 +27,6 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			Debug.Log("RenderingSystem running!");
-
 			// TODO-Renderer: Check the old thread. How to not call complete on this? I want to make this run like a job
 			_cullingSystem.FinalJobHandle.Complete();
 
@@ -36,7 +35,10 @@ namespace Renderer
 			var renderedTris = 0;
 			var renderedVerts = 0;
 			var renderBatchCount = 0;
-			var renderMeshDatabase = RenderMeshDatabase.Instance;
+			var renderMeshes = new List<RenderMesh>();
+			EntityManager.GetAllUniqueSharedComponentsManaged(renderMeshes);
+
+			Debug.Assert(matricesByRenderMeshIndex.Length == renderMeshes.Count, $"MBI: {matricesByRenderMeshIndex.Length} RMI {renderMeshes.Count}");
 
 			for (var renderMeshIndex = 0; renderMeshIndex < matricesByRenderMeshIndex.Length; renderMeshIndex++)
 			{
@@ -45,7 +47,7 @@ namespace Renderer
 				if (drawCount == 0)
 					continue;
 
-				var renderMesh = renderMeshDatabase.GetRenderMesh(new RenderMeshIndex(renderMeshIndex));
+				var renderMesh = renderMeshes[renderMeshIndex];
 				var vertexCount = renderMesh.Mesh.vertexCount;
 				var trisCount = renderMesh.Mesh.triangles.Length;
 				var fullBatchCount = drawCount / _maxDrawCountPerBatch;

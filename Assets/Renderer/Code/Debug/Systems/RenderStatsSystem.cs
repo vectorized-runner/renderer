@@ -54,7 +54,7 @@ namespace Renderer
 			var averageMs = totalMs / _collectedFrames;
 			var averageFps = (int)math.floor(1000f / averageMs);
 
-			var query = GetEntityQuery(typeof(RenderMeshIndex));
+			var query = GetEntityQuery(typeof(RenderMesh));
 			var entityCount = query.CalculateEntityCount();
 			var chunkCount = query.CalculateChunkCount();
 

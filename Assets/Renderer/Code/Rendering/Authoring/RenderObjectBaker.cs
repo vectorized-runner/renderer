@@ -39,7 +39,6 @@ namespace Renderer
 				for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
 				{
 					var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
-					var renderMeshIndex = RenderMeshDatabase.Instance.RegisterRenderMesh(renderMesh);
 
 					if (subMeshIndex == 0)
 					{
@@ -48,7 +47,7 @@ namespace Renderer
 						var rot = new Rotation { Value = tf.rotation };
 						var scale = new Scale { Value = tf.localScale.x };
 
-						AddComponents(entity, pos, rot, scale, renderMeshIndex, renderBounds, isStatic);
+						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic);
 					}
 					else
 					{
@@ -59,12 +58,12 @@ namespace Renderer
 
 			// TODO-Renderer: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
 			private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
-				RenderMeshIndex renderMeshIndex, RenderBounds renderBounds, bool isStatic)
+				RenderMesh renderMesh, RenderBounds renderBounds, bool isStatic)
 			{
 				var localToWorld = new LocalToWorld
 					{ Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
 				AddComponent(entity, localToWorld);
-				AddSharedComponent(entity, renderMeshIndex);
+				AddSharedComponentManaged(entity, renderMesh);
 				var worldBounds = RenderMath.CalculateWorldBounds(renderBounds, localToWorld);
 				AddComponent(entity, worldBounds);
 
