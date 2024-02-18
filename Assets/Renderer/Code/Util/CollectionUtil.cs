@@ -108,6 +108,7 @@ namespace Renderer
 			return AsReadOnlySpan(array, 0, array.Length);
 		}
 
+		// TODO: Exception on un-matching length
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ReadOnlySpan<T2> Reinterpret<T1, T2>(this ReadOnlySpan<T1> items)
 			where T2 : unmanaged where T1 : unmanaged
@@ -116,6 +117,7 @@ namespace Renderer
 			return MemoryMarshal.Cast<T1, T2>(items);
 		}
 
+		// TODO: Exception on un-matching length
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static Span<TTo> Reinterpret<TFrom, TTo>(this Span<TFrom> items)
 			where TTo : unmanaged where TFrom : unmanaged
@@ -124,6 +126,7 @@ namespace Renderer
 			return MemoryMarshal.Cast<TFrom, TTo>(items);
 		}
 
+		// TODO: Exception on un-matching length
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ref TTo Reinterpret<TFrom, TTo>(ref TFrom from) where TFrom : unmanaged where TTo : unmanaged
 		{
