@@ -17,7 +17,7 @@ namespace Renderer
 		
 		protected override void OnCreate()
 		{
-			RenderSettings.RenderCamera = Object.FindObjectOfType<Camera>();
+			RenderSettings.Instance.RenderCamera = Object.FindObjectOfType<Camera>();
 			_frustumPlanes = new Plane[6];
 			_nativeFrustumPlanes = new NativeArray<Plane>(6, Allocator.Persistent);
 		}
@@ -30,7 +30,7 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			GeometryUtility.CalculateFrustumPlanes(RenderSettings.RenderCamera, _frustumPlanes);
+			GeometryUtility.CalculateFrustumPlanes(RenderSettings.Instance.RenderCamera, _frustumPlanes);
 			_nativeFrustumPlanes.CopyFrom(_frustumPlanes);
 			
 			PlanePackets.DisposeIfCreated();

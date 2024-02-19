@@ -14,7 +14,7 @@ namespace Renderer
 
 		private void Start()
 		{
-			DebugModeToggle.isOn = RenderSettings.DebugMode;
+			DebugModeToggle.isOn = RenderSettings.Instance.DebugMode;
 			DebugModeToggle.onValueChanged.AddListener(OnDebugToggleChanged);
 		}
 
@@ -25,7 +25,7 @@ namespace Renderer
 
 		private void OnDebugToggleChanged(bool newValue)
 		{
-			RenderSettings.DebugMode = newValue;
+			RenderSettings.Instance.DebugMode = newValue;
 		}
 
 		private void LateUpdate()

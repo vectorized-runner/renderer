@@ -25,7 +25,7 @@ namespace Renderer
 		{
 			var mousePos = GetCurrentMousePos();
 			var mousePosDiff = mousePos - _lastMousePosition;
-			var camera = RenderSettings.RenderCamera;
+			var camera = RenderSettings.Instance.RenderCamera;
 			var panAmount = GetPanAmount(mousePosDiff);
 			var moveInput = GetMoveInput();
 			var currentRot = camera.transform.rotation;
@@ -49,7 +49,7 @@ namespace Renderer
 			if (!Input.GetMouseButton(1))
 				return float2.zero;
 
-			return mousePosDiff * RenderSettings.PanSpeed * UnityEngine.Time.deltaTime * 0.001f;
+			return mousePosDiff * RenderSettings.Instance.PanSpeed * UnityEngine.Time.deltaTime * 0.001f;
 		}
 
 		private Vector3 GetMoveAmount(quaternion cameraRot, float3 moveInput)
@@ -60,7 +60,7 @@ namespace Renderer
 			var moveDirLocal = math.normalize(moveInput);
 			var moveDirWorld = math.mul(cameraRot, moveDirLocal);
 
-			return moveDirWorld * UnityEngine.Time.deltaTime * RenderSettings.MoveSpeed;
+			return moveDirWorld * UnityEngine.Time.deltaTime * RenderSettings.Instance.MoveSpeed;
 		}
 
 		private float3 GetMoveInput()
@@ -76,7 +76,7 @@ namespace Renderer
 			if (Input.GetKey(KeyCode.D))
 				result += math.right();
 
-			return result * RenderSettings.MoveSpeed;
+			return result * RenderSettings.Instance.MoveSpeed;
 		}
 	}
 }

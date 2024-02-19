@@ -10,7 +10,7 @@ namespace Renderer
 	{
 		protected override void OnUpdate()
 		{
-			if (!RenderSettings.DebugMode)
+			if (!RenderSettings.Instance.DebugMode)
 				return;
 
 			var objectAABBs = new NativeList<AABB>(Allocator.Temp);
@@ -45,7 +45,7 @@ namespace Renderer
 
 		public void DebugDrawCameraFrustum(Color color)
 		{
-			var cam = RenderSettings.RenderCamera;
+			var cam = RenderSettings.Instance.RenderCamera;
 			var farClipCorners = new Vector3[4];
 			var nearClipCorners = new Vector3[4];
 			cam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), cam.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, farClipCorners);
