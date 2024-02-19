@@ -71,7 +71,8 @@ namespace Renderer
 				OutChunks = _cullingSystem.FrustumOutCount,
 				InChunks = _cullingSystem.FrustumInCount,
 				PartialChunks = _cullingSystem.FrustumPartialCount,
-				ChunkCount = chunkCount
+				ChunkCount = chunkCount,
+				UniqueMeshCount = _cullingSystem.UniqueMeshCount,
 			});
 
 			_lastUpdateTime = currentTime;

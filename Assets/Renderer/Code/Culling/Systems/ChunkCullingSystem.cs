@@ -16,6 +16,7 @@ namespace Renderer
 		public int FrustumInCount => _frustumInCount.Count;
 		public int FrustumOutCount => _frustumOutCount.Count;
 		public int FrustumPartialCount => _frustumPartialCount.Count;
+		public int UniqueMeshCount { get; private set; }
 
 		private NativeList<UnsafeAtomicCounter> _renderCountByRenderMeshIndex;
 		private NativeAtomicCounter _frustumInCount;
@@ -82,9 +83,9 @@ namespace Renderer
 				RenderMeshHandle = GetSharedComponentTypeHandle<RenderMesh>()
 			}.Run(_cullingQuery);
 
-			var uniqueMeshCount = sharedComponentCounter.Count();
+			UniqueMeshCount = sharedComponentCounter.Count();
 			// No mesh, no culling
-			if (uniqueMeshCount == 0)
+			if (UniqueMeshCount == 0)
 				return;
 
 			// Stupid Unity returns SharedComponentIndex of 2, when there's only 1 shared component

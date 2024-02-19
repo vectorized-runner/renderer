@@ -16,5 +16,6 @@ namespace Renderer
 		public int OutChunks;
 		public int InChunks;
 		public int PartialChunks;
+		public int UniqueMeshCount;
 	}
 }
