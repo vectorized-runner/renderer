@@ -21,7 +21,7 @@ namespace Renderer
 			var spawnTrigger = SystemAPI.GetSingletonEntity<SpawnEntityElement>();
 			EntityManager.AddComponentData(spawnTrigger, new SpawnTrigger
 			{
-				Amount = 1_000,
+				Amount = RenderSettings.Instance.SpawnCount,
 				Label = "Cube-Static"
 			});
 

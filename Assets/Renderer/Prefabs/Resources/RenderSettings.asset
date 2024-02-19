@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PanSpeed: 20
   MoveSpeed: 10
+  SpawnCount: 1000
   DebugMode: 1
   RenderCamera: {fileID: 0}
+  UseGLDraw: 1

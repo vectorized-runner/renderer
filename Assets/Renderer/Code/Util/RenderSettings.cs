@@ -7,9 +7,11 @@ namespace Renderer
 	{
 		public float PanSpeed = 20.0f;
 		public float MoveSpeed = 10.0f;
-
+		public int SpawnCount = 1_000;
 		public bool DebugMode = true;
 		public Camera RenderCamera;
+
+		public bool UseGLDraw;
 
 		public static RenderSettings Instance
 		{
