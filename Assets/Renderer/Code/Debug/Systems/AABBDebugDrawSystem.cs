@@ -3,70 +3,59 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Renderer
 {
 	[UpdateInGroup(typeof(RenderDebugGroup))]
 	public partial class AABBDebugDrawSystem : SystemBase
 	{
-		public Material _lineMaterial;
-
 		NativeList<AABB> objectAABBs;
-		
+
 		protected override void OnCreate()
 		{
-			// Unity has a built-in shader that is useful for drawing
-			// simple colored things.
-			Shader shader = Shader.Find("Hidden/Internal-Colored");
-			_lineMaterial = new Material(shader);
-			_lineMaterial.hideFlags = HideFlags.HideAndDontSave;
-			// Turn on alpha blending
-			_lineMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-			_lineMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-			// Turn backface culling off
-			_lineMaterial.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
-			// Turn off depth writes
-			_lineMaterial.SetInt("_ZWrite", 0);
-
-			RenderPipelineManager.beginCameraRendering += OnPostRender;
-
 			objectAABBs = new NativeList<AABB>(0, Allocator.Persistent);
 		}
 
 		protected override void OnDestroy()
 		{
-			RenderPipelineManager.beginCameraRendering -= OnPostRender;
+			objectAABBs.Dispose();
 		}
 
-		private void OnPostRender(ScriptableRenderContext arg1, Camera arg2)
+		public void DrawAABBs()
 		{
-			Debug.Log("Onpostrender");
+			if (!RenderSettings.Instance.DebugMode)
+				return;
 
-			_lineMaterial.SetPass(0);
-
-			GL.PushMatrix();
-			// GL.MultMatrix(RenderSettings.Instance.RenderCamera.transform.localToWorldMatrix);
-			GL.Begin(GL.LINES);
+			using (new ProfilerMarker("DebugDrawAABB").Auto())
 			{
-				foreach (var aabb in objectAABBs)
+				if (RenderSettings.Instance.UseGLDraw)
 				{
-					DebugDrawAABB_GL(aabb, Color.cyan);
+					foreach (var aabb in objectAABBs)
+					{
+						DebugDrawAABB_GL(aabb, Color.cyan);
+					}
+
+					// foreach (var aabb in chunkAABBs)
+					// {
+					// 	DebugDrawAABB_GL(aabb, Color.green);
+					// }
+
+					// DebugDrawCameraFrustum(Color.yellow);
 				}
+				else
+				{
+					foreach (var aabb in objectAABBs)
+					{
+						DebugDrawAABB(aabb, Color.cyan);
+					}
 
-				// foreach (var aabb in chunkAABBs)
-				// {
-				// 	DebugDrawAABB_GL(aabb, Color.green);
-				// }
+					// foreach (var aabb in chunkAABBs)
+					// {
+					// 	DebugDrawAABB(aabb, Color.green);
+					// }
 
-				// DebugDrawCameraFrustum(Color.yellow);
-			}
-			GL.End();
-			GL.PopMatrix();
-
-			if (RenderSettings.Instance.UseGLDraw)
-			{
-
+					DebugDrawCameraFrustum(Color.yellow);
+				}
 			}
 		}
 
@@ -90,27 +79,6 @@ namespace Renderer
 			{
 				var chunk = chunks[index];
 				chunkAABBs[index] = EntityManager.GetChunkComponentData<ChunkWorldRenderBounds>(chunk).AABB;
-			}
-
-			using (new ProfilerMarker("DebugDrawAABB").Auto())
-			{
-				if (RenderSettings.Instance.UseGLDraw)
-				{
-				}
-				else
-				{
-					foreach (var aabb in objectAABBs)
-					{
-						DebugDrawAABB(aabb, Color.cyan);
-					}
-
-					foreach (var aabb in chunkAABBs)
-					{
-						DebugDrawAABB(aabb, Color.green);
-					}
-
-					DebugDrawCameraFrustum(Color.yellow);
-				}
 			}
 		}
 
