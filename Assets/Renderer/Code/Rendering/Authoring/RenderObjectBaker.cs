@@ -8,6 +8,7 @@ namespace Renderer
 	public class RenderObjectBaker : MonoBehaviour
 	{
 		public bool IsStatic;
+		public bool AddEulerAngles;
 
 		private class RenderObjectBakerBaker : Baker<RenderObjectBaker>
 		{
@@ -25,6 +26,7 @@ namespace Renderer
 				var mesh = authoring.GetComponent<MeshFilter>().sharedMesh;
 				var subMeshCount = mesh.subMeshCount;
 				var isStatic = authoring.IsStatic;
+				var addEulerAngles = authoring.AddEulerAngles;
 				var bounds = meshRenderer.localBounds;
 				var renderBounds = new RenderBounds
 				{
@@ -47,7 +49,7 @@ namespace Renderer
 						var rot = new Rotation { Value = tf.rotation };
 						var scale = new Scale { Value = tf.localScale.x };
 
-						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic);
+						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic, addEulerAngles);
 					}
 					else
 					{
@@ -58,7 +60,7 @@ namespace Renderer
 
 			// TODO-Renderer: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
 			private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
-				RenderMesh renderMesh, RenderBounds renderBounds, bool isStatic)
+				RenderMesh renderMesh, RenderBounds renderBounds, bool isStatic, bool addEulerAngles)
 			{
 				var localToWorld = new LocalToWorld
 					{ Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
@@ -73,6 +75,11 @@ namespace Renderer
 				}
 				else
 				{
+					if (addEulerAngles)
+					{
+						AddComponent(entity, new EulerAngles());
+					}
+					
 					AddComponent(entity, position);
 					AddComponent(entity, rotation);
 					AddComponent(entity, scale);
