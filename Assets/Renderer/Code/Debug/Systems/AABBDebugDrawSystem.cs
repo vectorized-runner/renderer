@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -30,9 +31,11 @@ namespace Renderer
 			{
 				if (RenderSettings.Instance.UseGLDraw)
 				{
+					GL.Color(Color.cyan);
+					
 					foreach (var aabb in objectAABBs)
 					{
-						DebugDrawAABB_GL(aabb, Color.cyan);
+						DebugDrawAABB_GL(aabb);
 					}
 
 					// foreach (var aabb in chunkAABBs)
@@ -150,15 +153,17 @@ namespace Renderer
 			Debug.DrawLine(p1, p6, color);
 		}
 
-		private static void DrawLine_GL(float3 begin, float3 end, Color color)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static void DrawLine_GL(float3 begin, float3 end)
 		{
-			GL.Color(color);
 			GL.Vertex(begin);
 			GL.Vertex(end);
 		}
 
-		private void DebugDrawAABB_GL(AABB aabb, Color color)
+		private void DebugDrawAABB_GL(AABB aabb)
 		{
+			var marker = new ProfilerMarker("Calculation");
+			marker.Begin();
 			var center = aabb.Center;
 			var extents = aabb.Extents;
 			var ex = extents.x;
@@ -172,19 +177,23 @@ namespace Renderer
 			var p5 = center + new float3(ex, ey, ez);
 			var p6 = center + new float3(ex, -ey, ez);
 			var p7 = center + new float3(-ex, -ey, ez);
-
-			DrawLine_GL(p0, p1, color);
-			DrawLine_GL(p0, p3, color);
-			DrawLine_GL(p2, p3, color);
-			DrawLine_GL(p1, p2, color);
-			DrawLine_GL(p4, p5, color);
-			DrawLine_GL(p4, p7, color);
-			DrawLine_GL(p5, p6, color);
-			DrawLine_GL(p6, p7, color);
-			DrawLine_GL(p3, p4, color);
-			DrawLine_GL(p0, p7, color);
-			DrawLine_GL(p2, p5, color);
-			DrawLine_GL(p1, p6, color);
+			marker.End();
+			
+			using (new ProfilerMarker("GLPart").Auto())
+			{
+				DrawLine_GL(p0, p1);
+				DrawLine_GL(p0, p3);
+				DrawLine_GL(p2, p3);
+				DrawLine_GL(p1, p2);
+				DrawLine_GL(p4, p5);
+				DrawLine_GL(p4, p7);
+				DrawLine_GL(p5, p6);
+				DrawLine_GL(p6, p7);
+				DrawLine_GL(p3, p4);
+				DrawLine_GL(p0, p7);
+				DrawLine_GL(p2, p5);
+				DrawLine_GL(p1, p6);
+			}
 		}
 	}
 }
