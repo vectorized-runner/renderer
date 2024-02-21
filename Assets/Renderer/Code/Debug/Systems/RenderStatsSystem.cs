@@ -57,13 +57,14 @@ namespace Renderer
 			var query = GetEntityQuery(typeof(RenderMesh));
 			var entityCount = query.CalculateEntityCount();
 			var chunkCount = query.CalculateChunkCount();
+			var culledCount = entityCount - _cullingSystem.VisibleObjectCount; 
 
 			EntityManager.SetComponentData(SystemHandle, new RenderStats
 			{
 				AverageMs = averageMs,
 				AverageFps = averageFps,
 				RenderedCount = _renderingSystem.RenderedObjectCount,
-				CulledCount = _cullingSystem.CulledObjectCount,
+				CulledCount = culledCount,
 				RenderTrisCount = _renderingSystem.RenderedTris,
 				RenderVertsCount = _renderingSystem.RenderedVerts,
 				TotalObjectCount = entityCount,

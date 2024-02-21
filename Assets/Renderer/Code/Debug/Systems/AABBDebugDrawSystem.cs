@@ -1,67 +1,191 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Renderer
 {
 	[UpdateInGroup(typeof(RenderDebugGroup))]
-	public partial class AABBDebugDrawSystem : SystemBase
+	public unsafe partial class AABBDebugDrawSystem : SystemBase
 	{
-		NativeList<AABB> objectAABBs;
+		private ChunkCullingSystem _cullingSystem;
+		private GameObject _inEntityGo;
+		private GameObject _outEntityGo;
+		private GameObject _inChunkGo;
+		private GameObject _outChunkGo;
+		private GameObject _partialChunkGo;
+
+		public const int PointsPerAABB = 24;
 
 		protected override void OnCreate()
 		{
-			objectAABBs = new NativeList<AABB>(0, Allocator.Persistent);
+			_cullingSystem = World.GetExistingSystemManaged<ChunkCullingSystem>();
+
+			var renderSettings = RenderSettings.Instance;
+			_inEntityGo = CreateGameObject("AABBDebug-InEntityDrawer", renderSettings.InEntityColor);
+			_outEntityGo = CreateGameObject("AABBDebug-OutEntityDrawer", renderSettings.OutEntityColor);
+			_inChunkGo = CreateGameObject("AABBDebug-InChunkDrawer", renderSettings.InChunkColor);
+			_outChunkGo = CreateGameObject("AABBDebug-OutChunkDrawer", renderSettings.OutChunkColor);
+			_partialChunkGo = CreateGameObject("AABBDebug-PartialChunkDrawer", renderSettings.PartialChunkColor);
 		}
 
 		protected override void OnDestroy()
 		{
-			objectAABBs.Dispose();
-		}
-
-		public void DrawAABBs()
-		{
-			if (!RenderSettings.Instance.DebugMode)
-				return;
-
-			using (new ProfilerMarker("DebugDrawAABB").Auto())
-			{
-				foreach (var aabb in objectAABBs)
-				{
-					DebugDrawAABB(aabb, Color.cyan);
-				}
-
-				// foreach (var aabb in chunkAABBs)
-				// {
-				// 	DebugDrawAABB(aabb, Color.green);
-				// }
-
-				DebugDrawCameraFrustum(Color.yellow);
-			}
+			Object.Destroy(_inEntityGo);
+			Object.Destroy(_outEntityGo);
+			Object.Destroy(_inChunkGo);
+			Object.Destroy(_outChunkGo);
+			Object.Destroy(_partialChunkGo);
 		}
 
 		protected override void OnUpdate()
 		{
+			using var marker = new AutoProfilerMarker("AABBDebugDraw");
+
 			if (!RenderSettings.Instance.DebugMode)
 				return;
 
-			objectAABBs.Clear();
+			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
+			var totalEntityCount = _cullingSystem.CullingQuery.CalculateEntityCount();
+			var culledEntityCount = totalEntityCount - visibleObjectCount;
+			var frustumInCount = _cullingSystem.FrustumInCount;
+			var frustumOutCount = _cullingSystem.FrustumOutCount;
+			var frustumPartialCount = _cullingSystem.FrustumPartialCount;
+			var inEntityLinePoints = new NativeArray<float3>(PointsPerAABB * visibleObjectCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var inEntityLineIndices = new NativeArray<int>(PointsPerAABB * visibleObjectCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var outEntityLinePoints = new NativeArray<float3>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var outEntityLineIndices = new NativeArray<int>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var inChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumInCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var inChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumInCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var outChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var outChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var partialChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumPartialCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var partialChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumPartialCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var inEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var outEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var inChunkPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var outChunkPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var partialChunkPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var jobs = new NativeList<JobHandle>(Allocator.Temp);
 
-			var objAABBs = objectAABBs;
-
-			Entities.ForEach((in WorldRenderBounds worldRenderBounds) => { objAABBs.Add(worldRenderBounds.AABB); })
-				.Run();
-
-			var query = GetEntityQuery(ComponentType.ChunkComponent<ChunkWorldRenderBounds>());
-			var chunks = query.ToArchetypeChunkArray(Allocator.Temp);
-			var chunkAABBs = new NativeArray<AABB>(chunks.Length, Allocator.Temp);
-
-			for (var index = 0; index < chunks.Length; index++)
+			jobs.Add(new CollectAABBLinesJob
 			{
-				var chunk = chunks[index];
-				chunkAABBs[index] = EntityManager.GetChunkComponentData<ChunkWorldRenderBounds>(chunk).AABB;
+				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
+				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
+				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
+				InEntityLinePoints = inEntityLinePoints,
+				InEntityPointsCounter = inEntityPointsCounter.Ptr,
+				OutEntityLinePoints = outEntityLinePoints,
+				OutEntityPointsCounter = outEntityPointsCounter.Ptr,
+				InChunkLinePoints = inChunkLinePoints,
+				InChunkPointsCounter = inChunkPointsCounter.Ptr,
+				OutChunkLinePoints = outChunkLinePoints,
+				OutChunkPointsCounter = outChunkPointsCounter.Ptr,
+				PartialChunkLinePoints = partialChunkLinePoints,
+				PartialChunkPointsCounter = partialChunkPointsCounter.Ptr,
+			}.ScheduleParallel(_cullingSystem.CullingQuery, Dependency));
+
+			jobs.Add(new FillIndicesJob
+			{
+				IndexArray = inEntityLineIndices
+			}.Schedule(inEntityLineIndices.Length, 64, Dependency));
+
+			jobs.Add(new FillIndicesJob
+			{
+				IndexArray = outEntityLineIndices,
+			}.Schedule(outEntityLineIndices.Length, 64, Dependency));
+
+			jobs.Add(new FillIndicesJob
+			{
+				IndexArray = inChunkLineIndices,
+			}.Schedule(inChunkLineIndices.Length, 64, Dependency));
+
+			jobs.Add(new FillIndicesJob
+			{
+				IndexArray = outChunkLineIndices,
+			}.Schedule(outChunkLineIndices.Length, 64, Dependency));
+
+			jobs.Add(new FillIndicesJob
+			{
+				IndexArray = partialChunkLineIndices,
+			}.Schedule(partialChunkLineIndices.Length, 64, Dependency));
+
+			JobHandle.CompleteAll(jobs.AsArray());
+
+			DrawAABBMesh(_inEntityGo, inEntityLinePoints, inEntityLineIndices);
+			DrawAABBMesh(_outEntityGo, outEntityLinePoints, outEntityLineIndices);
+			DrawAABBMesh(_inChunkGo, inChunkLinePoints, inChunkLineIndices);
+			DrawAABBMesh(_outChunkGo, outChunkLinePoints, outChunkLineIndices);
+			DrawAABBMesh(_partialChunkGo, partialChunkLinePoints, partialChunkLineIndices);
+
+			DebugDrawCameraFrustum(Color.yellow);
+
+			inEntityLineIndices.Dispose();
+			inEntityLinePoints.Dispose();
+			inEntityPointsCounter.Dispose();
+			outEntityLineIndices.Dispose();
+			outEntityLinePoints.Dispose();
+			outEntityPointsCounter.Dispose();
+			inChunkLinePoints.Dispose();
+			inChunkLineIndices.Dispose();
+			inChunkPointsCounter.Dispose();
+			outChunkLinePoints.Dispose();
+			outChunkLineIndices.Dispose();
+			outChunkPointsCounter.Dispose();
+			partialChunkLinePoints.Dispose();
+			partialChunkLineIndices.Dispose();
+			partialChunkPointsCounter.Dispose();
+		}
+
+		private GameObject CreateGameObject(string name, Color materialColor)
+		{
+			var go = new GameObject(name);
+			go.AddComponent<MeshFilter>();
+			var meshRenderer = go.AddComponent<MeshRenderer>();
+			meshRenderer.material = Resources.Load<Material>("LineMaterial");
+			meshRenderer.material.SetColor("_BaseColor", materialColor);
+
+			return go;
+		}
+
+		private void DrawAABBMesh(GameObject go, NativeArray<float3> linePoints, NativeArray<int> lineIndices)
+		{
+			var mesh = new Mesh();
+
+			using (new ProfilerMarker("SetFormat").Auto())
+			{
+				mesh.indexFormat = IndexFormat.UInt32;
+			}
+
+			// TODO: This can be optimized with MeshData API
+			// https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Mesh.MeshData.html
+			using (new ProfilerMarker("SetVertices").Auto())
+			{
+				mesh.SetVertices(linePoints.Reinterpret<Vector3>());
+			}
+
+			using (new ProfilerMarker("SetIndices").Auto())
+			{
+				mesh.SetIndices(lineIndices, MeshTopology.Lines, 0);
+			}
+
+			using (new ProfilerMarker("SetMesh").Auto())
+			{
+				var meshFilter = go.GetComponent<MeshFilter>();
+				meshFilter.sharedMesh = mesh;
 			}
 		}
 
