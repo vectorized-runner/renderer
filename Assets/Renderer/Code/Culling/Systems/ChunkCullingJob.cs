@@ -29,7 +29,7 @@ namespace Renderer
 		public NativeArray<UnsafeAtomicCounter> RenderCountByRenderMeshIndex;
 
 		// TODO-Renderer: Make these counters debug mode only behind define
-		public NativeAtomicCounter.ParallelWriter CulledObjectCount;
+		public NativeAtomicCounter.ParallelWriter VisibleObjectCount;
 		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
 		public NativeAtomicCounter.ParallelWriter FrustumInCount;
 		public NativeAtomicCounter.ParallelWriter FrustumPartialCount;
@@ -55,7 +55,6 @@ namespace Renderer
 						IntersectResult = chunkIntersection,
 					};
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
-					CulledObjectCount.Increment(chunk.Count);
 					FrustumOutCount.Increment();
 					break;
 				}
@@ -94,7 +93,8 @@ namespace Renderer
 
 					ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 					counter.Add(ThreadIndex, visibleEntityCount);
-
+					
+					VisibleObjectCount.Increment(visibleEntityCount);
 					FrustumInCount.Increment();
 					break;
 				}
@@ -125,8 +125,7 @@ namespace Renderer
 						ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 						counter.Add(ThreadIndex, visibleEntityCount);
 
-						var culledEntityCount = chunk.Count - visibleEntityCount;
-						CulledObjectCount.Increment(culledEntityCount);
+						VisibleObjectCount.Increment(visibleEntityCount);
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					}
 					break;
