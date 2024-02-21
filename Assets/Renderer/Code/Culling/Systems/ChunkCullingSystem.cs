@@ -11,6 +11,7 @@ namespace Renderer
 	{
 		public JobHandle FinalJobHandle { get; private set; }
 		public NativeList<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
+		public EntityQuery CullingQuery { get; private set; }
 
 		public int VisibleObjectCount => _visibleObjectCounter.Count;
 		public int FrustumInCount => _frustumInCount.Count;
@@ -23,7 +24,6 @@ namespace Renderer
 		private NativeAtomicCounter _frustumOutCount;
 		private NativeAtomicCounter _frustumPartialCount;
 		private NativeAtomicCounter _visibleObjectCounter;
-		private EntityQuery _cullingQuery;
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
 
 		protected override void OnCreate()
@@ -33,7 +33,7 @@ namespace Renderer
 			MatricesByRenderMeshIndex = new NativeList<UnsafeList<float4x4>>(0, Allocator.Persistent);
 			_renderCountByRenderMeshIndex = new NativeList<UnsafeAtomicCounter>(0, Allocator.Persistent);
 
-			_cullingQuery = GetEntityQuery(
+			CullingQuery = GetEntityQuery(
 				ComponentType.ReadOnly<WorldRenderBounds>(),
 				ComponentType.ReadOnly<LocalToWorld>(),
 				ComponentType.ReadOnly<RenderMesh>(),
@@ -81,7 +81,7 @@ namespace Renderer
 			{
 				Counter = sharedComponentCounter,
 				RenderMeshHandle = GetSharedComponentTypeHandle<RenderMesh>()
-			}.Run(_cullingQuery);
+			}.Run(CullingQuery);
 
 			UniqueMeshCount = sharedComponentCounter.Count();
 			// No mesh, no culling
@@ -127,7 +127,7 @@ namespace Renderer
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
 				FrustumPartialCount = _frustumPartialCount,
-			}.ScheduleParallel(_cullingQuery, clearCountersJob);
+			}.ScheduleParallel(CullingQuery, clearCountersJob);
 
 			var initializeRenderBatchesJob = new InitializeRenderBatchesJob
 			{
@@ -141,7 +141,7 @@ namespace Renderer
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(true),
 				RenderMeshIndexHandle = GetSharedComponentTypeHandle<RenderMesh>()
-			}.ScheduleParallel(_cullingQuery, initializeRenderBatchesJob);
+			}.ScheduleParallel(CullingQuery, initializeRenderBatchesJob);
 
 			Dependency = FinalJobHandle = collectRenderBatchesJob;
 		}
