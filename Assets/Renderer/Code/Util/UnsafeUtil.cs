@@ -12,16 +12,7 @@ namespace Renderer
 			var size = UnsafeUtility.SizeOf<T>();
 			var align = UnsafeUtility.AlignOf<T>();
 			var ptr = (T*)UnsafeUtility.Malloc(size, align, allocator);
-
-			return ptr;
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static T* MallocPersistentInitialized<T>() where T : unmanaged
-		{
-			var ptr = Malloc<T>(Allocator.Persistent);
 			*ptr = default;
-
 			return ptr;
 		}
 
