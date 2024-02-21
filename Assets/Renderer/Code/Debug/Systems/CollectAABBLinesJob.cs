@@ -39,16 +39,16 @@ namespace Renderer
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
 		{
-			using var marker = new AutoProfilerMarker("DebugCollectAABBLines");
 			var chunkCullResult = chunk.GetChunkComponentData(ref CullResultHandle);
 			var entityCount = chunk.Count;
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldBoundsHandle);
 			var visibleEntityCount = chunkCullResult.EntityVisibilityMask.CountBits();
 			var culledEntityCount = entityCount - visibleEntityCount;
-			var visiblePointCount = visibleEntityCount * AABBDebugDrawSystem.PointsPerAABB;
+			const int pointsPerAABB = AABBDebugDrawSystem.PointsPerAABB;
+			var visiblePointCount = visibleEntityCount * pointsPerAABB;
 			var visibleNewCount = Interlocked.Add(ref *InEntityPointsCounter, visiblePointCount);
 			var visibleWriteIndex = visibleNewCount - visiblePointCount;
-			var culledPointCount = culledEntityCount * AABBDebugDrawSystem.PointsPerAABB;
+			var culledPointCount = culledEntityCount * pointsPerAABB;
 			var culledNewCount = Interlocked.Add(ref *OutEntityPointsCounter, culledPointCount);
 			var culledWriteIndex = culledNewCount - culledPointCount;
 
@@ -58,15 +58,15 @@ namespace Renderer
 
 				if (chunkCullResult.EntityVisibilityMask.IsSet(entityIndex))
 				{
-					var span = InEntityLinePoints.AsSpan(visibleWriteIndex, AABBDebugDrawSystem.PointsPerAABB);
+					var span = InEntityLinePoints.AsSpan(visibleWriteIndex, pointsPerAABB);
 					AppendAABBLines(span, aabb);
-					visibleWriteIndex += AABBDebugDrawSystem.PointsPerAABB;
+					visibleWriteIndex += pointsPerAABB;
 				}
 				else
 				{
-					var span = OutEntityLinePoints.AsSpan(culledWriteIndex, AABBDebugDrawSystem.PointsPerAABB);
+					var span = OutEntityLinePoints.AsSpan(culledWriteIndex, pointsPerAABB);
 					AppendAABBLines(span, aabb);
-					culledWriteIndex += AABBDebugDrawSystem.PointsPerAABB;
+					culledWriteIndex += pointsPerAABB;
 				}
 			}
 		}
