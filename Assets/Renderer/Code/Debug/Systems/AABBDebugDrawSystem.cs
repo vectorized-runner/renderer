@@ -1,4 +1,5 @@
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace Renderer
 	// Coloring is easy
 
 	[UpdateInGroup(typeof(RenderDebugGroup))]
-	public partial class AABBDebugDrawSystem : SystemBase
+	public unsafe partial class AABBDebugDrawSystem : SystemBase
 	{
 		private ChunkCullingSystem _cullingSystem;
 		private GameObject _go;
@@ -43,26 +44,32 @@ namespace Renderer
 			
 			// TODO: Dispose this
 			var inEntityLinePoints = new NativeList<float3>(pointCount, Allocator.TempJob);
-			var inEntityLineIndices = new NativeList<int>(pointCount, Allocator.TempJob);
+			var inEntityLineIndices = new NativeArray<int>(pointCount, Allocator.TempJob);
+			var lineIndicesMem = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			
 			new CollectAABBLinesJob
 			{
 				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
-				InEntityLineIndices = inEntityLineIndices.AsParallelWriter(),
-				InEntityLinePoints = inEntityLinePoints.AsParallelWriter()
+				InEntityLineIndices = inEntityLineIndices,
+				LineIndicesLengthPtr = lineIndicesMem.Ptr,
+				InEntityLinePoints = inEntityLinePoints.AsParallelWriter(),
 			}.Run(_cullingSystem.CullingQuery);
 			
 			var mesh = new Mesh();
 
 			var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
 			mesh.SetVertices(verticesAsVector3);
-			mesh.SetIndices(inEntityLineIndices.AsArray(), MeshTopology.Lines, 0);
+			mesh.SetIndices(inEntityLineIndices, MeshTopology.Lines, 0);
 
 			var meshFilter = _go.GetComponent<MeshFilter>();
 			meshFilter.sharedMesh = mesh;
 
 			DebugDrawCameraFrustum(Color.yellow);
+
+			inEntityLineIndices.Dispose();
+			inEntityLinePoints.Dispose();
+			lineIndicesMem.Dispose();
 		}
 
 		public void DebugDrawCameraFrustum(Color color)
