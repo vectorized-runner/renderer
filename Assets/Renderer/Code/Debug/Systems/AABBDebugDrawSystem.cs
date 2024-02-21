@@ -57,8 +57,14 @@ namespace Renderer
 				NativeArrayOptions.UninitializedMemory);
 			var inChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumInCount, Allocator.TempJob,
 				NativeArrayOptions.UninitializedMemory);
+			var outChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var outChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
 			var inEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var outEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var inChunkPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var outChunkPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var jobs = new NativeList<JobHandle>(Allocator.Temp);
 
 			jobs.Add(new CollectAABBLinesJob
@@ -72,6 +78,8 @@ namespace Renderer
 				OutEntityPointsCounter = outEntityPointsCounter.Ptr,
 				InChunkLinePoints = inEntityLinePoints,
 				InChunkPointsCounter = inChunkPointsCounter.Ptr,
+				OutChunkLinePoints = outChunkLinePoints,
+				OutChunkPointsCounter = outChunkPointsCounter.Ptr,
 			}.ScheduleParallel(_cullingSystem.CullingQuery, Dependency));
 
 			jobs.Add(new FillIndicesJob
@@ -88,6 +96,11 @@ namespace Renderer
 			{
 				IndexArray = inChunkLineIndices,
 			}.Schedule(inChunkLineIndices.Length, 64, Dependency));
+			
+			jobs.Add(new FillIndicesJob
+			{
+				IndexArray = outChunkLineIndices,
+			}.Schedule(outChunkLineIndices.Length, 64, Dependency));
 
 			JobHandle.CompleteAll(jobs.AsArray());
 
@@ -104,6 +117,9 @@ namespace Renderer
 			inChunkLinePoints.Dispose();
 			inChunkLineIndices.Dispose();
 			inChunkPointsCounter.Dispose();
+			outChunkLinePoints.Dispose();
+			outChunkLineIndices.Dispose();
+			outChunkPointsCounter.Dispose();
 		}
 
 		private GameObject CreateGameObject(string name, Color materialColor)
