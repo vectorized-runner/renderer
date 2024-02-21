@@ -8,9 +8,6 @@ using UnityEngine.Rendering;
 
 namespace Renderer
 {
-	// Make it work fast now -- that's the important part
-	// Coloring is easy
-
 	[UpdateInGroup(typeof(RenderDebugGroup))]
 	public unsafe partial class AABBDebugDrawSystem : SystemBase
 	{
@@ -42,14 +39,17 @@ namespace Renderer
 				return;
 			
 			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
+			var totalEntityCount = _cullingSystem.CullingQuery.CalculateEntityCount();
+			var culledEntityCount = totalEntityCount - visibleObjectCount;
 			var frustumInCount = _cullingSystem.FrustumInCount;
 			var frustumOutCount = _cullingSystem.FrustumOutCount;
 			var frustumPartialCount = _cullingSystem.FrustumPartialCount;
 			var inEntityLinePoints = new NativeArray<float3>(PointsPerAABB * visibleObjectCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 			var inEntityLineIndices = new NativeArray<int>(PointsPerAABB * visibleObjectCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-			var pointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
-
-			new CollectAABBLinesJob
+			var outEntityLinePoints = new NativeArray<float3>(PointsPerAABB * culledEntityCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			var outEntityLineIndices = new NativeArray<int>(PointsPerAABB * culledEntityCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			var inEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
+			var outEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var jobs = new NativeList<JobHandle>(Allocator.Temp);
 			
 			jobs.Add(new CollectAABBLinesJob
@@ -59,6 +59,8 @@ namespace Renderer
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
 				InEntityLinePoints = inEntityLinePoints,
 				InEntityPointsCounter = inEntityPointsCounter.Ptr,
+				OutEntityLinePoints = outEntityLinePoints,
+				OutEntityPointsCounter = outEntityPointsCounter.Ptr,
 			}.ScheduleParallel(_cullingSystem.CullingQuery, Dependency));
 
 			jobs.Add(new FillIndicesJob
@@ -97,7 +99,10 @@ namespace Renderer
 
 			inEntityLineIndices.Dispose();
 			inEntityLinePoints.Dispose();
-			pointsCounter.Dispose();
+			inEntityPointsCounter.Dispose();
+			outEntityLineIndices.Dispose();
+			outEntityLinePoints.Dispose();
+			outEntityPointsCounter.Dispose();
 		}
 
 		public void DebugDrawCameraFrustum(Color color)

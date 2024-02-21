@@ -27,6 +27,12 @@ namespace Renderer
 		[NoAlias]
 		public int* InEntityPointsCounter;
 
+		public NativeArray<float3> OutEntityLinePoints;
+
+		[NativeDisableUnsafePtrRestriction]
+		[NoAlias]
+		public int* OutEntityPointsCounter;
+
 		// public NativeList<float3>.ParallelWriter OutEntityLinesPoints;
 		// public NativeList<int>.ParallelWriter OutEntityLineIndices;
 
@@ -35,23 +41,33 @@ namespace Renderer
 		{
 			using var marker = new AutoProfilerMarker("DebugCollectAABBLines");
 			var chunkCullResult = chunk.GetChunkComponentData(ref CullResultHandle);
-			var visibleEntityCount = chunkCullResult.EntityVisibilityMask.CountBits();
-			if (visibleEntityCount == 0)
-				return;
-
 			var entityCount = chunk.Count;
-			var enumerator = new ChunkEntityEnumerator(true, chunkCullResult.EntityVisibilityMask.v128, entityCount);
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldBoundsHandle);
-			var pointCount = visibleEntityCount * AABBDebugDrawSystem.PointsPerAABB;
-			var newCount = Interlocked.Add(ref *InEntityPointsCounter, pointCount);
-			var writeIndex = newCount - pointCount;
+			var visibleEntityCount = chunkCullResult.EntityVisibilityMask.CountBits();
+			var culledEntityCount = entityCount - visibleEntityCount;
+			var visiblePointCount = visibleEntityCount * AABBDebugDrawSystem.PointsPerAABB;
+			var visibleNewCount = Interlocked.Add(ref *InEntityPointsCounter, visiblePointCount);
+			var visibleWriteIndex = visibleNewCount - visiblePointCount;
+			var culledPointCount = culledEntityCount * AABBDebugDrawSystem.PointsPerAABB;
+			var culledNewCount = Interlocked.Add(ref *OutEntityPointsCounter, culledPointCount);
+			var culledWriteIndex = culledNewCount - culledPointCount;
 
-			while (enumerator.NextEntityIndex(out var entityIndex))
+			for (int entityIndex = 0; entityIndex < entityCount; entityIndex++)
 			{
 				var aabb = worldRenderBoundsArray[entityIndex].AABB;
-				var span = InEntityLinePoints.AsSpan(writeIndex, AABBDebugDrawSystem.PointsPerAABB);
-				AppendAABBLines(span, aabb);
-				writeIndex += AABBDebugDrawSystem.PointsPerAABB;
+
+				if (chunkCullResult.EntityVisibilityMask.IsSet(entityIndex))
+				{
+					var span = InEntityLinePoints.AsSpan(visibleWriteIndex, AABBDebugDrawSystem.PointsPerAABB);
+					AppendAABBLines(span, aabb);
+					visibleWriteIndex += AABBDebugDrawSystem.PointsPerAABB;
+				}
+				else
+				{
+					var span = OutEntityLinePoints.AsSpan(culledWriteIndex, AABBDebugDrawSystem.PointsPerAABB);
+					AppendAABBLines(span, aabb);
+					culledWriteIndex += AABBDebugDrawSystem.PointsPerAABB;
+				}
 			}
 		}
 
