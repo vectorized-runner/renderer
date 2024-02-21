@@ -14,6 +14,9 @@ namespace Renderer
 		private ChunkCullingSystem _cullingSystem;
 		private GameObject _inEntityGo;
 		private GameObject _outEntityGo;
+		private GameObject _inChunkGo;
+		private GameObject _outChunkGo;
+		private GameObject _partialChunkGo;
 
 		public const int PointsPerAABB = 24;
 
@@ -24,12 +27,18 @@ namespace Renderer
 			var renderSettings = RenderSettings.Instance;
 			_inEntityGo = CreateGameObject("AABBDebug-InEntityDrawer", renderSettings.InEntityColor);
 			_outEntityGo = CreateGameObject("AABBDebug-OutEntityDrawer", renderSettings.OutEntityColor);
+			_inChunkGo = CreateGameObject("AABBDebug-InChunkDrawer", renderSettings.InChunkColor);
+			_outChunkGo = CreateGameObject("AABBDebug-OutChunkDrawer", renderSettings.OutChunkColor);
+			_partialChunkGo = CreateGameObject("AABBDebug-PartialChunkDrawer", renderSettings.PartialChunkColor);
 		}
 
 		protected override void OnDestroy()
 		{
 			Object.Destroy(_inEntityGo);
 			Object.Destroy(_outEntityGo);
+			Object.Destroy(_inChunkGo);
+			Object.Destroy(_outChunkGo);
+			Object.Destroy(_partialChunkGo);
 		}
 
 		protected override void OnUpdate()
@@ -118,6 +127,10 @@ namespace Renderer
 
 			DrawAABBMesh(_inEntityGo, inEntityLinePoints, inEntityLineIndices);
 			DrawAABBMesh(_outEntityGo, outEntityLinePoints, outEntityLineIndices);
+			DrawAABBMesh(_inChunkGo, inChunkLinePoints, inChunkLineIndices);
+			DrawAABBMesh(_outChunkGo, outChunkLinePoints, outChunkLineIndices);
+			DrawAABBMesh(_partialChunkGo, partialChunkLinePoints, partialChunkLineIndices);
+
 			DebugDrawCameraFrustum(Color.yellow);
 
 			inEntityLineIndices.Dispose();
