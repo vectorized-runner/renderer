@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -29,36 +28,17 @@ namespace Renderer
 
 			using (new ProfilerMarker("DebugDrawAABB").Auto())
 			{
-				if (RenderSettings.Instance.UseGLDraw)
+				foreach (var aabb in objectAABBs)
 				{
-					GL.Color(Color.cyan);
-					
-					foreach (var aabb in objectAABBs)
-					{
-						DebugDrawAABB_GL(aabb);
-					}
-
-					// foreach (var aabb in chunkAABBs)
-					// {
-					// 	DebugDrawAABB_GL(aabb, Color.green);
-					// }
-
-					// DebugDrawCameraFrustum(Color.yellow);
+					DebugDrawAABB(aabb, Color.cyan);
 				}
-				else
-				{
-					foreach (var aabb in objectAABBs)
-					{
-						DebugDrawAABB(aabb, Color.cyan);
-					}
 
-					// foreach (var aabb in chunkAABBs)
-					// {
-					// 	DebugDrawAABB(aabb, Color.green);
-					// }
+				// foreach (var aabb in chunkAABBs)
+				// {
+				// 	DebugDrawAABB(aabb, Color.green);
+				// }
 
-					DebugDrawCameraFrustum(Color.yellow);
-				}
+				DebugDrawCameraFrustum(Color.yellow);
 			}
 		}
 
@@ -151,49 +131,6 @@ namespace Renderer
 			Debug.DrawLine(p0, p7, color);
 			Debug.DrawLine(p2, p5, color);
 			Debug.DrawLine(p1, p6, color);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void DrawLine_GL(float3 begin, float3 end)
-		{
-			GL.Vertex(begin);
-			GL.Vertex(end);
-		}
-
-		private void DebugDrawAABB_GL(AABB aabb)
-		{
-			var marker = new ProfilerMarker("Calculation");
-			marker.Begin();
-			var center = aabb.Center;
-			var extents = aabb.Extents;
-			var ex = extents.x;
-			var ey = extents.y;
-			var ez = extents.z;
-			var p0 = center + new float3(-ex, -ey, -ez);
-			var p1 = center + new float3(ex, -ey, -ez);
-			var p2 = center + new float3(ex, ey, -ez);
-			var p3 = center + new float3(-ex, ey, -ez);
-			var p4 = center + new float3(-ex, ey, ez);
-			var p5 = center + new float3(ex, ey, ez);
-			var p6 = center + new float3(ex, -ey, ez);
-			var p7 = center + new float3(-ex, -ey, ez);
-			marker.End();
-			
-			using (new ProfilerMarker("GLPart").Auto())
-			{
-				DrawLine_GL(p0, p1);
-				DrawLine_GL(p0, p3);
-				DrawLine_GL(p2, p3);
-				DrawLine_GL(p1, p2);
-				DrawLine_GL(p4, p5);
-				DrawLine_GL(p4, p7);
-				DrawLine_GL(p5, p6);
-				DrawLine_GL(p6, p7);
-				DrawLine_GL(p3, p4);
-				DrawLine_GL(p0, p7);
-				DrawLine_GL(p2, p5);
-				DrawLine_GL(p1, p6);
-			}
 		}
 	}
 }
