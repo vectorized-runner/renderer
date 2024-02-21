@@ -49,6 +49,7 @@ namespace Renderer
 			
 			new CollectAABBLinesJob
 			{
+				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
 				InEntityLineIndices = inEntityLineIndices,
@@ -73,6 +74,8 @@ namespace Renderer
 			inEntityLineIndices.Dispose();
 			inEntityLinePoints.Dispose();
 			lineIndicesMem.Dispose();
+			
+			Debug.Log("AABBDebugDraw run.");
 		}
 
 		public void DebugDrawCameraFrustum(Color color)
