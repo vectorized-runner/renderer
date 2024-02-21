@@ -12,16 +12,23 @@ namespace Renderer
 	public partial class AABBDebugDrawSystem : SystemBase
 	{
 		private ChunkCullingSystem _cullingSystem;
+		private GameObject _go;
 		
 		public const int PointsPerAABB = 24;
 
 		protected override void OnCreate()
 		{
 			_cullingSystem = World.GetExistingSystemManaged<ChunkCullingSystem>();
+
+			_go = new GameObject("AABBDebugDraw");
+			_go.AddComponent<MeshFilter>();
+			var meshRenderer = _go.AddComponent<MeshRenderer>();
+			meshRenderer.sharedMaterial = Resources.Load<Material>("LineMaterial");
 		}
 
 		protected override void OnDestroy()
 		{
+			Object.Destroy(_go);
 		}
 
 		protected override void OnUpdate()
@@ -46,28 +53,14 @@ namespace Renderer
 				InEntityLinePoints = inEntityLinePoints.AsParallelWriter()
 			}.Run(_cullingSystem.CullingQuery);
 			
-			// TODO: Continue from here -- Create Render gameObject
-			// Create a new mesh
 			var mesh = new Mesh();
 
 			var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
 			mesh.SetVertices(verticesAsVector3);
 			mesh.SetIndices(inEntityLineIndices.AsArray(), MeshTopology.Lines, 0);
 
-			MeshFilter meshFilter = GetComponent<MeshFilter>();
-			if (meshFilter != null)
-			{
-				meshFilter.sharedMesh = mesh;
-			}
-			else
-			{
-				Debug.LogError("MeshFilter component not found!");
-			}
-
-			// foreach (var aabb in chunkAABBs)
-			// {
-			// 	DebugDrawAABB(aabb, Color.green);
-			// }
+			var meshFilter = _go.GetComponent<MeshFilter>();
+			meshFilter.sharedMesh = mesh;
 
 			DebugDrawCameraFrustum(Color.yellow);
 		}
