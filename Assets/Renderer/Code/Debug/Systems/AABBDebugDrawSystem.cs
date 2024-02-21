@@ -13,7 +13,8 @@ namespace Renderer
 	{
 		private ChunkCullingSystem _cullingSystem;
 		private GameObject _inEntityGo;
-
+		private GameObject _outEntityGo;
+		
 		public const int PointsPerAABB = 24;
 
 		protected override void OnCreate()
@@ -22,11 +23,13 @@ namespace Renderer
 
 			var renderSettings = RenderSettings.Instance;
 			_inEntityGo = CreateGameObject("AABBDebug-InEntityDrawer", renderSettings.InEntityColor);
+			_outEntityGo = CreateGameObject("AABBDebug-OutEntityDrawer", renderSettings.OutEntityColor);
 		}
 
 		protected override void OnDestroy()
 		{
 			Object.Destroy(_inEntityGo);
+			Object.Destroy(_outEntityGo);
 		}
 
 		protected override void OnUpdate()
@@ -69,10 +72,16 @@ namespace Renderer
 			{
 				IndexArray = inEntityLineIndices
 			}.Schedule(inEntityLineIndices.Length, 64, Dependency));
+			
+			jobs.Add(new FillIndicesJob
+			{
+				IndexArray = outEntityLineIndices,
+			}.Schedule(outEntityLineIndices.Length, 64, Dependency));
 
 			JobHandle.CompleteAll(jobs.AsArray());
 
 			DrawAABBMesh(_inEntityGo, inEntityLinePoints, inEntityLineIndices);
+			DrawAABBMesh(_outEntityGo, outEntityLinePoints, outEntityLineIndices);
 			DebugDrawCameraFrustum(Color.yellow);
 
 			inEntityLineIndices.Dispose();
