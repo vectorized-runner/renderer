@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,7 +15,7 @@ namespace Renderer
 	{
 		private ChunkCullingSystem _cullingSystem;
 		private GameObject _go;
-		
+
 		public const int PointsPerAABB = 24;
 
 		protected override void OnCreate()
@@ -41,12 +42,10 @@ namespace Renderer
 
 			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
 			var pointCount = PointsPerAABB * visibleObjectCount;
-			
-			// TODO: Dispose this
 			var inEntityLinePoints = new NativeList<float3>(pointCount, Allocator.TempJob);
 			var inEntityLineIndices = new NativeArray<int>(pointCount, Allocator.TempJob);
 			var lineIndicesMem = UnsafeMemory<int>.Alloc(Allocator.TempJob);
-			
+
 			new CollectAABBLinesJob
 			{
 				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
@@ -56,27 +55,39 @@ namespace Renderer
 				LineIndicesLengthPtr = lineIndicesMem.Ptr,
 				InEntityLinePoints = inEntityLinePoints.AsParallelWriter(),
 			}.Run(_cullingSystem.CullingQuery);
-			
+
 			Debug.Assert(inEntityLineIndices.Length == pointCount);
 			Debug.Assert(inEntityLinePoints.Length == pointCount);
-			
+
 			var mesh = new Mesh();
-			mesh.indexFormat = IndexFormat.UInt32;
 
-			var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
-			mesh.SetVertices(verticesAsVector3);
-			mesh.SetIndices(inEntityLineIndices, MeshTopology.Lines, 0);
+			using (new ProfilerMarker("SetFormat").Auto())
+			{
+				mesh.indexFormat = IndexFormat.UInt32;
+			}
 
-			var meshFilter = _go.GetComponent<MeshFilter>();
-			meshFilter.sharedMesh = mesh;
+			using (new ProfilerMarker("SetVertices").Auto())
+			{
+				var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
+				mesh.SetVertices(verticesAsVector3);
+			}
+
+			using (new ProfilerMarker("SetIndices").Auto())
+			{
+				mesh.SetIndices(inEntityLineIndices, MeshTopology.Lines, 0);
+			}
+
+			using (new ProfilerMarker("SetMesh").Auto())
+			{
+				var meshFilter = _go.GetComponent<MeshFilter>();
+				meshFilter.sharedMesh = mesh;
+			}
 
 			DebugDrawCameraFrustum(Color.yellow);
 
 			inEntityLineIndices.Dispose();
 			inEntityLinePoints.Dispose();
 			lineIndicesMem.Dispose();
-			
-			Debug.Log("AABBDebugDraw run.");
 		}
 
 		public void DebugDrawCameraFrustum(Color color)
