@@ -56,6 +56,9 @@ namespace Renderer
 				InEntityLinePoints = inEntityLinePoints.AsParallelWriter(),
 			}.Run(_cullingSystem.CullingQuery);
 			
+			Debug.Assert(inEntityLineIndices.Length == pointCount);
+			Debug.Assert(inEntityLinePoints.Length == pointCount);
+			
 			var mesh = new Mesh();
 
 			var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
