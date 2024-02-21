@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
@@ -9,7 +10,7 @@ using Unity.Mathematics;
 namespace Renderer
 {
 	[BurstCompile]
-	public struct CollectAABBLinesJob : IJobChunk
+	public unsafe struct CollectAABBLinesJob : IJobChunk
 	{
 		[ReadOnly]
 		public ComponentTypeHandle<ChunkCullResult> CullResultHandle;
@@ -20,8 +21,12 @@ namespace Renderer
 		[ReadOnly]
 		public ComponentTypeHandle<WorldRenderBounds> WorldBoundsHandle;
 
-		public NativeList<float3>.ParallelWriter InEntityLinePoints;
-		
+		public NativeArray<float3> InEntityLinePoints;
+
+		[NativeDisableUnsafePtrRestriction]
+		[NoAlias]
+		public int* InEntityPointsCounter;
+
 		// public NativeList<float3>.ParallelWriter OutEntityLinesPoints;
 		// public NativeList<int>.ParallelWriter OutEntityLineIndices;
 
@@ -37,22 +42,21 @@ namespace Renderer
 			var entityCount = chunk.Count;
 			var enumerator = new ChunkEntityEnumerator(true, chunkCullResult.EntityVisibilityMask.v128, entityCount);
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldBoundsHandle);
-
-			// Don't need the temp list actually - but this is a debug-only code so it's fine
-			var arraySize = visibleEntityCount * 2;
-			var linePoints = new NativeList<float3>(arraySize, Allocator.Temp);
+			var pointCount = visibleEntityCount * AABBDebugDrawSystem.PointsPerAABB;
+			var newCount = Interlocked.Add(ref *InEntityPointsCounter, pointCount);
+			var writeIndex = newCount - pointCount;
 
 			while (enumerator.NextEntityIndex(out var entityIndex))
 			{
 				var aabb = worldRenderBoundsArray[entityIndex].AABB;
-				AppendLinePoints(linePoints, aabb);
+				var span = InEntityLinePoints.AsSpan(writeIndex, AABBDebugDrawSystem.PointsPerAABB);
+				AppendAABBLines(span, aabb);
+				writeIndex += AABBDebugDrawSystem.PointsPerAABB;
 			}
-
-			InEntityLinePoints.AddRangeNoResize(linePoints);
 		}
 
 		// Constructing the cube from lines requires 12 lines - 24 points to be added
-		private void AppendLinePoints(NativeList<float3> points, AABB aabb)
+		private static void AppendAABBLines(Span<float3> result, AABB aabb)
 		{
 			var center = aabb.Center;
 			var extents = aabb.Extents;
@@ -68,41 +72,41 @@ namespace Renderer
 			var p6 = center + new float3(ex, -ey, ez);
 			var p7 = center + new float3(-ex, -ey, ez);
 
-			points.Add(p0);
-			points.Add(p1);
+			result[0] = p0;
+			result[1] = p1;
 
-			points.Add(p0);
-			points.Add(p3);
+			result[2] = p0;
+			result[3] = p3;
 
-			points.Add(p2);
-			points.Add(p3);
+			result[4] = p2;
+			result[5] = p3;
 
-			points.Add(p1);
-			points.Add(p2);
+			result[6] = p1;
+			result[7] = p2;
 
-			points.Add(p4);
-			points.Add(p5);
+			result[8] = p4;
+			result[9] = p5;
 
-			points.Add(p4);
-			points.Add(p7);
+			result[10] = p4;
+			result[11] = p7;
 
-			points.Add(p5);
-			points.Add(p6);
+			result[12] = p5;
+			result[13] = p6;
 
-			points.Add(p6);
-			points.Add(p7);
+			result[14] = p6;
+			result[15] = p7;
 
-			points.Add(p3);
-			points.Add(p4);
+			result[16] = p3;
+			result[17] = p4;
 
-			points.Add(p0);
-			points.Add(p7);
+			result[18] = p0;
+			result[19] = p7;
 
-			points.Add(p2);
-			points.Add(p5);
+			result[20] = p2;
+			result[21] = p5;
 
-			points.Add(p1);
-			points.Add(p6);
+			result[22] = p1;
+			result[23] = p6;
 		}
 	}
 }

@@ -43,17 +43,21 @@ namespace Renderer
 
 			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
 			var pointCount = PointsPerAABB * visibleObjectCount;
-			var inEntityLinePoints = new NativeList<float3>(pointCount, Allocator.TempJob);
-			var inEntityLineIndices = new NativeArray<int>(pointCount, Allocator.TempJob);
+			var inEntityLinePoints =
+				new NativeArray<float3>(pointCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			var inEntityLineIndices =
+				new NativeArray<int>(pointCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			var pointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 
 			new CollectAABBLinesJob
 			{
 				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
-				InEntityLinePoints = inEntityLinePoints.AsParallelWriter(),
+				InEntityLinePoints = inEntityLinePoints,
+				InEntityPointsCounter = pointsCounter.Ptr,
 			}.Run(_cullingSystem.CullingQuery);
-			
+
 			new FillIndicesJob
 			{
 				IndexArray = inEntityLineIndices
@@ -73,8 +77,7 @@ namespace Renderer
 			// https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Mesh.MeshData.html
 			using (new ProfilerMarker("SetVertices").Auto())
 			{
-				var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
-				mesh.SetVertices(verticesAsVector3);
+				mesh.SetVertices(inEntityLinePoints.Reinterpret<Vector3>());
 			}
 
 			using (new ProfilerMarker("SetIndices").Auto())
@@ -92,6 +95,7 @@ namespace Renderer
 
 			inEntityLineIndices.Dispose();
 			inEntityLinePoints.Dispose();
+			pointsCounter.Dispose();
 		}
 
 		public void DebugDrawCameraFrustum(Color color)
