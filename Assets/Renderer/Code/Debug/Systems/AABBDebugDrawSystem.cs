@@ -1,68 +1,75 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
 using UnityEngine;
 
 namespace Renderer
 {
+	// Make it work fast now -- that's the important part
+	// Coloring is easy
+
 	[UpdateInGroup(typeof(RenderDebugGroup))]
 	public partial class AABBDebugDrawSystem : SystemBase
 	{
-		NativeList<AABB> objectAABBs;
+		private ChunkCullingSystem _cullingSystem;
+		
+		public const int PointsPerAABB = 24;
 
 		protected override void OnCreate()
 		{
-			objectAABBs = new NativeList<AABB>(0, Allocator.Persistent);
+			_cullingSystem = World.GetExistingSystemManaged<ChunkCullingSystem>();
 		}
 
 		protected override void OnDestroy()
 		{
-			objectAABBs.Dispose();
-		}
-
-		public void DrawAABBs()
-		{
-			if (!RenderSettings.Instance.DebugMode)
-				return;
-
-			using (new ProfilerMarker("DebugDrawAABB").Auto())
-			{
-				foreach (var aabb in objectAABBs)
-				{
-					DebugDrawAABB(aabb, Color.cyan);
-				}
-
-				// foreach (var aabb in chunkAABBs)
-				// {
-				// 	DebugDrawAABB(aabb, Color.green);
-				// }
-
-				DebugDrawCameraFrustum(Color.yellow);
-			}
 		}
 
 		protected override void OnUpdate()
 		{
+			using var marker = new AutoProfilerMarker("AABBDebugDraw");
+
 			if (!RenderSettings.Instance.DebugMode)
 				return;
 
-			objectAABBs.Clear();
-
-			var objAABBs = objectAABBs;
-
-			Entities.ForEach((in WorldRenderBounds worldRenderBounds) => { objAABBs.Add(worldRenderBounds.AABB); })
-				.Run();
-
-			var query = GetEntityQuery(ComponentType.ChunkComponent<ChunkWorldRenderBounds>());
-			var chunks = query.ToArchetypeChunkArray(Allocator.Temp);
-			var chunkAABBs = new NativeArray<AABB>(chunks.Length, Allocator.Temp);
-
-			for (var index = 0; index < chunks.Length; index++)
+			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
+			var pointCount = PointsPerAABB * visibleObjectCount;
+			
+			// TODO: Dispose this
+			var inEntityLinePoints = new NativeList<float3>(pointCount, Allocator.TempJob);
+			var inEntityLineIndices = new NativeList<int>(pointCount, Allocator.TempJob);
+			
+			new CollectAABBLinesJob
 			{
-				var chunk = chunks[index];
-				chunkAABBs[index] = EntityManager.GetChunkComponentData<ChunkWorldRenderBounds>(chunk).AABB;
+				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
+				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
+				InEntityLineIndices = inEntityLineIndices.AsParallelWriter(),
+				InEntityLinePoints = inEntityLinePoints.AsParallelWriter()
+			}.Run(_cullingSystem.CullingQuery);
+			
+			// TODO: Continue from here -- Create Render gameObject
+			// Create a new mesh
+			var mesh = new Mesh();
+
+			var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
+			mesh.SetVertices(verticesAsVector3);
+			mesh.SetIndices(inEntityLineIndices.AsArray(), MeshTopology.Lines, 0);
+
+			MeshFilter meshFilter = GetComponent<MeshFilter>();
+			if (meshFilter != null)
+			{
+				meshFilter.sharedMesh = mesh;
 			}
+			else
+			{
+				Debug.LogError("MeshFilter component not found!");
+			}
+
+			// foreach (var aabb in chunkAABBs)
+			// {
+			// 	DebugDrawAABB(aabb, Color.green);
+			// }
+
+			DebugDrawCameraFrustum(Color.yellow);
 		}
 
 		public void DebugDrawCameraFrustum(Color color)
