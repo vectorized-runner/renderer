@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
@@ -51,10 +52,14 @@ namespace Renderer
 				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
-				InEntityLineIndices = inEntityLineIndices,
 				LineIndicesLengthPtr = lineIndicesMem.Ptr,
 				InEntityLinePoints = inEntityLinePoints.AsParallelWriter(),
 			}.Run(_cullingSystem.CullingQuery);
+			
+			new FillIndicesJob
+			{
+				IndexArray = inEntityLineIndices
+			}.Run(inEntityLineIndices.Length);
 
 			Debug.Assert(inEntityLineIndices.Length == pointCount);
 			Debug.Assert(inEntityLinePoints.Length == pointCount);
@@ -66,6 +71,8 @@ namespace Renderer
 				mesh.indexFormat = IndexFormat.UInt32;
 			}
 
+			// TODO: This can be optimized with MeshData API
+			// https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Mesh.MeshData.html
 			using (new ProfilerMarker("SetVertices").Auto())
 			{
 				var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
