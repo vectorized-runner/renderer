@@ -37,21 +37,25 @@ namespace Renderer
 
 			if (!RenderSettings.Instance.DebugMode)
 				return;
-			
+
 			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
 			var totalEntityCount = _cullingSystem.CullingQuery.CalculateEntityCount();
 			var culledEntityCount = totalEntityCount - visibleObjectCount;
 			var frustumInCount = _cullingSystem.FrustumInCount;
 			var frustumOutCount = _cullingSystem.FrustumOutCount;
 			var frustumPartialCount = _cullingSystem.FrustumPartialCount;
-			var inEntityLinePoints = new NativeArray<float3>(PointsPerAABB * visibleObjectCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-			var inEntityLineIndices = new NativeArray<int>(PointsPerAABB * visibleObjectCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-			var outEntityLinePoints = new NativeArray<float3>(PointsPerAABB * culledEntityCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-			var outEntityLineIndices = new NativeArray<int>(PointsPerAABB * culledEntityCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			var inEntityLinePoints = new NativeArray<float3>(PointsPerAABB * visibleObjectCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var inEntityLineIndices = new NativeArray<int>(PointsPerAABB * visibleObjectCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var outEntityLinePoints = new NativeArray<float3>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
+			var outEntityLineIndices = new NativeArray<int>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
+				NativeArrayOptions.UninitializedMemory);
 			var inEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var outEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var jobs = new NativeList<JobHandle>(Allocator.Temp);
-			
+
 			jobs.Add(new CollectAABBLinesJob
 			{
 				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
@@ -67,9 +71,22 @@ namespace Renderer
 			{
 				IndexArray = inEntityLineIndices
 			}.Schedule(inEntityLineIndices.Length, 64, Dependency));
-			
+
 			JobHandle.CompleteAll(jobs.AsArray());
-			
+
+			DrawAABBMesh(_go, inEntityLinePoints, inEntityLineIndices);
+			DebugDrawCameraFrustum(Color.yellow);
+
+			inEntityLineIndices.Dispose();
+			inEntityLinePoints.Dispose();
+			inEntityPointsCounter.Dispose();
+			outEntityLineIndices.Dispose();
+			outEntityLinePoints.Dispose();
+			outEntityPointsCounter.Dispose();
+		}
+
+		private void DrawAABBMesh(GameObject go, NativeArray<float3> linePoints, NativeArray<int> lineIndices)
+		{
 			var mesh = new Mesh();
 
 			using (new ProfilerMarker("SetFormat").Auto())
@@ -81,28 +98,19 @@ namespace Renderer
 			// https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Mesh.MeshData.html
 			using (new ProfilerMarker("SetVertices").Auto())
 			{
-				mesh.SetVertices(inEntityLinePoints.Reinterpret<Vector3>());
+				mesh.SetVertices(linePoints.Reinterpret<Vector3>());
 			}
 
 			using (new ProfilerMarker("SetIndices").Auto())
 			{
-				mesh.SetIndices(inEntityLineIndices, MeshTopology.Lines, 0);
+				mesh.SetIndices(lineIndices, MeshTopology.Lines, 0);
 			}
 
 			using (new ProfilerMarker("SetMesh").Auto())
 			{
-				var meshFilter = _go.GetComponent<MeshFilter>();
+				var meshFilter = go.GetComponent<MeshFilter>();
 				meshFilter.sharedMesh = mesh;
 			}
-
-			DebugDrawCameraFrustum(Color.yellow);
-
-			inEntityLineIndices.Dispose();
-			inEntityLinePoints.Dispose();
-			inEntityPointsCounter.Dispose();
-			outEntityLineIndices.Dispose();
-			outEntityLinePoints.Dispose();
-			outEntityPointsCounter.Dispose();
 		}
 
 		public void DebugDrawCameraFrustum(Color color)
