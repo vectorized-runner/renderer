@@ -45,14 +45,12 @@ namespace Renderer
 			var pointCount = PointsPerAABB * visibleObjectCount;
 			var inEntityLinePoints = new NativeList<float3>(pointCount, Allocator.TempJob);
 			var inEntityLineIndices = new NativeArray<int>(pointCount, Allocator.TempJob);
-			var lineIndicesMem = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 
 			new CollectAABBLinesJob
 			{
 				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
-				LineIndicesLengthPtr = lineIndicesMem.Ptr,
 				InEntityLinePoints = inEntityLinePoints.AsParallelWriter(),
 			}.Run(_cullingSystem.CullingQuery);
 			
@@ -94,7 +92,6 @@ namespace Renderer
 
 			inEntityLineIndices.Dispose();
 			inEntityLinePoints.Dispose();
-			lineIndicesMem.Dispose();
 		}
 
 		public void DebugDrawCameraFrustum(Color color)

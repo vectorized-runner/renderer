@@ -9,7 +9,7 @@ using Unity.Mathematics;
 namespace Renderer
 {
 	[BurstCompile]
-	public unsafe struct CollectAABBLinesJob : IJobChunk
+	public struct CollectAABBLinesJob : IJobChunk
 	{
 		[ReadOnly]
 		public ComponentTypeHandle<ChunkCullResult> CullResultHandle;
@@ -21,10 +21,6 @@ namespace Renderer
 		public ComponentTypeHandle<WorldRenderBounds> WorldBoundsHandle;
 
 		public NativeList<float3>.ParallelWriter InEntityLinePoints;
-		
-		[NativeDisableUnsafePtrRestriction]
-		[NoAlias]
-		public int* LineIndicesLengthPtr;
 		
 		// public NativeList<float3>.ParallelWriter OutEntityLinesPoints;
 		// public NativeList<int>.ParallelWriter OutEntityLineIndices;
