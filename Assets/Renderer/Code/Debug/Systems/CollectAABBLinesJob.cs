@@ -1,13 +1,16 @@
+using System.Threading;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Renderer
 {
 	[BurstCompile]
-	public struct CollectAABBLinesJob : IJobChunk
+	public unsafe struct CollectAABBLinesJob : IJobChunk
 	{
 		[ReadOnly]
 		public ComponentTypeHandle<ChunkCullResult> CullResultHandle;
@@ -19,8 +22,12 @@ namespace Renderer
 		public ComponentTypeHandle<WorldRenderBounds> WorldBoundsHandle;
 
 		public NativeList<float3>.ParallelWriter InEntityLinePoints;
-		public NativeList<int>.ParallelWriter InEntityLineIndices;
-
+		public NativeArray<int> InEntityLineIndices;
+		
+		[NativeDisableUnsafePtrRestriction]
+		[NoAlias]
+		public int* LineIndicesLengthPtr;
+		
 		// public NativeList<float3>.ParallelWriter OutEntityLinesPoints;
 		// public NativeList<int>.ParallelWriter OutEntityLineIndices;
 
@@ -40,25 +47,26 @@ namespace Renderer
 			// Don't need the temp list actually - but this is a debug-only code so it's fine
 			var arraySize = visibleEntityCount * 2;
 			var linePoints = new NativeList<float3>(arraySize, Allocator.Temp);
-			var lineIndices = new NativeList<int>(arraySize, Allocator.Temp);
 
+			var lineIndexCount = visibleEntityCount * AABBDebugDrawSystem.PointsPerAABB;
+			var newCount = Interlocked.Add(ref *LineIndicesLengthPtr, lineIndexCount);
+			var writeIndex = newCount - lineIndexCount;
+			
 			while (enumerator.NextEntityIndex(out var entityIndex))
 			{
 				var aabb = worldRenderBoundsArray[entityIndex].AABB;
 				AppendLinePoints(linePoints, aabb);
 
-				var currentLength = lineIndices.Length;
-
 				for (int i = 0; i < AABBDebugDrawSystem.PointsPerAABB; i++)
 				{
 					// First line uses 0, 1 indices, second 2, 3, etc...
 					// could be faster if inlined
-					lineIndices.Add(currentLength++);
+					InEntityLineIndices[writeIndex] = writeIndex;
+					writeIndex++;
 				}
 			}
 
 			InEntityLinePoints.AddRangeNoResize(linePoints);
-			InEntityLineIndices.AddRangeNoResize(lineIndices);
 		}
 
 		// Constructing the cube from lines requires 12 lines - 24 points to be added
