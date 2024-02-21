@@ -45,17 +45,9 @@ namespace Renderer
 		{
 			if (numBits > 64)
 			{
-				// 64 -> 0
-				// 80 -> 16
-				// 128 -> 64
 				Upper.SetBits(0, value, numBits - 64);
 			}
 			
-			// 0 -> 0
-			// 16 -> 16
-			// 64 -> 64
-			// 80 -> 64
-			// 128 -> 64
 			Lower.SetBits(0, value, math.min(64, numBits));
 		}
 
