@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PanSpeed: 20
   MoveSpeed: 10
-  SpawnCount: 1000
+  SpawnCount: 100
   DebugMode: 1
   RenderCamera: {fileID: 0}
-  UseGLDraw: 1
+  InChunkColor: {r: 0, g: 1, b: 1, a: 1}
+  PartialChunkColor: {r: 1, g: 0.64705884, b: 0, a: 1}
+  OutChunkColor: {r: 1, g: 0, b: 1, a: 1}
+  InEntityColor: {r: 0, g: 1, b: 0, a: 1}
+  OutEntityColor: {r: 1, g: 0, b: 0, a: 1}
+  CameraFrustumColor: {r: 1, g: 1, b: 1, a: 1}

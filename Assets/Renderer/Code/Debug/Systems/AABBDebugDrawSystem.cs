@@ -12,7 +12,7 @@ namespace Renderer
 	public unsafe partial class AABBDebugDrawSystem : SystemBase
 	{
 		private ChunkCullingSystem _cullingSystem;
-		private GameObject _go;
+		private GameObject _inEntityGo;
 
 		public const int PointsPerAABB = 24;
 
@@ -20,15 +20,13 @@ namespace Renderer
 		{
 			_cullingSystem = World.GetExistingSystemManaged<ChunkCullingSystem>();
 
-			_go = new GameObject("AABBDebugDraw");
-			_go.AddComponent<MeshFilter>();
-			var meshRenderer = _go.AddComponent<MeshRenderer>();
-			meshRenderer.sharedMaterial = Resources.Load<Material>("LineMaterial");
+			var renderSettings = RenderSettings.Instance;
+			_inEntityGo = CreateGameObject("AABBDebug-InEntityDrawer", renderSettings.InEntityColor);
 		}
 
 		protected override void OnDestroy()
 		{
-			Object.Destroy(_go);
+			Object.Destroy(_inEntityGo);
 		}
 
 		protected override void OnUpdate()
@@ -74,7 +72,7 @@ namespace Renderer
 
 			JobHandle.CompleteAll(jobs.AsArray());
 
-			DrawAABBMesh(_go, inEntityLinePoints, inEntityLineIndices);
+			DrawAABBMesh(_inEntityGo, inEntityLinePoints, inEntityLineIndices);
 			DebugDrawCameraFrustum(Color.yellow);
 
 			inEntityLineIndices.Dispose();
@@ -83,6 +81,17 @@ namespace Renderer
 			outEntityLineIndices.Dispose();
 			outEntityLinePoints.Dispose();
 			outEntityPointsCounter.Dispose();
+		}
+
+		private GameObject CreateGameObject(string name, Color materialColor)
+		{
+			var go = new GameObject(name);
+			go.AddComponent<MeshFilter>();
+			var meshRenderer = go.AddComponent<MeshRenderer>();
+			meshRenderer.material = Resources.Load<Material>("LineMaterial");
+			meshRenderer.material.SetColor("_BaseColor", materialColor);
+			
+			return go;
 		}
 
 		private void DrawAABBMesh(GameObject go, NativeArray<float3> linePoints, NativeArray<int> lineIndices)

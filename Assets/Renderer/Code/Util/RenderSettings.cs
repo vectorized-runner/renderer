@@ -11,7 +11,12 @@ namespace Renderer
 		public bool DebugMode = true;
 		public Camera RenderCamera;
 
-		public bool UseGLDraw;
+		public Color InChunkColor = Color.cyan;
+		public Color PartialChunkColor = new Color32(255, 165, 0, 255);
+		public Color OutChunkColor = Color.magenta;
+		public Color InEntityColor = Color.green;
+		public Color OutEntityColor = Color.red;
+		public Color CameraFrustumColor = Color.white;
 
 		public static RenderSettings Instance
 		{
