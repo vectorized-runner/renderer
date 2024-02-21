@@ -49,7 +49,11 @@ namespace Renderer
 				case FrustumPlanes.IntersectResult.Out:
 				{
 					// No Entity is visible, don't need to check Entity AABB's.
-					var cullResult = new ChunkCullResult { Value = new BitField128(new v128(0)) };
+					var cullResult = new ChunkCullResult
+					{
+						EntityVisibilityMask = new BitField128(new v128(0)),
+						IntersectResult = chunkIntersection,
+					};
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					CulledObjectCount.Increment(chunk.Count);
 					FrustumOutCount.Increment();
@@ -57,28 +61,33 @@ namespace Renderer
 				}
 				case FrustumPlanes.IntersectResult.In:
 				{
-					// All Entities are visible, no need to check Entity AABB's.
-					var cullResult = new ChunkCullResult();
+					// All Entities are visible, no need to check Entity AABBs individually.
+					var cullResult = new ChunkCullResult
+					{
+						EntityVisibilityMask = new BitField128(new v128(0)),
+						IntersectResult = chunkIntersection,
+					};
+
 					int visibleEntityCount;
 
 					// Fast path
 					if (!useEnabledMask)
 					{
 						// All entities of the Chunk are visible, but might not have 128 entities
-						cullResult.Value.SetBitsFromStart(true, chunk.Count);
+						cullResult.EntityVisibilityMask.SetBitsFromStart(true, chunk.Count);
 						visibleEntityCount = chunk.Count;
 					}
 					else
 					{
 						// Check individually
-						var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+						var enumerator = new ChunkEntityEnumerator(true, chunkEnabledMask, chunk.Count);
 
 						while (enumerator.NextEntityIndex(out var entityIndex))
 						{
-							cullResult.Value.SetBit(entityIndex, true);
+							cullResult.EntityVisibilityMask.SetBit(entityIndex, true);
 						}
 
-						visibleEntityCount = cullResult.Value.CountBits();
+						visibleEntityCount = cullResult.EntityVisibilityMask.CountBits();
 					}
 
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
@@ -97,7 +106,11 @@ namespace Renderer
 					{
 						var visibleEntityCount = 0;
 						var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
-						var cullResult = new ChunkCullResult();
+						var cullResult = new ChunkCullResult
+						{
+							EntityVisibilityMask = new BitField128(new v128(0)),
+							IntersectResult = chunkIntersection,
+						};
 						var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
 
 						while (enumerator.NextEntityIndex(out var entityIndex))
@@ -106,7 +119,7 @@ namespace Renderer
 							var intersectResult = FrustumPlanes.Intersect2(PlanePackets, aabb);
 							var isVisible = intersectResult != FrustumPlanes.IntersectResult.Out;
 							visibleEntityCount += isVisible ? 1 : 0;
-							cullResult.Value.SetBit(entityIndex, isVisible);
+							cullResult.EntityVisibilityMask.SetBit(entityIndex, isVisible);
 						}
 
 						ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);

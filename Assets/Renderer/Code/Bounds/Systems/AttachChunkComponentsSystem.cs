@@ -30,7 +30,7 @@ namespace Renderer
 					{ AABB = new AABB { Center = new float3(-1), Extents = new float3(-1) } });
 			
 			EntityManager.AddChunkComponentData(_requireCullResultQuery,
-				new ChunkCullResult { Value = new BitField128(new v128(0)) });
+				new ChunkCullResult { EntityVisibilityMask = new BitField128(new v128(0)) });
 		}
 	}
 }
