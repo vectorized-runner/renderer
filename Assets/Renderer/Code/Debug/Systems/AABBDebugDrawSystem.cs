@@ -50,19 +50,24 @@ namespace Renderer
 			var pointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 
 			new CollectAABBLinesJob
+			var jobs = new NativeList<JobHandle>(Allocator.Temp);
+			
+			jobs.Add(new CollectAABBLinesJob
 			{
 				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
 				CullResultHandle = GetComponentTypeHandle<ChunkCullResult>(true),
 				InEntityLinePoints = inEntityLinePoints,
-				InEntityPointsCounter = pointsCounter.Ptr,
-			}.Run(_cullingSystem.CullingQuery);
+				InEntityPointsCounter = inEntityPointsCounter.Ptr,
+			}.ScheduleParallel(_cullingSystem.CullingQuery, Dependency));
 
-			new FillIndicesJob
+			jobs.Add(new FillIndicesJob
 			{
 				IndexArray = inEntityLineIndices
-			}.Run(inEntityLineIndices.Length);
-
+			}.Schedule(inEntityLineIndices.Length, 64, Dependency));
+			
+			JobHandle.CompleteAll(jobs.AsArray());
+			
 			var mesh = new Mesh();
 
 			using (new ProfilerMarker("SetFormat").Auto())
