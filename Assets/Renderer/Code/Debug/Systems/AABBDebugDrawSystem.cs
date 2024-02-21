@@ -1,8 +1,8 @@
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Renderer
 {
@@ -61,6 +61,7 @@ namespace Renderer
 			Debug.Assert(inEntityLinePoints.Length == pointCount);
 			
 			var mesh = new Mesh();
+			mesh.indexFormat = IndexFormat.UInt32;
 
 			var verticesAsVector3 = inEntityLinePoints.AsArray().Reinterpret<Vector3>();
 			mesh.SetVertices(verticesAsVector3);
