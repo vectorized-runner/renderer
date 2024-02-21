@@ -40,13 +40,13 @@ namespace Renderer
 
 			if (!RenderSettings.Instance.DebugMode)
 				return;
-
+			
 			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
-			var pointCount = PointsPerAABB * visibleObjectCount;
-			var inEntityLinePoints =
-				new NativeArray<float3>(pointCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-			var inEntityLineIndices =
-				new NativeArray<int>(pointCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			var frustumInCount = _cullingSystem.FrustumInCount;
+			var frustumOutCount = _cullingSystem.FrustumOutCount;
+			var frustumPartialCount = _cullingSystem.FrustumPartialCount;
+			var inEntityLinePoints = new NativeArray<float3>(PointsPerAABB * visibleObjectCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			var inEntityLineIndices = new NativeArray<int>(PointsPerAABB * visibleObjectCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 			var pointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 
 			new CollectAABBLinesJob
@@ -62,9 +62,6 @@ namespace Renderer
 			{
 				IndexArray = inEntityLineIndices
 			}.Run(inEntityLineIndices.Length);
-
-			Debug.Assert(inEntityLineIndices.Length == pointCount);
-			Debug.Assert(inEntityLinePoints.Length == pointCount);
 
 			var mesh = new Mesh();
 
