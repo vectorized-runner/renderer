@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Renderer.UnityPackages;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
@@ -21,20 +22,31 @@ namespace Renderer
 		[ReadOnly]
 		public ComponentTypeHandle<WorldRenderBounds> WorldBoundsHandle;
 
-		public NativeArray<float3> InEntityLinePoints;
-
 		[NativeDisableUnsafePtrRestriction]
 		[NoAlias]
 		public int* InEntityPointsCounter;
 
-		public NativeArray<float3> OutEntityLinePoints;
-
 		[NativeDisableUnsafePtrRestriction]
 		[NoAlias]
 		public int* OutEntityPointsCounter;
-
-		// public NativeList<float3>.ParallelWriter OutEntityLinesPoints;
-		// public NativeList<int>.ParallelWriter OutEntityLineIndices;
+		
+		[NativeDisableUnsafePtrRestriction]
+		[NoAlias]
+		public int* InChunkPointsCounter;
+		
+		[NativeDisableUnsafePtrRestriction]
+		[NoAlias]
+		public int* OutChunkPointsCounter;
+		
+		[NativeDisableUnsafePtrRestriction]
+		[NoAlias]
+		public int* PartialChunkPointsCounter;
+		
+		public NativeArray<float3> InEntityLinePoints;
+		public NativeArray<float3> OutEntityLinePoints;
+		public NativeArray<float3> InChunkLinePoints;
+		public NativeArray<float3> OutChunkLinePoints;
+		public NativeArray<float3> PartialChunkLinePoints;
 
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
@@ -68,6 +80,35 @@ namespace Renderer
 					AppendAABBLines(span, aabb);
 					culledWriteIndex += pointsPerAABB;
 				}
+			}
+
+			var chunkAABB = chunk.GetChunkComponentData(ref ChunkWorldBoundsHandle).AABB;
+			
+			switch (chunkCullResult.IntersectResult)
+			{
+				case FrustumPlanes.IntersectResult.Out:
+				{
+					var writeIndex = Interlocked.Add(ref *OutChunkPointsCounter, pointsPerAABB) - pointsPerAABB;
+					var span = OutChunkLinePoints.AsSpan(writeIndex, pointsPerAABB);
+					AppendAABBLines(span, chunkAABB);
+					break;
+				}
+				case FrustumPlanes.IntersectResult.In:
+				{
+					var writeIndex = Interlocked.Add(ref *InChunkPointsCounter, pointsPerAABB) - pointsPerAABB;
+					var span = InChunkLinePoints.AsSpan(writeIndex, pointsPerAABB);
+					AppendAABBLines(span, chunkAABB);
+					break;
+				}
+				case FrustumPlanes.IntersectResult.Partial:
+				{
+					var writeIndex = Interlocked.Add(ref *PartialChunkPointsCounter, pointsPerAABB) - pointsPerAABB;
+					var span = PartialChunkLinePoints.AsSpan(writeIndex, pointsPerAABB);
+					AppendAABBLines(span, chunkAABB);
+					break;
+				}
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 
