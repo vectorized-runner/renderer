@@ -13,6 +13,7 @@ namespace Renderer
 	{
 		private ChunkCullingSystem _cullingSystem;
 		private GameObject _inEntityGo;
+		private Mesh _inEntityMesh;
 		private GameObject _outEntityGo;
 		private GameObject _inChunkGo;
 		private GameObject _outChunkGo;
@@ -30,6 +31,8 @@ namespace Renderer
 			_inChunkGo = CreateGameObject("AABBDebug-InChunkDrawer", renderSettings.InChunkColor);
 			_outChunkGo = CreateGameObject("AABBDebug-OutChunkDrawer", renderSettings.OutChunkColor);
 			_partialChunkGo = CreateGameObject("AABBDebug-PartialChunkDrawer", renderSettings.PartialChunkColor);
+
+			_inEntityMesh = new Mesh();
 		}
 
 		protected override void OnDestroy()
@@ -41,6 +44,14 @@ namespace Renderer
 			Object.Destroy(_partialChunkGo);
 		}
 
+		private void AllocateLineMeshData(Mesh.MeshData data, int vertexCount)
+		{
+			data.SetVertexBufferParams(vertexCount, new VertexAttributeDescriptor(VertexAttribute.Position));
+			data.SetIndexBufferParams(vertexCount, IndexFormat.UInt32);
+			data.subMeshCount = 1;
+			data.SetSubMesh(0, new SubMeshDescriptor(0, vertexCount, MeshTopology.Lines), MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices);
+		}
+		
 		protected override void OnUpdate()
 		{
 			using var marker = new AutoProfilerMarker("AABBDebugDraw");
@@ -54,10 +65,17 @@ namespace Renderer
 			var frustumInCount = _cullingSystem.FrustumInCount;
 			var frustumOutCount = _cullingSystem.FrustumOutCount;
 			var frustumPartialCount = _cullingSystem.FrustumPartialCount;
-			var inEntityLinePoints = new NativeArray<float3>(PointsPerAABB * visibleObjectCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
-			var inEntityLineIndices = new NativeArray<int>(PointsPerAABB * visibleObjectCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
+
+			// TODO: All five meshes
+			const int meshCount = 1;
+			var meshDataArray = Mesh.AllocateWritableMeshData(meshCount);
+			
+			var inEntityVertexCount = PointsPerAABB * visibleObjectCount;
+			Debug.Log(inEntityVertexCount);
+			AllocateLineMeshData(meshDataArray[0], inEntityVertexCount);
+			
+			var inEntityLinePoints = meshDataArray[0].GetVertexData<float3>();
+			var inEntityLineIndices = meshDataArray[0].GetIndexData<int>();
 			var outEntityLinePoints = new NativeArray<float3>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
 				NativeArrayOptions.UninitializedMemory);
 			var outEntityLineIndices = new NativeArray<int>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
@@ -125,6 +143,9 @@ namespace Renderer
 
 			JobHandle.CompleteAll(jobs.AsArray());
 
+			var flags = MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices;
+			Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _inEntityMesh, flags);
+			
 			DrawAABBMesh(_inEntityGo, inEntityLinePoints, inEntityLineIndices);
 			DrawAABBMesh(_outEntityGo, outEntityLinePoints, outEntityLineIndices);
 			DrawAABBMesh(_inChunkGo, inChunkLinePoints, inChunkLineIndices);
