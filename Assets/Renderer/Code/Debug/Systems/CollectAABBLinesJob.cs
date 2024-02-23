@@ -7,6 +7,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 
 namespace Renderer
 {
@@ -51,6 +52,8 @@ namespace Renderer
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
 		{
+			var m1 = new ProfilerMarker("Setup");
+			m1.Begin();
 			var chunkCullResult = chunk.GetChunkComponentData(ref CullResultHandle);
 			var entityCount = chunk.Count;
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldBoundsHandle);
@@ -63,6 +66,10 @@ namespace Renderer
 			var culledPointCount = culledEntityCount * pointsPerAABB;
 			var culledNewCount = Interlocked.Add(ref *OutEntityPointsCounter, culledPointCount);
 			var culledWriteIndex = culledNewCount - culledPointCount;
+			m1.End();
+
+			var m2 = new ProfilerMarker("EntityJob");
+			m2.Begin();
 
 			for (int entityIndex = 0; entityIndex < entityCount; entityIndex++)
 			{
@@ -81,6 +88,11 @@ namespace Renderer
 					culledWriteIndex += pointsPerAABB;
 				}
 			}
+			
+			m2.End();
+
+			var m3 = new ProfilerMarker("ChunkJob");
+			m3.Begin();
 
 			var chunkAABB = chunk.GetChunkComponentData(ref ChunkWorldBoundsHandle).AABB;
 			
@@ -110,6 +122,8 @@ namespace Renderer
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+			
+			m3.End();
 		}
 
 		// Constructing the cube from lines requires 12 lines - 24 points to be added
