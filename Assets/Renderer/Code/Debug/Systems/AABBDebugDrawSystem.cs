@@ -2,7 +2,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -107,10 +106,11 @@ namespace Renderer
 			var outChunkLinePoints = outChunkMeshArray[0].GetVertexData<float3>();
 			var outChunkLineIndices = outChunkMeshArray[0].GetIndexData<int>();
 
-			var partialChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumPartialCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
-			var partialChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumPartialCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
+			var frustumPartialVertexCount = PointsPerAABB * frustumPartialCount;
+			var partialChunkMeshArray = Mesh.AllocateWritableMeshData(1);
+			AllocateLineMeshData(partialChunkMeshArray[0], frustumPartialVertexCount);
+			var partialChunkLinePoints = partialChunkMeshArray[0].GetVertexData<float3>();
+			var partialChunkLineIndices = partialChunkMeshArray[0].GetIndexData<int>();
 
 			var inEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var outEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
@@ -161,7 +161,7 @@ namespace Renderer
 			jobs.Add(new FillIndicesJob
 			{
 				IndexArray = partialChunkLineIndices,
-			}.Schedule(partialChunkLineIndices.Length, 64, Dependency));
+			}.Schedule(partialChunkLineIndices.Length, 64, collectLinesJob));
 
 			Dependency = JobHandle.CombineDependencies(jobs);
 
@@ -172,8 +172,7 @@ namespace Renderer
 			Mesh.ApplyAndDisposeWritableMeshData(outEntityMeshArray, _outEntityMesh, flags);
 			Mesh.ApplyAndDisposeWritableMeshData(inChunkMeshArray, _inChunkMesh, flags);
 			Mesh.ApplyAndDisposeWritableMeshData(outChunkMeshArray, _outChunkMesh, flags);
-
-			DrawAABBMesh(_partialChunkGo, partialChunkLinePoints, partialChunkLineIndices);
+			Mesh.ApplyAndDisposeWritableMeshData(partialChunkMeshArray, _partialChunkMesh, flags);
 
 			DebugDrawCameraFrustum(Color.yellow);
 
@@ -181,8 +180,6 @@ namespace Renderer
 			outEntityPointsCounter.Dispose();
 			inChunkPointsCounter.Dispose();
 			outChunkPointsCounter.Dispose();
-			partialChunkLinePoints.Dispose();
-			partialChunkLineIndices.Dispose();
 			partialChunkPointsCounter.Dispose();
 		}
 
@@ -200,34 +197,6 @@ namespace Renderer
 		private void SetMesh(GameObject go, Mesh mesh)
 		{
 			go.GetComponent<MeshFilter>().sharedMesh = mesh;
-		}
-
-		private void DrawAABBMesh(GameObject go, NativeArray<float3> linePoints, NativeArray<int> lineIndices)
-		{
-			var mesh = new Mesh();
-
-			using (new ProfilerMarker("SetFormat").Auto())
-			{
-				mesh.indexFormat = IndexFormat.UInt32;
-			}
-
-			// TODO: This can be optimized with MeshData API
-			// https://docs.unity3d.com/2020.3/Documentation/ScriptReference/Mesh.MeshData.html
-			using (new ProfilerMarker("SetVertices").Auto())
-			{
-				mesh.SetVertices(linePoints.Reinterpret<Vector3>());
-			}
-
-			using (new ProfilerMarker("SetIndices").Auto())
-			{
-				mesh.SetIndices(lineIndices, MeshTopology.Lines, 0);
-			}
-
-			using (new ProfilerMarker("SetMesh").Auto())
-			{
-				var meshFilter = go.GetComponent<MeshFilter>();
-				meshFilter.sharedMesh = mesh;
-			}
 		}
 
 		public void DebugDrawCameraFrustum(Color color)
