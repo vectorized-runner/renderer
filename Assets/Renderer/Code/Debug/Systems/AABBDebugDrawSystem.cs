@@ -73,7 +73,7 @@ namespace Renderer
 			var inEntityVertexCount = PointsPerAABB * visibleObjectCount;
 			Debug.Log(inEntityVertexCount);
 			AllocateLineMeshData(meshDataArray[0], inEntityVertexCount);
-			
+
 			var inEntityLinePoints = meshDataArray[0].GetVertexData<float3>();
 			var inEntityLineIndices = meshDataArray[0].GetIndexData<int>();
 			var outEntityLinePoints = new NativeArray<float3>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
@@ -99,7 +99,7 @@ namespace Renderer
 			var partialChunkPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var jobs = new NativeList<JobHandle>(Allocator.Temp);
 
-			jobs.Add(new CollectAABBLinesJob
+			var collectLinesJob = new CollectAABBLinesJob
 			{
 				WorldBoundsHandle = GetComponentTypeHandle<WorldRenderBounds>(true),
 				ChunkWorldBoundsHandle = GetComponentTypeHandle<ChunkWorldRenderBounds>(true),
@@ -114,12 +114,14 @@ namespace Renderer
 				OutChunkPointsCounter = outChunkPointsCounter.Ptr,
 				PartialChunkLinePoints = partialChunkLinePoints,
 				PartialChunkPointsCounter = partialChunkPointsCounter.Ptr,
-			}.ScheduleParallel(_cullingSystem.CullingQuery, Dependency));
+			}.ScheduleParallel(_cullingSystem.CullingQuery, Dependency);
+			
+			jobs.Add(collectLinesJob);
 
 			jobs.Add(new FillIndicesJob
 			{
 				IndexArray = inEntityLineIndices
-			}.Schedule(inEntityLineIndices.Length, 64, Dependency));
+			}.Schedule(inEntityLineIndices.Length, 64, collectLinesJob));
 
 			jobs.Add(new FillIndicesJob
 			{
@@ -140,13 +142,15 @@ namespace Renderer
 			{
 				IndexArray = partialChunkLineIndices,
 			}.Schedule(partialChunkLineIndices.Length, 64, Dependency));
+			
+			Dependency = JobHandle.CombineDependencies(jobs);
 
 			JobHandle.CompleteAll(jobs.AsArray());
 
 			var flags = MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices;
 			Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _inEntityMesh, flags);
 			
-			DrawAABBMesh(_inEntityGo, inEntityLinePoints, inEntityLineIndices);
+			SetMesh(_inEntityGo, _inEntityMesh);
 			DrawAABBMesh(_outEntityGo, outEntityLinePoints, outEntityLineIndices);
 			DrawAABBMesh(_inChunkGo, inChunkLinePoints, inChunkLineIndices);
 			DrawAABBMesh(_outChunkGo, outChunkLinePoints, outChunkLineIndices);
@@ -154,8 +158,6 @@ namespace Renderer
 
 			DebugDrawCameraFrustum(Color.yellow);
 
-			inEntityLineIndices.Dispose();
-			inEntityLinePoints.Dispose();
 			inEntityPointsCounter.Dispose();
 			outEntityLineIndices.Dispose();
 			outEntityLinePoints.Dispose();
@@ -180,6 +182,11 @@ namespace Renderer
 			meshRenderer.material.SetColor("_BaseColor", materialColor);
 
 			return go;
+		}
+
+		private void SetMesh(GameObject go, Mesh mesh)
+		{
+			go.GetComponent<MeshFilter>().sharedMesh = mesh;
 		}
 
 		private void DrawAABBMesh(GameObject go, NativeArray<float3> linePoints, NativeArray<int> lineIndices)
