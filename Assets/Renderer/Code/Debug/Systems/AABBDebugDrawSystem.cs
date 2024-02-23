@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -19,7 +18,7 @@ namespace Renderer
 		private Mesh _inChunkMesh;
 		private Mesh _partialChunkMesh;
 		private Mesh _outChunkMesh;
-		
+
 		private GameObject _outEntityGo;
 		private GameObject _inChunkGo;
 		private GameObject _outChunkGo;
@@ -102,14 +101,17 @@ namespace Renderer
 			var inChunkLinePoints = inChunkMeshArray[0].GetVertexData<float3>();
 			var inChunkLineIndices = inChunkMeshArray[0].GetIndexData<int>();
 
-			var outChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
-			var outChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
+			var frustumOutVertexCount = PointsPerAABB * frustumOutCount;
+			var outChunkMeshArray = Mesh.AllocateWritableMeshData(1);
+			AllocateLineMeshData(outChunkMeshArray[0], frustumOutVertexCount);
+			var outChunkLinePoints = outChunkMeshArray[0].GetVertexData<float3>();
+			var outChunkLineIndices = outChunkMeshArray[0].GetIndexData<int>();
+
 			var partialChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumPartialCount, Allocator.TempJob,
 				NativeArrayOptions.UninitializedMemory);
 			var partialChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumPartialCount, Allocator.TempJob,
 				NativeArrayOptions.UninitializedMemory);
+
 			var inEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var outEntityPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
 			var inChunkPointsCounter = UnsafeMemory<int>.Alloc(Allocator.TempJob);
@@ -154,7 +156,7 @@ namespace Renderer
 			jobs.Add(new FillIndicesJob
 			{
 				IndexArray = outChunkLineIndices,
-			}.Schedule(outChunkLineIndices.Length, 64, Dependency));
+			}.Schedule(outChunkLineIndices.Length, 64, collectLinesJob));
 
 			jobs.Add(new FillIndicesJob
 			{
@@ -169,10 +171,8 @@ namespace Renderer
 			Mesh.ApplyAndDisposeWritableMeshData(inEntityMeshArray, _inEntityMesh, flags);
 			Mesh.ApplyAndDisposeWritableMeshData(outEntityMeshArray, _outEntityMesh, flags);
 			Mesh.ApplyAndDisposeWritableMeshData(inChunkMeshArray, _inChunkMesh, flags);
-			
+			Mesh.ApplyAndDisposeWritableMeshData(outChunkMeshArray, _outChunkMesh, flags);
 
-
-			DrawAABBMesh(_outChunkGo, outChunkLinePoints, outChunkLineIndices);
 			DrawAABBMesh(_partialChunkGo, partialChunkLinePoints, partialChunkLineIndices);
 
 			DebugDrawCameraFrustum(Color.yellow);
@@ -180,8 +180,6 @@ namespace Renderer
 			inEntityPointsCounter.Dispose();
 			outEntityPointsCounter.Dispose();
 			inChunkPointsCounter.Dispose();
-			outChunkLinePoints.Dispose();
-			outChunkLineIndices.Dispose();
 			outChunkPointsCounter.Dispose();
 			partialChunkLinePoints.Dispose();
 			partialChunkLineIndices.Dispose();
