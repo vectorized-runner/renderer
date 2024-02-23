@@ -38,31 +38,12 @@ namespace Renderer
 			_outChunkGo = CreateGameObject("AABBDebug-OutChunkDrawer", renderSettings.OutChunkColor);
 			_partialChunkGo = CreateGameObject("AABBDebug-PartialChunkDrawer", renderSettings.PartialChunkColor);
 
-			_inEntityMesh = new Mesh
-			{
-				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
-			};
+			_inEntityMesh = new Mesh();
+			_outEntityMesh = new Mesh();
+			_inChunkMesh = new Mesh();
+			_partialChunkMesh = new Mesh();
+			_outChunkMesh = new Mesh();
 
-			_outEntityMesh = new Mesh
-			{
-				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
-			};
-
-			_inChunkMesh = new Mesh
-			{
-				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
-			};
-			
-			_partialChunkMesh = new Mesh
-			{
-				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
-			};
-			
-			_outChunkMesh = new Mesh
-			{
-				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
-			};
-			
 			SetMesh(_inEntityGo, _inEntityMesh);
 			SetMesh(_outEntityGo, _outEntityMesh);
 			SetMesh(_inChunkGo, _inChunkMesh);
