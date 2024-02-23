@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -14,6 +15,8 @@ namespace Renderer
 		private ChunkCullingSystem _cullingSystem;
 		private GameObject _inEntityGo;
 		private Mesh _inEntityMesh;
+		private Mesh _outEntityMesh;
+		private Mesh _inChunkMesh;
 		private GameObject _outEntityGo;
 		private GameObject _inChunkGo;
 		private GameObject _outChunkGo;
@@ -32,7 +35,17 @@ namespace Renderer
 			_outChunkGo = CreateGameObject("AABBDebug-OutChunkDrawer", renderSettings.OutChunkColor);
 			_partialChunkGo = CreateGameObject("AABBDebug-PartialChunkDrawer", renderSettings.PartialChunkColor);
 
-			_inEntityMesh = new Mesh();
+			_inEntityMesh = new Mesh
+			{
+				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
+			};
+
+			_outEntityMesh = new Mesh
+			{
+				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
+			};
+
+			_inChunkMesh = new Mesh();
 		}
 
 		protected override void OnDestroy()
@@ -49,9 +62,10 @@ namespace Renderer
 			data.SetVertexBufferParams(vertexCount, new VertexAttributeDescriptor(VertexAttribute.Position));
 			data.SetIndexBufferParams(vertexCount, IndexFormat.UInt32);
 			data.subMeshCount = 1;
-			data.SetSubMesh(0, new SubMeshDescriptor(0, vertexCount, MeshTopology.Lines), MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices);
+			data.SetSubMesh(0, new SubMeshDescriptor(0, vertexCount, MeshTopology.Lines),
+				MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices);
 		}
-		
+
 		protected override void OnUpdate()
 		{
 			using var marker = new AutoProfilerMarker("AABBDebugDraw");
@@ -67,23 +81,24 @@ namespace Renderer
 			var frustumPartialCount = _cullingSystem.FrustumPartialCount;
 
 			// TODO: All five meshes
-			const int meshCount = 1;
-			var meshDataArray = Mesh.AllocateWritableMeshData(meshCount);
-			
 			var inEntityVertexCount = PointsPerAABB * visibleObjectCount;
-			Debug.Log(inEntityVertexCount);
-			AllocateLineMeshData(meshDataArray[0], inEntityVertexCount);
+			var inEntityMeshArray = Mesh.AllocateWritableMeshData(1);
+			AllocateLineMeshData(inEntityMeshArray[0], inEntityVertexCount);
+			var inEntityLinePoints = inEntityMeshArray[0].GetVertexData<float3>();
+			var inEntityLineIndices = inEntityMeshArray[0].GetIndexData<int>();
 
-			var inEntityLinePoints = meshDataArray[0].GetVertexData<float3>();
-			var inEntityLineIndices = meshDataArray[0].GetIndexData<int>();
-			var outEntityLinePoints = new NativeArray<float3>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
-			var outEntityLineIndices = new NativeArray<int>(PointsPerAABB * culledEntityCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
-			var inChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumInCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
-			var inChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumInCount, Allocator.TempJob,
-				NativeArrayOptions.UninitializedMemory);
+			var outEntityVertexCount = PointsPerAABB * culledEntityCount;
+			var outEntityMeshArray = Mesh.AllocateWritableMeshData(1);
+			AllocateLineMeshData(outEntityMeshArray[0], outEntityVertexCount);
+			var outEntityLinePoints = outEntityMeshArray[0].GetVertexData<float3>();
+			var outEntityLineIndices = outEntityMeshArray[0].GetIndexData<int>();
+
+			var frustumInVertexCount = PointsPerAABB * frustumInCount;
+			var inChunkMeshArray = Mesh.AllocateWritableMeshData(1);
+			AllocateLineMeshData(inChunkMeshArray[0], frustumInVertexCount);
+			var inChunkLinePoints = inChunkMeshArray[0].GetVertexData<float3>();
+			var inChunkLineIndices = inChunkMeshArray[0].GetIndexData<int>();
+
 			var outChunkLinePoints = new NativeArray<float3>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
 				NativeArrayOptions.UninitializedMemory);
 			var outChunkLineIndices = new NativeArray<int>(PointsPerAABB * frustumOutCount, Allocator.TempJob,
@@ -115,7 +130,7 @@ namespace Renderer
 				PartialChunkLinePoints = partialChunkLinePoints,
 				PartialChunkPointsCounter = partialChunkPointsCounter.Ptr,
 			}.ScheduleParallel(_cullingSystem.CullingQuery, Dependency);
-			
+
 			jobs.Add(collectLinesJob);
 
 			jobs.Add(new FillIndicesJob
@@ -126,12 +141,12 @@ namespace Renderer
 			jobs.Add(new FillIndicesJob
 			{
 				IndexArray = outEntityLineIndices,
-			}.Schedule(outEntityLineIndices.Length, 64, Dependency));
+			}.Schedule(outEntityLineIndices.Length, 64, collectLinesJob));
 
 			jobs.Add(new FillIndicesJob
 			{
 				IndexArray = inChunkLineIndices,
-			}.Schedule(inChunkLineIndices.Length, 64, Dependency));
+			}.Schedule(inChunkLineIndices.Length, 64, collectLinesJob));
 
 			jobs.Add(new FillIndicesJob
 			{
@@ -142,28 +157,27 @@ namespace Renderer
 			{
 				IndexArray = partialChunkLineIndices,
 			}.Schedule(partialChunkLineIndices.Length, 64, Dependency));
-			
+
 			Dependency = JobHandle.CombineDependencies(jobs);
 
 			JobHandle.CompleteAll(jobs.AsArray());
 
 			var flags = MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices;
-			Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _inEntityMesh, flags);
+			Mesh.ApplyAndDisposeWritableMeshData(inEntityMeshArray, _inEntityMesh, flags);
+			Mesh.ApplyAndDisposeWritableMeshData(outEntityMeshArray, _outEntityMesh, flags);
+			Mesh.ApplyAndDisposeWritableMeshData(inChunkMeshArray, _inChunkMesh, flags);
 			
 			SetMesh(_inEntityGo, _inEntityMesh);
-			DrawAABBMesh(_outEntityGo, outEntityLinePoints, outEntityLineIndices);
-			DrawAABBMesh(_inChunkGo, inChunkLinePoints, inChunkLineIndices);
+			SetMesh(_outEntityGo, _outEntityMesh);
+			SetMesh(_inChunkGo, _inChunkMesh);
+
 			DrawAABBMesh(_outChunkGo, outChunkLinePoints, outChunkLineIndices);
 			DrawAABBMesh(_partialChunkGo, partialChunkLinePoints, partialChunkLineIndices);
 
 			DebugDrawCameraFrustum(Color.yellow);
 
 			inEntityPointsCounter.Dispose();
-			outEntityLineIndices.Dispose();
-			outEntityLinePoints.Dispose();
 			outEntityPointsCounter.Dispose();
-			inChunkLinePoints.Dispose();
-			inChunkLineIndices.Dispose();
 			inChunkPointsCounter.Dispose();
 			outChunkLinePoints.Dispose();
 			outChunkLineIndices.Dispose();
