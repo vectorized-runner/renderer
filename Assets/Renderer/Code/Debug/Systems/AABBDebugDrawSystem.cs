@@ -17,6 +17,9 @@ namespace Renderer
 		private Mesh _inEntityMesh;
 		private Mesh _outEntityMesh;
 		private Mesh _inChunkMesh;
+		private Mesh _partialChunkMesh;
+		private Mesh _outChunkMesh;
+		
 		private GameObject _outEntityGo;
 		private GameObject _inChunkGo;
 		private GameObject _outChunkGo;
@@ -45,7 +48,26 @@ namespace Renderer
 				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
 			};
 
-			_inChunkMesh = new Mesh();
+			_inChunkMesh = new Mesh
+			{
+				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
+			};
+			
+			_partialChunkMesh = new Mesh
+			{
+				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
+			};
+			
+			_outChunkMesh = new Mesh
+			{
+				bounds = new Bounds(float3.zero, (float3)float.PositiveInfinity)
+			};
+			
+			SetMesh(_inEntityGo, _inEntityMesh);
+			SetMesh(_outEntityGo, _outEntityMesh);
+			SetMesh(_inChunkGo, _inChunkMesh);
+			SetMesh(_partialChunkGo, _partialChunkMesh);
+			SetMesh(_outChunkGo, _outChunkMesh);
 		}
 
 		protected override void OnDestroy()
@@ -167,9 +189,7 @@ namespace Renderer
 			Mesh.ApplyAndDisposeWritableMeshData(outEntityMeshArray, _outEntityMesh, flags);
 			Mesh.ApplyAndDisposeWritableMeshData(inChunkMeshArray, _inChunkMesh, flags);
 			
-			SetMesh(_inEntityGo, _inEntityMesh);
-			SetMesh(_outEntityGo, _outEntityMesh);
-			SetMesh(_inChunkGo, _inChunkMesh);
+
 
 			DrawAABBMesh(_outChunkGo, outChunkLinePoints, outChunkLineIndices);
 			DrawAABBMesh(_partialChunkGo, partialChunkLinePoints, partialChunkLineIndices);
