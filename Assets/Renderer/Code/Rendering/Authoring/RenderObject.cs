@@ -23,44 +23,47 @@ namespace Renderer
 					Debug.LogError("RenderObject needs to be the root object.");
 					return;
 				}
-				
-				var entity = GetEntity(TransformUsageFlags.None);
 
-				if (!authoring.TryGetComponent(out MeshRenderer meshRenderer))
-					return;
+				var childrenWithMeshRenderer = go.GetComponentsInChildren<MeshRenderer>();
 
-				var material = meshRenderer.sharedMaterial;
-				var mesh = authoring.GetComponent<MeshFilter>().sharedMesh;
-				var subMeshCount = mesh.subMeshCount;
-				var isStatic = authoring.IsStatic;
-				var addEulerAngles = authoring.AddEulerAngles;
-				var bounds = meshRenderer.localBounds;
-				var renderBounds = new RenderBounds
+				// TODO: It looks like we will need to separate out the Root object and child objects (because of the CreateAdditionalEntity logic)
+				foreach (var meshRenderer in childrenWithMeshRenderer)
 				{
-					AABB = new AABB
+					var entityName = meshRenderer.gameObject.name;
+					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+					var material = meshRenderer.sharedMaterial;
+					var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
+					var subMeshCount = mesh.subMeshCount;
+					var isStatic = authoring.IsStatic;
+					var addEulerAngles = authoring.AddEulerAngles;
+					var bounds = meshRenderer.localBounds;
+					var renderBounds = new RenderBounds
 					{
-						Center = bounds.center,
-						Extents = bounds.extents
-					}
-				};
+						AABB = new AABB
+						{
+							Center = bounds.center,
+							Extents = bounds.extents
+						}
+					};
 
-				// What am I going to do if I have to create multiple objects here?
-				for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
-				{
-					var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
-
-					if (subMeshIndex == 0)
+					// What am I going to do if I have to create multiple objects here?
+					for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
 					{
-						var tf = authoring.gameObject.transform;
-						var pos = new Position { Value = tf.position };
-						var rot = new Rotation { Value = tf.rotation };
-						var scale = new Scale { Value = tf.localScale.x };
+						var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
 
-						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic, addEulerAngles);
-					}
-					else
-					{
-						throw new NotImplementedException("Handle multiple sub-meshes later");
+						if (subMeshIndex == 0)
+						{
+							var tf = authoring.gameObject.transform;
+							var pos = new Position { Value = tf.position };
+							var rot = new Rotation { Value = tf.rotation };
+							var scale = new Scale { Value = tf.localScale.x };
+
+							AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic, addEulerAngles);
+						}
+						else
+						{
+							throw new NotImplementedException("Handle multiple sub-meshes later");
+						}
 					}
 				}
 			}
@@ -86,7 +89,7 @@ namespace Renderer
 					{
 						AddComponent(entity, new EulerAngles());
 					}
-					
+
 					AddComponent(entity, position);
 					AddComponent(entity, rotation);
 					AddComponent(entity, scale);
