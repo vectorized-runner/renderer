@@ -20,6 +20,8 @@ namespace Renderer
 				var go = authoring.gameObject;
 				if (go.transform.parent != null)
 				{
+					Debug.LogError("RenderObject needs to be the root object.");
+					return;
 				}
 				
 				var entity = GetEntity(TransformUsageFlags.None);
