@@ -13,8 +13,6 @@ namespace Renderer
 		private class RenderObjectBaker : Baker<RenderObject>
 		{
 			// TODO-Renderer: Collect SharedMaterials
-			// TODO-Renderer: Collect Children objects
-			// TODO-Renderer: Consider Transform Hierarchy
 			public override void Bake(RenderObject authoring)
 			{
 				var root = authoring.gameObject;
@@ -45,24 +43,44 @@ namespace Renderer
 			{
 				var transform = go.transform;
 				var entityName = go.name;
-				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
-				var childCount = transform.childCount;
-				var (pos, rot, scale, matrix) = GetTransformComponents(go);
+				var meshRenderer = go.GetComponent<MeshRenderer>();
+				Entity mainEntity;
 
-				AddComponent(entity, pos);
-				AddComponent(entity, rot);
-				AddComponent(entity, scale);
-				AddComponent(entity, matrix);
-
-				if (parentEntity != Entity.Null)
+				if (meshRenderer != null)
 				{
-					AddComponent(entity, new Parent { Value = parentEntity });
+					mainEntity = Entity.Null;
+				}
+				else
+				{
+					// Single Entity with only Transform components
+					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+					var (pos, rot, scale, matrix) = GetTransformComponents(go);
+					AddComponent(entity, pos);
+					AddComponent(entity, rot);
+					AddComponent(entity, scale);
+					AddComponent(entity, matrix);
+
+					if (parentEntity != Entity.Null)
+					{
+						AddComponent(entity, new Parent { Value = parentEntity });
+					}
+
+					if (addRotatePerSecond)
+					{
+						AddComponent(entity, new RotatePerSecond());
+					}
+
+					mainEntity = entity;
 				}
 
+				// TODO: Add RenderBounds, if Object is Dynamic
+				// TODO: Add Render Components
+
+				var childCount = transform.childCount;
 				for (int i = 0; i < childCount; i++)
 				{
 					var child = transform.GetChild(i).gameObject;
-					BakeDynamicRecursive(child, entity, addRotatePerSecond);
+					BakeDynamicRecursive(child, mainEntity, addRotatePerSecond);
 				}
 
 				// TODO: Add Render Components
