@@ -16,6 +16,9 @@ namespace Renderer
 		[ReadOnly]
 		public ComponentLookup<LocalTransform> LocalTransformLookup;
 		
+		[ReadOnly]
+		public BufferLookup<Child> ChildLookup;
+		
 		public ComponentTypeHandle<LocalToWorld> LocalToWorldHandle;
 
 		public ComponentLookup<LocalToWorld> LocalToWorldLookup;
@@ -45,13 +48,24 @@ namespace Renderer
 			}
 		}
 
-		private void ComputeChildWorldMatrix(float4x4 parentLocalToWorld, Entity childEntity)
+		private void ComputeChildWorldMatrix(float4x4 parentLocalToWorld, Entity entity)
 		{
-			var childLocalTransform = LocalTransformLookup[childEntity];
+			var childLocalTransform = LocalTransformLookup[entity];
 			var localToParent = float4x4.TRS(childLocalTransform.Position, childLocalTransform.Rotation, childLocalTransform.Scale);
 			var localToWorld = math.mul(parentLocalToWorld, localToParent);
 
-			LocalToWorldLookup[childEntity] = new LocalToWorld { Value = localToWorld };
+			LocalToWorldLookup[entity] = new LocalToWorld { Value = localToWorld };
+
+			if (ChildLookup.TryGetBuffer(entity, out var childBuffer))
+			{
+				var childCount = childBuffer.Length;
+
+				for (int i = 0; i < childCount; i++)
+				{
+					var childEntity = childBuffer[i].Value;
+					ComputeChildWorldMatrix(localToWorld, childEntity);
+				}
+			}
 		}
 	}
 }
