@@ -8,7 +8,7 @@ namespace Renderer
 	public class RenderObject : MonoBehaviour
 	{
 		public bool IsStatic;
-		public bool AddEulerAngles;
+		public bool AddRotatePerSecond;
 
 		private class RenderObjectBaker : Baker<RenderObject>
 		{
@@ -32,16 +32,16 @@ namespace Renderer
 					var childrenWithMeshRenderer = root.GetComponentsInChildren<MeshRenderer>();
 					foreach (var meshRenderer in childrenWithMeshRenderer)
 					{
-						BakeSingleObjectStatic(meshRenderer, authoring.AddEulerAngles);
+						BakeSingleObjectStatic(meshRenderer, authoring.AddRotatePerSecond);
 					}
 				}
 				else
 				{
-					BakeDynamicRecursive(root, Entity.Null, authoring.AddEulerAngles);
+					BakeDynamicRecursive(root, Entity.Null, authoring.AddRotatePerSecond);
 				}
 			}
 
-			private void BakeDynamicRecursive(GameObject go, Entity parentEntity, bool addEulerAngles)
+			private void BakeDynamicRecursive(GameObject go, Entity parentEntity, bool addRotatePerSecond)
 			{
 				var transform = go.transform;
 				var entityName = go.name;
@@ -62,14 +62,14 @@ namespace Renderer
 				for (int i = 0; i < childCount; i++)
 				{
 					var child = transform.GetChild(i).gameObject;
-					BakeDynamicRecursive(child, entity, addEulerAngles);
+					BakeDynamicRecursive(child, entity, addRotatePerSecond);
 				}
 				
 				// TODO: Add Render Components
 			}
 
 			// TODO: What am I going to do if I have to create multiple objects here?
-			private void BakeSingleObjectStatic(MeshRenderer meshRenderer, bool addEulerAngles)
+			private void BakeSingleObjectStatic(MeshRenderer meshRenderer, bool addRotatePerSecond)
 			{
 				var entityName = meshRenderer.gameObject.name;
 				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
@@ -100,7 +100,7 @@ namespace Renderer
 					var rot = new Rotation { Value = tf.rotation };
 					var scale = new Scale { Value = tf.localScale.x };
 
-					AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addEulerAngles);
+					AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addRotatePerSecond);
 				}
 			}
 
@@ -119,7 +119,7 @@ namespace Renderer
 
 			// TODO-Renderer: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
 			private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
-				RenderMesh renderMesh, RenderBounds renderBounds, bool isStatic, bool addEulerAngles)
+				RenderMesh renderMesh, RenderBounds renderBounds, bool isStatic, bool addRotatePerSecond)
 			{
 				var localToWorld = new LocalToWorld
 					{ Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
@@ -134,9 +134,9 @@ namespace Renderer
 				}
 				else
 				{
-					if (addEulerAngles)
+					if (addRotatePerSecond)
 					{
-						AddComponent(entity, new EulerAngles());
+						AddComponent(entity, new RotatePerSecond());
 					}
 
 					AddComponent(entity, position);

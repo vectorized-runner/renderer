@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace Renderer
 {
-	public struct EulerAngles : IComponentData
+	public struct RotatePerSecond : IComponentData
 	{
 		public float3 Value;
 	}
