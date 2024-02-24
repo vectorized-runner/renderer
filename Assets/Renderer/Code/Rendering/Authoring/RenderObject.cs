@@ -12,7 +12,6 @@ namespace Renderer
 
 		private class RenderObjectBaker : Baker<RenderObject>
 		{
-			// TODO-Renderer: Collect SharedMaterials
 			public override void Bake(RenderObject authoring)
 			{
 				var root = authoring.gameObject;
