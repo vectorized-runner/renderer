@@ -32,7 +32,7 @@ namespace Renderer
 					var childrenWithMeshRenderer = root.GetComponentsInChildren<MeshRenderer>();
 					foreach (var meshRenderer in childrenWithMeshRenderer)
 					{
-						BakeSingleObjectStatic(meshRenderer, authoring.AddRotatePerSecond);
+						BakeSingleObjectStatic(meshRenderer);
 					}
 				}
 				else
@@ -68,8 +68,7 @@ namespace Renderer
 				// TODO: Add Render Components
 			}
 
-			// TODO: What am I going to do if I have to create multiple objects here?
-			private void BakeSingleObjectStatic(MeshRenderer meshRenderer, bool addRotatePerSecond)
+			private void BakeSingleObjectStatic(MeshRenderer meshRenderer)
 			{
 				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
 				var subMeshCount = mesh.subMeshCount;
