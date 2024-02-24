@@ -45,10 +45,31 @@ namespace Renderer
 				var entityName = go.name;
 				var meshRenderer = go.GetComponent<MeshRenderer>();
 				Entity mainEntity;
-
+				
 				if (meshRenderer != null)
 				{
-					mainEntity = Entity.Null;
+					var entities = BakeMeshRenderer(meshRenderer, true);
+
+					foreach (var entity in entities)
+					{
+						var (pos, rot, scale, matrix) = GetTransformComponents(go);
+						AddComponent(entity, pos);
+						AddComponent(entity, rot);
+						AddComponent(entity, scale);
+						AddComponent(entity, matrix);
+
+						if (parentEntity != Entity.Null)
+						{
+							AddComponent(entity, new Parent { Value = parentEntity });
+						}
+
+						if (addRotatePerSecond)
+						{
+							AddComponent(entity, new RotatePerSecond());
+						}
+					}
+
+					mainEntity = entities[0];
 				}
 				else
 				{
@@ -73,22 +94,17 @@ namespace Renderer
 					mainEntity = entity;
 				}
 
-				// TODO: Add RenderBounds, if Object is Dynamic
-				// TODO: Add Render Components
-
 				var childCount = transform.childCount;
 				for (int i = 0; i < childCount; i++)
 				{
 					var child = transform.GetChild(i).gameObject;
 					BakeDynamicRecursive(child, mainEntity, addRotatePerSecond);
 				}
-
-				// TODO: Add Render Components
 			}
 
 			private void BakeStaticObject(MeshRenderer meshRenderer)
 			{
-				var entities = BakeMeshRenderer(meshRenderer);
+				var entities = BakeMeshRenderer(meshRenderer, false);
 
 				foreach (var entity in entities)
 				{
@@ -96,7 +112,7 @@ namespace Renderer
 				}
 			}
 
-			private Entity[] BakeMeshRenderer(MeshRenderer meshRenderer)
+			private Entity[] BakeMeshRenderer(MeshRenderer meshRenderer, bool addRenderBounds)
 			{
 				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
 				var subMeshCount = mesh.subMeshCount;
@@ -130,6 +146,11 @@ namespace Renderer
 					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
 					const int subMeshIndex = 0;
 					var renderMesh = new RenderMesh(mesh, sharedMaterial, subMeshIndex);
+
+					if (addRenderBounds)
+					{
+						AddComponent(entity, renderBounds);
+					}
 
 					AddComponent(entity, localToWorld);
 					AddSharedComponentManaged(entity, renderMesh);
