@@ -31,7 +31,14 @@ namespace Renderer
 					})
 				.ScheduleParallel();
 
-			// TODO: Handle objects with Parent component
+			Dependency = new ComputeChildLocalToWorldJob
+			{
+				ChildBufferHandle = GetBufferTypeHandle<Child>(true),
+				ChildLookup = GetBufferLookup<Child>(true),
+				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(true),
+				LocalToWorldLookup = GetComponentLookup<LocalToWorld>(),
+				LocalTransformLookup = GetComponentLookup<LocalTransform>(true)
+			}.ScheduleParallel(_rootsWithChildrenQuery, Dependency);
 		}
 	}
 }
