@@ -10,6 +10,7 @@ namespace Renderer
 		{
 			Entities
 				.WithNone<Static, Parent>()
+				.WithChangeFilter<LocalTransform>()
 				.ForEach(
 					(ref LocalToWorld worldMatrix, in LocalTransform localTransform) =>
 					{
