@@ -32,7 +32,7 @@ namespace Renderer
 					var childrenWithMeshRenderer = root.GetComponentsInChildren<MeshRenderer>();
 					foreach (var meshRenderer in childrenWithMeshRenderer)
 					{
-						BakeSingleObjectStatic(meshRenderer);
+						BakeStaticObject(meshRenderer);
 					}
 				}
 				else
@@ -68,7 +68,17 @@ namespace Renderer
 				// TODO: Add Render Components
 			}
 
-			private void BakeSingleObjectStatic(MeshRenderer meshRenderer)
+			private void BakeStaticObject(MeshRenderer meshRenderer)
+			{
+				var entities = BakeMeshRenderer(meshRenderer);
+
+				foreach (var entity in entities)
+				{
+					AddComponent(entity, new Static());
+				}
+			}
+
+			private Entity[] BakeMeshRenderer(MeshRenderer meshRenderer)
 			{
 				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
 				var subMeshCount = mesh.subMeshCount;
@@ -93,6 +103,7 @@ namespace Renderer
 				var aabb = RenderMath.ComputeMeshAABB(mesh);
 				var renderBounds = new RenderBounds { AABB = aabb };
 				var worldBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
+				var createdEntities = new Entity[sharedMaterials.Length];
 
 				for (var index = 0; index < sharedMaterials.Length; index++)
 				{
@@ -102,11 +113,13 @@ namespace Renderer
 					const int subMeshIndex = 0;
 					var renderMesh = new RenderMesh(mesh, sharedMaterial, subMeshIndex);
 
-					AddComponent(entity, new Static());
 					AddComponent(entity, localToWorld);
 					AddSharedComponentManaged(entity, renderMesh);
 					AddComponent(entity, worldBounds);
+					createdEntities[index] = entity;
 				}
+
+				return createdEntities;
 			}
 
 			private (Position, Rotation, Scale, LocalToWorld) GetTransformComponents(GameObject gameObject)
