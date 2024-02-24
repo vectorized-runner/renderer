@@ -81,7 +81,6 @@ namespace Renderer
 			var frustumOutCount = _cullingSystem.FrustumOutCount;
 			var frustumPartialCount = _cullingSystem.FrustumPartialCount;
 
-			// TODO: All five meshes
 			var inEntityVertexCount = PointsPerAABB * visibleObjectCount;
 			var inEntityMeshArray = Mesh.AllocateWritableMeshData(1);
 			AllocateLineMeshData(inEntityMeshArray[0], inEntityVertexCount);

@@ -7,6 +7,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Profiling;
 
 namespace Renderer
 {
@@ -51,6 +52,8 @@ namespace Renderer
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
 		{
+			var m1 = new ProfilerMarker("Setup");
+			m1.Begin();
 			var chunkCullResult = chunk.GetChunkComponentData(ref CullResultHandle);
 			var entityCount = chunk.Count;
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldBoundsHandle);
@@ -63,6 +66,10 @@ namespace Renderer
 			var culledPointCount = culledEntityCount * pointsPerAABB;
 			var culledNewCount = Interlocked.Add(ref *OutEntityPointsCounter, culledPointCount);
 			var culledWriteIndex = culledNewCount - culledPointCount;
+			m1.End();
+
+			var m2 = new ProfilerMarker("EntityJob");
+			m2.Begin();
 
 			for (int entityIndex = 0; entityIndex < entityCount; entityIndex++)
 			{
@@ -70,17 +77,24 @@ namespace Renderer
 
 				if (chunkCullResult.EntityVisibilityMask.IsSet(entityIndex))
 				{
-					var span = InEntityLinePoints.AsSpan(visibleWriteIndex, pointsPerAABB);
-					AppendAABBLines(span, aabb);
+					var inEntityPtr = InEntityLinePoints.GetTypedPtr();
+					var writePtr = inEntityPtr + visibleWriteIndex;
+					AppendAABBLines(writePtr, aabb);
 					visibleWriteIndex += pointsPerAABB;
 				}
 				else
 				{
-					var span = OutEntityLinePoints.AsSpan(culledWriteIndex, pointsPerAABB);
-					AppendAABBLines(span, aabb);
+					var outEntityPtr = OutEntityLinePoints.GetTypedPtr();
+					var writePtr = outEntityPtr + culledWriteIndex;
+					AppendAABBLines(writePtr, aabb);
 					culledWriteIndex += pointsPerAABB;
 				}
 			}
+			
+			m2.End();
+
+			var m3 = new ProfilerMarker("ChunkJob");
+			m3.Begin();
 
 			var chunkAABB = chunk.GetChunkComponentData(ref ChunkWorldBoundsHandle).AABB;
 			
@@ -110,10 +124,65 @@ namespace Renderer
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+			
+			m3.End();
+		}
+		
+		private static void AppendAABBLines(Span<float3> result, AABB aabb)
+		{
+			var center = aabb.Center;
+			var extents = aabb.Extents;
+			var ex = extents.x;
+			var ey = extents.y;
+			var ez = extents.z;
+			var p0 = center + new float3(-ex, -ey, -ez);
+			var p1 = center + new float3(ex, -ey, -ez);
+			var p2 = center + new float3(ex, ey, -ez);
+			var p3 = center + new float3(-ex, ey, -ez);
+			var p4 = center + new float3(-ex, ey, ez);
+			var p5 = center + new float3(ex, ey, ez);
+			var p6 = center + new float3(ex, -ey, ez);
+			var p7 = center + new float3(-ex, -ey, ez);
+
+			result[0] = p0;
+			result[1] = p1;
+
+			result[2] = p0;
+			result[3] = p3;
+
+			result[4] = p2;
+			result[5] = p3;
+
+			result[6] = p1;
+			result[7] = p2;
+
+			result[8] = p4;
+			result[9] = p5;
+
+			result[10] = p4;
+			result[11] = p7;
+
+			result[12] = p5;
+			result[13] = p6;
+
+			result[14] = p6;
+			result[15] = p7;
+
+			result[16] = p3;
+			result[17] = p4;
+
+			result[18] = p0;
+			result[19] = p7;
+
+			result[20] = p2;
+			result[21] = p5;
+
+			result[22] = p1;
+			result[23] = p6;
 		}
 
 		// Constructing the cube from lines requires 12 lines - 24 points to be added
-		private static void AppendAABBLines(Span<float3> result, AABB aabb)
+		private static void AppendAABBLines(float3* result, AABB aabb)
 		{
 			var center = aabb.Center;
 			var extents = aabb.Extents;
