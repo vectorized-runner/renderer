@@ -71,11 +71,16 @@ namespace Renderer
 			// TODO: What am I going to do if I have to create multiple objects here?
 			private void BakeSingleObjectStatic(MeshRenderer meshRenderer, bool addRotatePerSecond)
 			{
+				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
+				var subMeshCount = mesh.subMeshCount;
+				if (subMeshCount != 1)
+				{
+					throw new NotImplementedException("Multiple sub-meshes isn't supported yet.");
+				}
+
 				var entityName = meshRenderer.gameObject.name;
 				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
 				var material = meshRenderer.sharedMaterial;
-				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
-				var subMeshCount = mesh.subMeshCount;
 				var bounds = meshRenderer.localBounds;
 				var renderBounds = new RenderBounds
 				{
@@ -86,22 +91,14 @@ namespace Renderer
 					}
 				};
 
-				for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
-				{
-					var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
+				const int subMeshIndex = 0;
+				var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
+				var tf = meshRenderer.gameObject.transform;
+				var pos = new Position { Value = tf.position };
+				var rot = new Rotation { Value = tf.rotation };
+				var scale = new Scale { Value = tf.localScale.x };
 
-					if (subMeshIndex != 0)
-					{
-						throw new NotImplementedException("Handle multiple sub-meshes later");
-					}
-
-					var tf = meshRenderer.gameObject.transform;
-					var pos = new Position { Value = tf.position };
-					var rot = new Rotation { Value = tf.rotation };
-					var scale = new Scale { Value = tf.localScale.x };
-
-					AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addRotatePerSecond);
-				}
+				AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addRotatePerSecond);
 			}
 
 			private (Position, Rotation, Scale, LocalToWorld) GetTransformComponents(GameObject gameObject)
