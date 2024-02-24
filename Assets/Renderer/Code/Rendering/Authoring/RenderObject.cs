@@ -58,13 +58,13 @@ namespace Renderer
 				{
 					AddComponent(entity, new Parent { Value = parentEntity });
 				}
-				
+
 				for (int i = 0; i < childCount; i++)
 				{
 					var child = transform.GetChild(i).gameObject;
 					BakeDynamicRecursive(child, entity, addRotatePerSecond);
 				}
-				
+
 				// TODO: Add Render Components
 			}
 
@@ -81,15 +81,8 @@ namespace Renderer
 				var entityName = meshRenderer.gameObject.name;
 				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
 				var material = meshRenderer.sharedMaterial;
-				var bounds = meshRenderer.localBounds;
-				var renderBounds = new RenderBounds
-				{
-					AABB = new AABB
-					{
-						Center = bounds.center,
-						Extents = bounds.extents
-					}
-				};
+				var aabb = RenderMath.ComputeMeshAABB(mesh);
+				var renderBounds = new RenderBounds { AABB = aabb };				
 
 				const int subMeshIndex = 0;
 				var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
