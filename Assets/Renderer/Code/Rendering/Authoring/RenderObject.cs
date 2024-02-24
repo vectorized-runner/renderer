@@ -25,45 +25,46 @@ namespace Renderer
 				}
 
 				var childrenWithMeshRenderer = go.GetComponentsInChildren<MeshRenderer>();
-
-				// TODO: It looks like we will need to separate out the Root object and child objects (because of the CreateAdditionalEntity logic)
 				foreach (var meshRenderer in childrenWithMeshRenderer)
 				{
-					var entityName = meshRenderer.gameObject.name;
-					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
-					var material = meshRenderer.sharedMaterial;
-					var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
-					var subMeshCount = mesh.subMeshCount;
-					var isStatic = authoring.IsStatic;
-					var addEulerAngles = authoring.AddEulerAngles;
-					var bounds = meshRenderer.localBounds;
-					var renderBounds = new RenderBounds
+					BakeMeshRenderer(meshRenderer, authoring.IsStatic, authoring.AddEulerAngles);
+				}
+			}
+
+			private void BakeMeshRenderer(MeshRenderer meshRenderer, bool isStatic, bool addEulerAngles)
+			{
+				var entityName = meshRenderer.gameObject.name;
+				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+				var material = meshRenderer.sharedMaterial;
+				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
+				var subMeshCount = mesh.subMeshCount;
+				var bounds = meshRenderer.localBounds;
+				var renderBounds = new RenderBounds
+				{
+					AABB = new AABB
 					{
-						AABB = new AABB
-						{
-							Center = bounds.center,
-							Extents = bounds.extents
-						}
-					};
+						Center = bounds.center,
+						Extents = bounds.extents
+					}
+				};
 
-					// What am I going to do if I have to create multiple objects here?
-					for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
+				// What am I going to do if I have to create multiple objects here?
+				for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
+				{
+					var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
+
+					if (subMeshIndex == 0)
 					{
-						var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
+						var tf = meshRenderer.gameObject.transform;
+						var pos = new Position { Value = tf.position };
+						var rot = new Rotation { Value = tf.rotation };
+						var scale = new Scale { Value = tf.localScale.x };
 
-						if (subMeshIndex == 0)
-						{
-							var tf = meshRenderer.gameObject.transform;
-							var pos = new Position { Value = tf.position };
-							var rot = new Rotation { Value = tf.rotation };
-							var scale = new Scale { Value = tf.localScale.x };
-
-							AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic, addEulerAngles);
-						}
-						else
-						{
-							throw new NotImplementedException("Handle multiple sub-meshes later");
-						}
+						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic, addEulerAngles);
+					}
+					else
+					{
+						throw new NotImplementedException("Handle multiple sub-meshes later");
 					}
 				}
 			}
