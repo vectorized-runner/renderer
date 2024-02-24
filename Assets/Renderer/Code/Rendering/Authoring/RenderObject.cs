@@ -73,9 +73,19 @@ namespace Renderer
 			{
 				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
 				var subMeshCount = mesh.subMeshCount;
+				if (subMeshCount == 0)
+				{
+					throw new Exception("At least one SubMesh is expected.");
+				}
 				if (subMeshCount != 1)
 				{
 					throw new NotImplementedException("Multiple sub-meshes isn't supported yet.");
+				}
+
+				var sharedMaterials = meshRenderer.sharedMaterials;
+				if (sharedMaterials.Length == 0)
+				{
+					throw new Exception("At least one SharedMaterial is expected");
 				}
 
 				var entityName = meshRenderer.gameObject.name;
