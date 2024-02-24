@@ -44,13 +44,13 @@ namespace Renderer
 				var transform = go.transform;
 				var entityName = go.name;
 				var meshRenderer = go.GetComponent<MeshRenderer>();
-				Entity mainEntity;
+				Entity[] createdEntities;
 
 				if (meshRenderer != null)
 				{
-					var entities = BakeMeshRenderer(meshRenderer, true);
+					createdEntities = BakeMeshRenderer(meshRenderer, true);
 
-					foreach (var entity in entities)
+					foreach (var entity in createdEntities)
 					{
 						var (localTransform, matrix) = GetTransformComponents(go);
 						AddComponent(entity, localTransform);
@@ -66,13 +66,12 @@ namespace Renderer
 							AddComponent(entity, new RotatePerSecond());
 						}
 					}
-
-					mainEntity = entities[0];
 				}
 				else
 				{
 					// Single Entity with only Transform components
 					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+					createdEntities = new[] { entity };
 					var (localTransform, matrix) = GetTransformComponents(go);
 					AddComponent(entity, localTransform);
 					AddComponent(entity, matrix);
@@ -86,15 +85,25 @@ namespace Renderer
 					{
 						AddComponent(entity, new RotatePerSecond());
 					}
-
-					mainEntity = entity;
 				}
 
 				var childCount = transform.childCount;
 				for (int i = 0; i < childCount; i++)
 				{
 					var child = transform.GetChild(i).gameObject;
+					var mainEntity = createdEntities[0];
 					BakeDynamicRecursive(child, mainEntity, addRotatePerSecond);
+				}
+
+				if (parentEntity != Entity.Null)
+				{
+					// Only include direct children to the parent, not recursive
+					var buffer = AddBuffer<Child>(parentEntity);
+
+					foreach (var childEntity in createdEntities)
+					{
+						buffer.Add(new Child { Value = childEntity });
+					}
 				}
 			}
 
