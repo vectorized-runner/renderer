@@ -1,8 +1,10 @@
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Renderer
 {
+	[Serializable]
 	public struct LocalToWorld : IComponentData
 	{
 		public float4x4 Value;
