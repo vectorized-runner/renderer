@@ -24,14 +24,33 @@ namespace Renderer
 					return;
 				}
 
-				var childrenWithMeshRenderer = go.GetComponentsInChildren<MeshRenderer>();
-				foreach (var meshRenderer in childrenWithMeshRenderer)
+				// If the object is static, we're not going to include Transform Hierarchy information
+				var isStatic = authoring.IsStatic;
+
+				if (isStatic)
 				{
-					BakeMeshRenderer(meshRenderer, authoring.IsStatic, authoring.AddEulerAngles);
+					var childrenWithMeshRenderer = go.GetComponentsInChildren<MeshRenderer>();
+					foreach (var meshRenderer in childrenWithMeshRenderer)
+					{
+						BakeMeshRendererStatic(meshRenderer, authoring.AddEulerAngles);
+					}
+				}
+				else
+				{
+					var childrenWithMeshRenderer = go.GetComponentsInChildren<MeshRenderer>();
+					foreach (var meshRenderer in childrenWithMeshRenderer)
+					{
+						BakeMeshRendererDynamic(meshRenderer, authoring.IsStatic, authoring.AddEulerAngles);
+					}
 				}
 			}
 
-			private void BakeMeshRenderer(MeshRenderer meshRenderer, bool isStatic, bool addEulerAngles)
+			private void BakeMeshRendererDynamic(MeshRenderer meshRenderer, bool isStatic, bool addEulerAngles)
+			{
+				// TODO: Implement
+			}
+
+			private void BakeMeshRendererStatic(MeshRenderer meshRenderer, bool addEulerAngles)
 			{
 				var entityName = meshRenderer.gameObject.name;
 				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
@@ -60,7 +79,7 @@ namespace Renderer
 						var rot = new Rotation { Value = tf.rotation };
 						var scale = new Scale { Value = tf.localScale.x };
 
-						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, isStatic, addEulerAngles);
+						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addEulerAngles);
 					}
 					else
 					{
