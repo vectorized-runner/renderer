@@ -77,6 +77,7 @@ namespace Renderer
 				{
 					throw new Exception("At least one SubMesh is expected.");
 				}
+
 				if (subMeshCount != 1)
 				{
 					throw new NotImplementedException("Multiple sub-meshes isn't supported yet.");
@@ -88,20 +89,25 @@ namespace Renderer
 					throw new Exception("At least one SharedMaterial is expected");
 				}
 
-				var entityName = meshRenderer.gameObject.name;
-				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
-				var material = meshRenderer.sharedMaterial;
+				var go = meshRenderer.gameObject;
+				var (_, _, _, localToWorld) = GetTransformComponents(go);
 				var aabb = RenderMath.ComputeMeshAABB(mesh);
-				var renderBounds = new RenderBounds { AABB = aabb };				
+				var renderBounds = new RenderBounds { AABB = aabb };
+				var worldBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
 
-				const int subMeshIndex = 0;
-				var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
-				var tf = meshRenderer.gameObject.transform;
-				var pos = new Position { Value = tf.position };
-				var rot = new Rotation { Value = tf.rotation };
-				var scale = new Scale { Value = tf.localScale.x };
+				for (var index = 0; index < sharedMaterials.Length; index++)
+				{
+					var sharedMaterial = sharedMaterials[index];
+					var entityName = $"{meshRenderer.gameObject.name}-{index}";
+					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+					const int subMeshIndex = 0;
+					var renderMesh = new RenderMesh(mesh, sharedMaterial, subMeshIndex);
 
-				AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addRotatePerSecond);
+					AddComponent(entity, new Static());
+					AddComponent(entity, localToWorld);
+					AddSharedComponentManaged(entity, renderMesh);
+					AddComponent(entity, worldBounds);
+				}
 			}
 
 			private (Position, Rotation, Scale, LocalToWorld) GetTransformComponents(GameObject gameObject)
@@ -115,35 +121,6 @@ namespace Renderer
 					new Rotation { Value = rot },
 					new Scale { Value = scale },
 					new LocalToWorld { Value = float4x4.TRS(pos, rot, scale) });
-			}
-
-			// TODO-Renderer: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
-			private void AddComponents(Entity entity, Position position, Rotation rotation, Scale scale,
-				RenderMesh renderMesh, RenderBounds renderBounds, bool isStatic, bool addRotatePerSecond)
-			{
-				var localToWorld = new LocalToWorld
-					{ Value = float4x4.TRS(position.Value, rotation.Value, scale.Value) };
-				AddComponent(entity, localToWorld);
-				AddSharedComponentManaged(entity, renderMesh);
-				var worldBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
-				AddComponent(entity, worldBounds);
-
-				if (isStatic)
-				{
-					AddComponent(entity, new Static());
-				}
-				else
-				{
-					if (addRotatePerSecond)
-					{
-						AddComponent(entity, new RotatePerSecond());
-					}
-
-					AddComponent(entity, position);
-					AddComponent(entity, rotation);
-					AddComponent(entity, scale);
-					AddComponent(entity, renderBounds);
-				}
 			}
 		}
 	}
