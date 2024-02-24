@@ -50,6 +50,7 @@ namespace Renderer
 			sb.AppendLine($"Chunk Out: {renderStats.OutChunks:N0}");
 			sb.AppendLine($"Chunk In: {renderStats.InChunks:N0}");
 			sb.AppendLine($"Chunk Partial: {renderStats.PartialChunks:N0}");
+			sb.AppendLine($"Memory Used (MB): {renderStats.MemoryUsedInMb:0.00}");
 			sb.AppendLine($"Unique Mesh Count: {renderStats.UniqueMeshCount:N0}");
 
 			Text.text = sb.ToString();

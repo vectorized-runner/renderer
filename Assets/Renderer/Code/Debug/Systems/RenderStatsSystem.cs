@@ -57,7 +57,13 @@ namespace Renderer
 			var query = GetEntityQuery(typeof(RenderMesh));
 			var entityCount = query.CalculateEntityCount();
 			var chunkCount = query.CalculateChunkCount();
-			var culledCount = entityCount - _cullingSystem.VisibleObjectCount; 
+			var culledCount = entityCount - _cullingSystem.VisibleObjectCount;
+
+			const int chunkSize = 16 * 1024;
+			var totalChunkBytes = chunkCount * chunkSize;
+			const int mbToByte = 1_000_000;
+			const float byteToMb = 1.0f / mbToByte;
+			var totalChunkMb = byteToMb * totalChunkBytes;
 
 			EntityManager.SetComponentData(SystemHandle, new RenderStats
 			{
@@ -74,6 +80,7 @@ namespace Renderer
 				PartialChunks = _cullingSystem.FrustumPartialCount,
 				ChunkCount = chunkCount,
 				UniqueMeshCount = _cullingSystem.UniqueMeshCount,
+				MemoryUsedInMb = totalChunkMb,
 			});
 
 			_lastUpdateTime = currentTime;
