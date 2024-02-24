@@ -5,18 +5,23 @@ using UnityEngine;
 
 namespace Renderer
 {
-	public class RenderObjectBaker : MonoBehaviour
+	public class RenderObject : MonoBehaviour
 	{
 		public bool IsStatic;
 		public bool AddEulerAngles;
 
-		private class RenderObjectBakerBaker : Baker<RenderObjectBaker>
+		private class RenderObjectBaker : Baker<RenderObject>
 		{
 			// TODO-Renderer: Collect SharedMaterials
 			// TODO-Renderer: Collect Children objects
 			// TODO-Renderer: Consider Transform Hierarchy
-			public override void Bake(RenderObjectBaker authoring)
+			public override void Bake(RenderObject authoring)
 			{
+				var go = authoring.gameObject;
+				if (go.transform.parent != null)
+				{
+				}
+				
 				var entity = GetEntity(TransformUsageFlags.None);
 
 				if (!authoring.TryGetComponent(out MeshRenderer meshRenderer))
