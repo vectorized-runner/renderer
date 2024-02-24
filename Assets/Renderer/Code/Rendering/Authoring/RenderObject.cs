@@ -17,8 +17,8 @@ namespace Renderer
 			// TODO-Renderer: Consider Transform Hierarchy
 			public override void Bake(RenderObject authoring)
 			{
-				var go = authoring.gameObject;
-				if (go.transform.parent != null)
+				var root = authoring.gameObject;
+				if (root.transform.parent != null)
 				{
 					Debug.LogError("RenderObject needs to be the root object.");
 					return;
@@ -29,28 +29,46 @@ namespace Renderer
 
 				if (isStatic)
 				{
-					var childrenWithMeshRenderer = go.GetComponentsInChildren<MeshRenderer>();
+					var childrenWithMeshRenderer = root.GetComponentsInChildren<MeshRenderer>();
 					foreach (var meshRenderer in childrenWithMeshRenderer)
 					{
-						BakeMeshRendererStatic(meshRenderer, authoring.AddEulerAngles);
+						BakeSingleObjectStatic(meshRenderer, authoring.AddEulerAngles);
 					}
 				}
 				else
 				{
-					var childrenWithMeshRenderer = go.GetComponentsInChildren<MeshRenderer>();
-					foreach (var meshRenderer in childrenWithMeshRenderer)
-					{
-						BakeMeshRendererDynamic(meshRenderer, authoring.IsStatic, authoring.AddEulerAngles);
-					}
+					BakeDynamicRecursive(root, Entity.Null, authoring.AddEulerAngles);
 				}
 			}
 
-			private void BakeMeshRendererDynamic(MeshRenderer meshRenderer, bool isStatic, bool addEulerAngles)
+			private void BakeDynamicRecursive(GameObject go, Entity parentEntity, bool addEulerAngles)
 			{
-				// TODO: Implement
+				var transform = go.transform;
+				var entityName = go.name;
+				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+				var childCount = transform.childCount;
+				var (pos, rot, scale, matrix) = GetTransformComponents(go);
+
+				AddComponent(entity, pos);
+				AddComponent(entity, rot);
+				AddComponent(entity, scale);
+				AddComponent(entity, matrix);
+
+				if (parentEntity != Entity.Null)
+				{
+					AddComponent(entity, new Parent { Value = parentEntity });
+				}
+				
+				for (int i = 0; i < childCount; i++)
+				{
+					var child = transform.GetChild(i).gameObject;
+					BakeDynamicRecursive(child, entity, addEulerAngles);
+				}
+				
+				// TODO: Add Render Components
 			}
 
-			private void BakeMeshRendererStatic(MeshRenderer meshRenderer, bool addEulerAngles)
+			private void BakeSingleObjectStatic(MeshRenderer meshRenderer, bool addEulerAngles)
 			{
 				var entityName = meshRenderer.gameObject.name;
 				var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
@@ -86,6 +104,19 @@ namespace Renderer
 						throw new NotImplementedException("Handle multiple sub-meshes later");
 					}
 				}
+			}
+
+			private (Position, Rotation, Scale, LocalToWorld) GetTransformComponents(GameObject gameObject)
+			{
+				var pos = gameObject.transform.position;
+				var rot = gameObject.transform.rotation;
+				var scale = gameObject.transform.localScale.x;
+
+				return new
+				(new Position { Value = pos },
+					new Rotation { Value = rot },
+					new Scale { Value = scale },
+					new LocalToWorld { Value = float4x4.TRS(pos, rot, scale) });
 			}
 
 			// TODO-Renderer: Consider not storing the LocalToWorld at all? Is it required with the full Transform system?
