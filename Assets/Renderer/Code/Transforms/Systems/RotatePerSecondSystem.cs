@@ -9,10 +9,12 @@ namespace Renderer
 	{
 		protected override void OnUpdate()
 		{
+			var deltaTime = SystemAPI.Time.DeltaTime;
+			
 			Entities
 				.WithNone<Static>().ForEach((ref LocalTransform transform, in RotatePerSecond eulerAngles) =>
 				{
-					var xyz = eulerAngles.Value;
+					var xyz = eulerAngles.Value * deltaTime;
 					var xRot = quaternion.RotateX(xyz.x);
 					var yRot = quaternion.RotateY(xyz.y);
 					var zRot = quaternion.RotateZ(xyz.z);
