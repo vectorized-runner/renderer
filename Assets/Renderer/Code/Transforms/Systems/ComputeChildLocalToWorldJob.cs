@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -19,8 +20,10 @@ namespace Renderer
 		[ReadOnly]
 		public BufferLookup<Child> ChildLookup;
 		
+		[ReadOnly]
 		public ComponentTypeHandle<LocalToWorld> LocalToWorldHandle;
 
+		[NativeDisableContainerSafetyRestriction]
 		public ComponentLookup<LocalToWorld> LocalToWorldLookup;
 
 		public uint LastSystemVersion;
