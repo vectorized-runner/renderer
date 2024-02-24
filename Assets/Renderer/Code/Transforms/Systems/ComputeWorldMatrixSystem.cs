@@ -11,6 +11,7 @@ namespace Renderer
 			Entities
 				.WithNone<Static, Parent>()
 				.WithChangeFilter<LocalTransform>()
+				.WithName("ComputeRootLocalToWorldMatrixJob")
 				.ForEach(
 					(ref LocalToWorld worldMatrix, in LocalTransform localTransform) =>
 					{
