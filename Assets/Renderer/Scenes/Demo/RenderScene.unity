@@ -417,20 +417,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7731718855888526260}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &3868012248537026151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7731718855888526260}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c56df68c5f33488a9bfa1f8f076fbc76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  IsStatic: 1
-  AddEulerAngles: 1
 --- !u!23 &4313840799110470526
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -500,7 +486,7 @@ GameObject:
   - component: {fileID: 6605282619117038397}
   - component: {fileID: 2730746793776240684}
   - component: {fileID: 4313840799110470526}
-  - component: {fileID: 3868012248537026151}
+  - component: {fileID: 7731718855888526261}
   m_Layer: 0
   m_Name: dacube
   m_TagString: Untagged
@@ -508,6 +494,20 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &7731718855888526261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7731718855888526260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c56df68c5f33488a9bfa1f8f076fbc76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsStatic: 0
+  AddRotatePerSecond: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
