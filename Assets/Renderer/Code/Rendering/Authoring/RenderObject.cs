@@ -68,6 +68,7 @@ namespace Renderer
 				// TODO: Add Render Components
 			}
 
+			// TODO: What am I going to do if I have to create multiple objects here?
 			private void BakeSingleObjectStatic(MeshRenderer meshRenderer, bool addEulerAngles)
 			{
 				var entityName = meshRenderer.gameObject.name;
@@ -85,24 +86,21 @@ namespace Renderer
 					}
 				};
 
-				// What am I going to do if I have to create multiple objects here?
 				for (var subMeshIndex = 0; subMeshIndex < subMeshCount; subMeshIndex++)
 				{
 					var renderMesh = new RenderMesh(mesh, material, subMeshIndex);
 
-					if (subMeshIndex == 0)
-					{
-						var tf = meshRenderer.gameObject.transform;
-						var pos = new Position { Value = tf.position };
-						var rot = new Rotation { Value = tf.rotation };
-						var scale = new Scale { Value = tf.localScale.x };
-
-						AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addEulerAngles);
-					}
-					else
+					if (subMeshIndex != 0)
 					{
 						throw new NotImplementedException("Handle multiple sub-meshes later");
 					}
+
+					var tf = meshRenderer.gameObject.transform;
+					var pos = new Position { Value = tf.position };
+					var rot = new Rotation { Value = tf.rotation };
+					var scale = new Scale { Value = tf.localScale.x };
+
+					AddComponents(entity, pos, rot, scale, renderMesh, renderBounds, true, addEulerAngles);
 				}
 			}
 
