@@ -53,7 +53,7 @@ namespace Renderer
 
 						if (subMeshIndex == 0)
 						{
-							var tf = authoring.gameObject.transform;
+							var tf = meshRenderer.gameObject.transform;
 							var pos = new Position { Value = tf.position };
 							var rot = new Rotation { Value = tf.rotation };
 							var scale = new Scale { Value = tf.localScale.x };
