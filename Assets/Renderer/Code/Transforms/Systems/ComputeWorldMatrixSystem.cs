@@ -11,12 +11,13 @@ namespace Renderer
 			Entities
 				.WithNone<Static, Parent>()
 				.ForEach(
-					(ref LocalToWorld worldMatrix, in Position position, in Rotation rotation, in Scale scale) =>
+					(ref LocalToWorld worldMatrix, in LocalTransform localTransform) =>
 					{
-						worldMatrix.Value = float4x4.TRS(position.Value, rotation.Value, scale.Value);
+						worldMatrix.Value = float4x4.TRS(localTransform.Position, localTransform.Rotation,
+							localTransform.Scale);
 					})
 				.ScheduleParallel();
-			
+
 			// TODO: Handle objects with Parent component
 		}
 	}

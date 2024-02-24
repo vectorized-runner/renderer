@@ -45,17 +45,15 @@ namespace Renderer
 				var entityName = go.name;
 				var meshRenderer = go.GetComponent<MeshRenderer>();
 				Entity mainEntity;
-				
+
 				if (meshRenderer != null)
 				{
 					var entities = BakeMeshRenderer(meshRenderer, true);
 
 					foreach (var entity in entities)
 					{
-						var (pos, rot, scale, matrix) = GetTransformComponents(go);
-						AddComponent(entity, pos);
-						AddComponent(entity, rot);
-						AddComponent(entity, scale);
+						var (localTransform, matrix) = GetTransformComponents(go);
+						AddComponent(entity, localTransform);
 						AddComponent(entity, matrix);
 
 						if (parentEntity != Entity.Null)
@@ -75,10 +73,8 @@ namespace Renderer
 				{
 					// Single Entity with only Transform components
 					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
-					var (pos, rot, scale, matrix) = GetTransformComponents(go);
-					AddComponent(entity, pos);
-					AddComponent(entity, rot);
-					AddComponent(entity, scale);
+					var (localTransform, matrix) = GetTransformComponents(go);
+					AddComponent(entity, localTransform);
 					AddComponent(entity, matrix);
 
 					if (parentEntity != Entity.Null)
@@ -133,7 +129,7 @@ namespace Renderer
 				}
 
 				var go = meshRenderer.gameObject;
-				var (_, _, _, localToWorld) = GetTransformComponents(go);
+				var (_, localToWorld) = GetTransformComponents(go);
 				var aabb = RenderMath.ComputeMeshAABB(mesh);
 				var renderBounds = new RenderBounds { AABB = aabb };
 				var worldBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
@@ -161,16 +157,14 @@ namespace Renderer
 				return createdEntities;
 			}
 
-			private (Position, Rotation, Scale, LocalToWorld) GetTransformComponents(GameObject gameObject)
+			private (LocalTransform, LocalToWorld) GetTransformComponents(GameObject gameObject)
 			{
 				var pos = gameObject.transform.position;
 				var rot = gameObject.transform.rotation;
 				var scale = gameObject.transform.localScale.x;
 
 				return new
-				(new Position { Value = pos },
-					new Rotation { Value = rot },
-					new Scale { Value = scale },
+				(new LocalTransform { Position = pos, Rotation = rot, Scale = scale },
 					new LocalToWorld { Value = float4x4.TRS(pos, rot, scale) });
 			}
 		}

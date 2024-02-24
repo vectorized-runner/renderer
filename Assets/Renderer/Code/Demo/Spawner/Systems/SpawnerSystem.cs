@@ -59,9 +59,12 @@ namespace Renderer
 						}
 						else
 						{
-							EntityManager.SetComponentData(spawnedEntity, new Position { Value = position });
-							EntityManager.SetComponentData(spawnedEntity, new Rotation { Value = rotation });
-							EntityManager.SetComponentData(spawnedEntity, new Scale { Value = scale });
+							EntityManager.SetComponentData(spawnedEntity, new LocalTransform
+							{
+								Position = position,
+								Rotation = rotation,
+								Scale = scale
+							});
 						}
 
 					}
