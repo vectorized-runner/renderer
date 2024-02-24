@@ -37,7 +37,8 @@ namespace Renderer
 				ChildLookup = GetBufferLookup<Child>(true),
 				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(true),
 				LocalToWorldLookup = GetComponentLookup<LocalToWorld>(),
-				LocalTransformLookup = GetComponentLookup<LocalTransform>(true)
+				LocalTransformLookup = GetComponentLookup<LocalTransform>(true),
+				LastSystemVersion = LastSystemVersion
 			}.ScheduleParallel(_rootsWithChildrenQuery, Dependency);
 		}
 	}
