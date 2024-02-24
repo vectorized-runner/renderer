@@ -1,9 +1,11 @@
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Renderer
 {
-	public struct Position : IComponentData
+	[Serializable]
+	public struct RotatePerSecond : IComponentData
 	{
 		public float3 Value;
 	}

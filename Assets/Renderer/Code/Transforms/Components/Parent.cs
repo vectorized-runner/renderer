@@ -4,7 +4,8 @@ using Unity.Entities;
 namespace Renderer
 {
 	[Serializable]
-	public struct Static : IComponentData
+	public struct Parent : IComponentData
 	{
+		public Entity Value;
 	}
 }
