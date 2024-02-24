@@ -59,7 +59,7 @@ namespace Renderer
 						}
 						else
 						{
-							EntityManager.SetComponentData(spawnedEntity, new LocalTransform
+							EntityManager.AddComponentData(spawnedEntity, new LocalTransform
 							{
 								Position = position,
 								Rotation = rotation,
@@ -68,8 +68,6 @@ namespace Renderer
 						}
 
 					}
-
-					// EntityManager.AddComponent<MakeStatic>(spawnedEntities);
 				})
 				.WithStructuralChanges()
 				.Run();
