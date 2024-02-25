@@ -163,6 +163,7 @@ namespace Renderer
 					AddComponent(entity, localToWorld);
 					AddSharedComponentManaged(entity, renderMesh);
 					AddComponent(entity, worldBounds);
+					AddComponent(entity, new RenderObjectTag());
 					createdEntities[index] = entity;
 				}
 
