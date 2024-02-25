@@ -162,7 +162,7 @@ namespace Renderer
 				IndexArray = partialChunkLineIndices,
 			}.Schedule(partialChunkLineIndices.Length, 64, collectLinesJob));
 
-			Dependency = JobHandle.CombineDependencies(jobs);
+			Dependency = JobHandle.CombineDependencies(jobs.AsArray());
 
 			JobHandle.CompleteAll(jobs.AsArray());
 
