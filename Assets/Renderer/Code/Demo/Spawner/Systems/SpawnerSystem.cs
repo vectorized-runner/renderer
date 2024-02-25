@@ -80,7 +80,6 @@ namespace Renderer
 							}
 						}
 
-						// This shit doesn't work
 						EntityManager.RemoveComponent<LinkedEntityGroup>(spawnedEntity);
 						EntityManager.DestroyEntity(spawnedEntity);
 					}
