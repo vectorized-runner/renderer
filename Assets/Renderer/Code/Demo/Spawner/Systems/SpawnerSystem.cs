@@ -50,30 +50,28 @@ namespace Renderer
 
 						var linkedEntityGroup = EntityManager.GetBuffer<LinkedEntityGroup>(spawnedEntity);
 						var count = linkedEntityGroup.Length;
-						var rootEntity = Entity.Null;
 
 						for (int i = 0; i < count; i++)
 						{
-							var spawned = spawnedEntities[i];
+							var linkedEntity = linkedEntityGroup[i].Value;
 
-							if (!EntityManager.HasComponent<RenderObjectTag>(spawned))
+							if (!EntityManager.HasComponent<RenderObjectTag>(linkedEntity))
 							{
-								rootEntity = spawned;
 								continue;
 							}
 							
-							if (EntityManager.HasComponent<Static>(spawned))
+							if (EntityManager.HasComponent<Static>(linkedEntity))
 							{
 								var localToWorld = new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) };
 								var renderBounds = new RenderBounds { AABB = aabb };
 								var worldRenderBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
 
-								EntityManager.AddComponentData(spawned, worldRenderBounds);
-								EntityManager.SetComponentData(spawned, localToWorld);
+								EntityManager.AddComponentData(linkedEntity, worldRenderBounds);
+								EntityManager.SetComponentData(linkedEntity, localToWorld);
 							}
 							else
 							{
-								EntityManager.AddComponentData(spawned, new LocalTransform
+								EntityManager.AddComponentData(linkedEntity, new LocalTransform
 								{
 									Position = position,
 									Rotation = rotation,
@@ -83,8 +81,8 @@ namespace Renderer
 						}
 
 						// This shit doesn't work
-						// EntityManager.RemoveComponent<LinkedEntityGroup>(rootEntity);
-						// EntityManager.DestroyEntity(rootEntity);
+						EntityManager.RemoveComponent<LinkedEntityGroup>(spawnedEntity);
+						EntityManager.DestroyEntity(spawnedEntity);
 					}
 				})
 				.WithStructuralChanges()
