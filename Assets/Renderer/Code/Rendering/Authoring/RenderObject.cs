@@ -141,12 +141,16 @@ namespace Renderer
 				var aabb = RenderMath.ComputeMeshAABB(mesh);
 				var renderBounds = new RenderBounds { AABB = aabb };
 				var worldBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
-				var createdEntities = new Entity[sharedMaterials.Length];
+				var materialCount = sharedMaterials.Length;
+				var isSingleMaterial = materialCount == 1;
+				var createdEntities = new Entity[materialCount];
 
-				for (var index = 0; index < sharedMaterials.Length; index++)
+				for (var index = 0; index < materialCount; index++)
 				{
 					var sharedMaterial = sharedMaterials[index];
-					var entityName = $"{meshRenderer.gameObject.name}-{index}";
+					var entityName = isSingleMaterial
+						? meshRenderer.gameObject.name
+						: $"{meshRenderer.gameObject.name}-{index}";
 					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
 					const int subMeshIndex = 0;
 					var renderMesh = new RenderMesh(mesh, sharedMaterial, subMeshIndex);
@@ -159,6 +163,7 @@ namespace Renderer
 					AddComponent(entity, localToWorld);
 					AddSharedComponentManaged(entity, renderMesh);
 					AddComponent(entity, worldBounds);
+					AddComponent(entity, new RenderObjectTag());
 					createdEntities[index] = entity;
 				}
 

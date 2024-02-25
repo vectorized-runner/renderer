@@ -48,28 +48,42 @@ namespace Renderer
 						var rotation = random.NextQuaternionRotation();
 						var spawnedEntity = spawnedEntities[entityIndex];
 
-						if (EntityManager.HasComponent<Static>(spawnedEntity))
-						{
-							var localToWorld = new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) };
-							var renderBounds = new RenderBounds { AABB = aabb };
-							var worldRenderBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
+						var linkedEntityGroup = EntityManager.GetBuffer<LinkedEntityGroup>(spawnedEntity);
+						var count = linkedEntityGroup.Length;
 
-							EntityManager.AddComponentData(spawnedEntity, worldRenderBounds);
-							EntityManager.SetComponentData(spawnedEntity, localToWorld);
-						}
-						else
+						for (int i = 0; i < count; i++)
 						{
-							EntityManager.SetComponentData(spawnedEntity, new LocalTransform
+							var linkedEntity = linkedEntityGroup[i].Value;
+
+							if (!EntityManager.HasComponent<RenderObjectTag>(linkedEntity))
 							{
-								Position = position,
-								Rotation = rotation,
-								Scale = scale
-							});
+								continue;
+							}
+							
+							if (EntityManager.HasComponent<Static>(linkedEntity))
+							{
+								var localToWorld = new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) };
+								var renderBounds = new RenderBounds { AABB = aabb };
+								var worldRenderBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
+
+								EntityManager.AddComponentData(linkedEntity, worldRenderBounds);
+								EntityManager.SetComponentData(linkedEntity, localToWorld);
+							}
+							else
+							{
+								EntityManager.AddComponentData(linkedEntity, new LocalTransform
+								{
+									Position = position,
+									Rotation = rotation,
+									Scale = scale
+								});
+							}
 						}
 
+						// This shit doesn't work
+						EntityManager.RemoveComponent<LinkedEntityGroup>(spawnedEntity);
+						EntityManager.DestroyEntity(spawnedEntity);
 					}
-
-					// EntityManager.AddComponent<MakeStatic>(spawnedEntities);
 				})
 				.WithStructuralChanges()
 				.Run();
