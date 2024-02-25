@@ -48,25 +48,43 @@ namespace Renderer
 						var rotation = random.NextQuaternionRotation();
 						var spawnedEntity = spawnedEntities[entityIndex];
 
-						if (EntityManager.HasComponent<Static>(spawnedEntity))
-						{
-							var localToWorld = new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) };
-							var renderBounds = new RenderBounds { AABB = aabb };
-							var worldRenderBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
+						var linkedEntityGroup = EntityManager.GetBuffer<LinkedEntityGroup>(spawnedEntity);
+						var count = linkedEntityGroup.Length;
+						var rootEntity = Entity.Null;
 
-							EntityManager.AddComponentData(spawnedEntity, worldRenderBounds);
-							EntityManager.SetComponentData(spawnedEntity, localToWorld);
-						}
-						else
+						for (int i = 0; i < count; i++)
 						{
-							EntityManager.AddComponentData(spawnedEntity, new LocalTransform
+							var spawned = spawnedEntities[i];
+
+							if (!EntityManager.HasComponent<RenderObjectTag>(spawned))
 							{
-								Position = position,
-								Rotation = rotation,
-								Scale = scale
-							});
+								rootEntity = spawned;
+								continue;
+							}
+							
+							if (EntityManager.HasComponent<Static>(spawned))
+							{
+								var localToWorld = new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) };
+								var renderBounds = new RenderBounds { AABB = aabb };
+								var worldRenderBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
+
+								EntityManager.AddComponentData(spawned, worldRenderBounds);
+								EntityManager.SetComponentData(spawned, localToWorld);
+							}
+							else
+							{
+								EntityManager.AddComponentData(spawned, new LocalTransform
+								{
+									Position = position,
+									Rotation = rotation,
+									Scale = scale
+								});
+							}
 						}
 
+						// This shit doesn't work
+						// EntityManager.RemoveComponent<LinkedEntityGroup>(rootEntity);
+						// EntityManager.DestroyEntity(rootEntity);
 					}
 				})
 				.WithStructuralChanges()
