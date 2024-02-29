@@ -11,7 +11,7 @@ namespace Renderer
 	/// we can't remove the Children from the buffer in Parallel (at least I can't come up with something quickly now.)
 	/// </summary>
 	[BurstCompile]
-	public struct RemoveChildrenJob : IJob
+	public struct UpdateBufferOfChildrenRemovedParentsJob : IJob
 	{
 		[ReadOnly]
 		public NativeParallelMultiHashMap<Entity, Entity> ParentRemovedChildrenMap;

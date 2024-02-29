@@ -30,7 +30,7 @@ namespace Renderer
 				LocalTransformHandle = GetComponentTypeHandle<LocalTransform>(),
 			}.ScheduleParallel(_removedParentsQuery, Dependency);
 			
-			var dep2 = new RemoveChildrenJob
+			var dep2 = new UpdateBufferOfChildrenRemovedParentsJob
 			{
 				ChildLookup = GetBufferLookup<Child>(),
 				ParentRemovedChildrenMap = parentByRemovedChildren
