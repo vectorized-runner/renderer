@@ -58,6 +58,7 @@ namespace Renderer
 						if (parentEntity != Entity.Null)
 						{
 							AddComponent(entity, new Parent { Value = parentEntity });
+							AddComponent(entity, new PreviousParent { Value = parentEntity });
 						}
 
 						if (addRotatePerSecond)
@@ -78,6 +79,7 @@ namespace Renderer
 					if (parentEntity != Entity.Null)
 					{
 						AddComponent(entity, new Parent { Value = parentEntity });
+						AddComponent(entity, new PreviousParent { Value = parentEntity });
 					}
 
 					if (addRotatePerSecond)
