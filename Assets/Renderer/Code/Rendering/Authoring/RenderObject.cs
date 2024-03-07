@@ -133,6 +133,15 @@ namespace Renderer
 				var renderBounds = new RenderBounds { AABB = aabb };
 				var worldBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
 				var materialCount = sharedMaterials.Length;
+
+				if (materialCount != 1)
+				{
+					// Problem with multiple materials: Dynamic Objects.
+					// We need to Link the Same Transform for these objects (if one moves, the other one moves as well)
+					// TODO: Properly test this in our Test-Scene.
+					throw new NotSupportedException("Multiple Materials aren't supported yet.");
+				}
+				
 				var isSingleMaterial = materialCount == 1;
 				var createdEntities = new Entity[materialCount];
 
