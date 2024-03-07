@@ -18,7 +18,18 @@ namespace Renderer
 			{
 				// Remove all Parent components
 				EntityManager.RemoveComponent<Parent>(GetEntityQuery(typeof(Parent)));
-				Debug.Log("Removed Parent component");
+				Debug.Log("Removed Parent Component from All Entities.");
+			}
+
+			if (Input.GetKeyDown(KeyCode.Space))
+			{
+				// Destroy all Root Entities
+				EntityManager.DestroyEntity(
+					GetEntityQuery(
+						ComponentType.ReadOnly<LocalToWorld>(),
+						ComponentType.Exclude<Parent>()));
+
+				Debug.Log("Destroyed All Root Entities.");
 			}
 		}
 	}
