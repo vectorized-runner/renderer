@@ -14,7 +14,7 @@ namespace Renderer
 			Entities
 				.WithNone<Static>().ForEach((ref LocalTransform transform, in RotatePerSecond eulerAngles) =>
 				{
-					var xyz = eulerAngles.Value * deltaTime;
+					var xyz = math.degrees(eulerAngles.Value) * deltaTime;
 					var xRot = quaternion.RotateX(xyz.x);
 					var yRot = quaternion.RotateY(xyz.y);
 					var zRot = quaternion.RotateZ(xyz.z);
