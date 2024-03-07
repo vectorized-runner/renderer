@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
 using Random = Unity.Mathematics.Random;
 
@@ -14,6 +15,10 @@ namespace Renderer
 	{
 		protected override void OnUpdate()
 		{
+			// Only Runs in Spawner Demo
+			if (SceneManager.GetActiveScene().name != "Demo-Spawner")
+				return;
+			
 			// Fast way to trigger Spawner
 			if (!Input.GetKeyDown(KeyCode.Space))
 				return;
