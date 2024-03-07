@@ -51,9 +51,8 @@ namespace Renderer
 
 					foreach (var entity in createdEntities)
 					{
-						var (localTransform, matrix) = GetTransformComponents(go);
+						var (localTransform, _) = GetTransformComponents(go);
 						AddComponent(entity, localTransform);
-						AddComponent(entity, matrix);
 
 						if (parentEntity != Entity.Null)
 						{
