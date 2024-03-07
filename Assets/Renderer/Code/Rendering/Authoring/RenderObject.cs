@@ -8,7 +8,6 @@ namespace Renderer
 	public class RenderObject : MonoBehaviour
 	{
 		public bool IsStatic;
-		public bool AddRotatePerSecond;
 
 		private class RenderObjectBaker : Baker<RenderObject>
 		{
@@ -34,11 +33,11 @@ namespace Renderer
 				}
 				else
 				{
-					BakeDynamicRecursive(root, Entity.Null, authoring.AddRotatePerSecond);
+					BakeDynamicRecursive(root, Entity.Null);
 				}
 			}
 
-			private void BakeDynamicRecursive(GameObject go, Entity parentEntity, bool addRotatePerSecond)
+			private void BakeDynamicRecursive(GameObject go, Entity parentEntity)
 			{
 				var transform = go.transform;
 				var entityName = go.name;
@@ -60,11 +59,6 @@ namespace Renderer
 							AddComponent(entity, new Parent { Value = parentEntity });
 							AddComponent(entity, new PreviousParent { Value = parentEntity });
 						}
-
-						if (addRotatePerSecond)
-						{
-							AddComponent(entity, new RotatePerSecond());
-						}
 					}
 				}
 				else
@@ -81,11 +75,6 @@ namespace Renderer
 						AddComponent(entity, new Parent { Value = parentEntity });
 						AddComponent(entity, new PreviousParent { Value = parentEntity });
 					}
-
-					if (addRotatePerSecond)
-					{
-						AddComponent(entity, new RotatePerSecond());
-					}
 				}
 
 				var childCount = transform.childCount;
@@ -93,7 +82,7 @@ namespace Renderer
 				{
 					var child = transform.GetChild(i).gameObject;
 					var mainEntity = createdEntities[0];
-					BakeDynamicRecursive(child, mainEntity, addRotatePerSecond);
+					BakeDynamicRecursive(child, mainEntity);
 				}
 
 				if (parentEntity != Entity.Null)
