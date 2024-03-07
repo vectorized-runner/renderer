@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Renderer
 {
 	[UpdateAfter(typeof(TransformsGroup))]
-	public partial class TransformTestSystem : SystemBase
+	public partial class TransformsDemoSystem : SystemBase
 	{
 		protected override void OnUpdate()
 		{
