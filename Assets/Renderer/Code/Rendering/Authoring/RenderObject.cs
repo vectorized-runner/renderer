@@ -43,10 +43,11 @@ namespace Renderer
 				var entityName = go.name;
 				var meshRenderer = go.GetComponent<MeshRenderer>();
 				Entity[] createdEntities;
+				var isRoot = go.transform.parent == null;
 
 				if (meshRenderer != null)
 				{
-					createdEntities = BakeMeshRenderer(meshRenderer, true);
+					createdEntities = BakeMeshRenderer(isRoot, meshRenderer, true);
 
 					foreach (var entity in createdEntities)
 					{
@@ -64,7 +65,10 @@ namespace Renderer
 				else
 				{
 					// Single Entity with only Transform components (No MeshRenderer, but still have to Create Entity for Transform Hierarchy)
-					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+					var entity = isRoot
+						? GetEntity(TransformUsageFlags.None)
+						: CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+
 					createdEntities = new[] { entity };
 					var (localTransform, matrix) = GetTransformComponents(go);
 					AddComponent(entity, localTransform);
@@ -99,7 +103,8 @@ namespace Renderer
 
 			private void BakeStaticObject(MeshRenderer meshRenderer)
 			{
-				var entities = BakeMeshRenderer(meshRenderer, false);
+				var isRoot = meshRenderer.transform.parent == null;
+				var entities = BakeMeshRenderer(isRoot, meshRenderer, false);
 
 				foreach (var entity in entities)
 				{
@@ -107,7 +112,7 @@ namespace Renderer
 				}
 			}
 
-			private Entity[] BakeMeshRenderer(MeshRenderer meshRenderer, bool addRenderBounds)
+			private Entity[] BakeMeshRenderer(bool isRoot, MeshRenderer meshRenderer, bool addRenderBounds)
 			{
 				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
 				var subMeshCount = mesh.subMeshCount;
@@ -141,7 +146,7 @@ namespace Renderer
 					// TODO: Properly test this in our Test-Scene.
 					throw new NotSupportedException("Multiple Materials aren't supported yet.");
 				}
-				
+
 				var isSingleMaterial = materialCount == 1;
 				var createdEntities = new Entity[materialCount];
 
@@ -151,7 +156,10 @@ namespace Renderer
 					var entityName = isSingleMaterial
 						? meshRenderer.gameObject.name
 						: $"{meshRenderer.gameObject.name}-{index}";
-					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+
+					var entity = isRoot
+						? GetEntity(TransformUsageFlags.None)
+						: CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
 					const int subMeshIndex = 0;
 					var renderMesh = new RenderMesh(mesh, sharedMaterial, subMeshIndex);
 
