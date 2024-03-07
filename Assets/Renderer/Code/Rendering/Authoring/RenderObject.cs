@@ -63,7 +63,7 @@ namespace Renderer
 				}
 				else
 				{
-					// Single Entity with only Transform components
+					// Single Entity with only Transform components (No MeshRenderer, but still have to Create Entity for Transform Hierarchy)
 					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
 					createdEntities = new[] { entity };
 					var (localTransform, matrix) = GetTransformComponents(go);
