@@ -8,7 +8,6 @@ namespace Renderer
 	public class RenderObject : MonoBehaviour
 	{
 		public bool IsStatic;
-		public bool AddRotatePerSecond;
 
 		private class RenderObjectBaker : Baker<RenderObject>
 		{
@@ -34,42 +33,41 @@ namespace Renderer
 				}
 				else
 				{
-					BakeDynamicRecursive(root, Entity.Null, authoring.AddRotatePerSecond);
+					BakeDynamicRecursive(root, Entity.Null);
 				}
 			}
 
-			private void BakeDynamicRecursive(GameObject go, Entity parentEntity, bool addRotatePerSecond)
+			private void BakeDynamicRecursive(GameObject go, Entity parentEntity)
 			{
 				var transform = go.transform;
 				var entityName = go.name;
 				var meshRenderer = go.GetComponent<MeshRenderer>();
 				Entity[] createdEntities;
+				var isRoot = go.transform.parent == null;
 
 				if (meshRenderer != null)
 				{
-					createdEntities = BakeMeshRenderer(meshRenderer, true);
+					createdEntities = BakeMeshRenderer(isRoot, meshRenderer, true);
 
 					foreach (var entity in createdEntities)
 					{
-						var (localTransform, matrix) = GetTransformComponents(go);
+						var (localTransform, _) = GetTransformComponents(go);
 						AddComponent(entity, localTransform);
-						AddComponent(entity, matrix);
 
 						if (parentEntity != Entity.Null)
 						{
 							AddComponent(entity, new Parent { Value = parentEntity });
-						}
-
-						if (addRotatePerSecond)
-						{
-							AddComponent(entity, new RotatePerSecond());
+							AddComponent(entity, new PreviousParent { Value = parentEntity });
 						}
 					}
 				}
 				else
 				{
-					// Single Entity with only Transform components
-					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+					// Single Entity with only Transform components (No MeshRenderer, but still have to Create Entity for Transform Hierarchy)
+					var entity = isRoot
+						? GetEntity(TransformUsageFlags.None)
+						: CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+
 					createdEntities = new[] { entity };
 					var (localTransform, matrix) = GetTransformComponents(go);
 					AddComponent(entity, localTransform);
@@ -78,11 +76,7 @@ namespace Renderer
 					if (parentEntity != Entity.Null)
 					{
 						AddComponent(entity, new Parent { Value = parentEntity });
-					}
-
-					if (addRotatePerSecond)
-					{
-						AddComponent(entity, new RotatePerSecond());
+						AddComponent(entity, new PreviousParent { Value = parentEntity });
 					}
 				}
 
@@ -91,7 +85,7 @@ namespace Renderer
 				{
 					var child = transform.GetChild(i).gameObject;
 					var mainEntity = createdEntities[0];
-					BakeDynamicRecursive(child, mainEntity, addRotatePerSecond);
+					BakeDynamicRecursive(child, mainEntity);
 				}
 
 				if (parentEntity != Entity.Null)
@@ -108,7 +102,8 @@ namespace Renderer
 
 			private void BakeStaticObject(MeshRenderer meshRenderer)
 			{
-				var entities = BakeMeshRenderer(meshRenderer, false);
+				var isRoot = meshRenderer.transform.parent == null;
+				var entities = BakeMeshRenderer(isRoot, meshRenderer, false);
 
 				foreach (var entity in entities)
 				{
@@ -116,7 +111,7 @@ namespace Renderer
 				}
 			}
 
-			private Entity[] BakeMeshRenderer(MeshRenderer meshRenderer, bool addRenderBounds)
+			private Entity[] BakeMeshRenderer(bool isRoot, MeshRenderer meshRenderer, bool addRenderBounds)
 			{
 				var mesh = meshRenderer.GetComponent<MeshFilter>().sharedMesh;
 				var subMeshCount = mesh.subMeshCount;
@@ -142,6 +137,15 @@ namespace Renderer
 				var renderBounds = new RenderBounds { AABB = aabb };
 				var worldBounds = RenderMath.ComputeWorldRenderBounds(renderBounds, localToWorld);
 				var materialCount = sharedMaterials.Length;
+
+				if (materialCount != 1)
+				{
+					// Problem with multiple materials: Dynamic Objects.
+					// We need to Link the Same Transform for these objects (if one moves, the other one moves as well)
+					// TODO: Properly test this in our Test-Scene.
+					throw new NotSupportedException("Multiple Materials aren't supported yet.");
+				}
+
 				var isSingleMaterial = materialCount == 1;
 				var createdEntities = new Entity[materialCount];
 
@@ -151,7 +155,10 @@ namespace Renderer
 					var entityName = isSingleMaterial
 						? meshRenderer.gameObject.name
 						: $"{meshRenderer.gameObject.name}-{index}";
-					var entity = CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
+
+					var entity = isRoot
+						? GetEntity(TransformUsageFlags.None)
+						: CreateAdditionalEntity(TransformUsageFlags.None, false, entityName);
 					const int subMeshIndex = 0;
 					var renderMesh = new RenderMesh(mesh, sharedMaterial, subMeshIndex);
 
