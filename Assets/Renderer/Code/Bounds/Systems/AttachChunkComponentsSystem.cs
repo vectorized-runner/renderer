@@ -23,8 +23,6 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			EntityManager.RemoveComponent<LinkedEntityGroup>(_requireChunkBoundsQuery);
-			
 			EntityManager.AddChunkComponentData(_requireChunkBoundsQuery,
 				new ChunkWorldRenderBounds
 					{ AABB = new AABB { Center = new float3(-1), Extents = new float3(-1) } });
