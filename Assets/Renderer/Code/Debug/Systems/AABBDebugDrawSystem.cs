@@ -184,7 +184,11 @@ namespace Renderer
 
 		private GameObject CreateGameObject(string name, Color materialColor)
 		{
-			var go = new GameObject(name);
+			var go = new GameObject(name)
+			{
+				hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.DontSave |
+				            HideFlags.NotEditable
+			};
 			go.AddComponent<MeshFilter>();
 			var meshRenderer = go.AddComponent<MeshRenderer>();
 			meshRenderer.material = Resources.Load<Material>("LineMaterial");
