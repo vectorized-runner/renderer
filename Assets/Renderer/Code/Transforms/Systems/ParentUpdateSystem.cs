@@ -2,14 +2,10 @@ using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
 using UnityEngine;
 
 namespace Renderer
 {
-	// Question: How to detect destroyed Parents?
-	// All Parents have a [Child] buffer
-
 	[BurstCompile]
 	public struct HandleDestroyedParentsJob : IJobChunk
 	{
@@ -20,6 +16,7 @@ namespace Renderer
 
 		[ReadOnly]
 		public BufferLookup<Child> ChildLookup;
+
 
 		private void DestroyChildrenRecursive(ref DynamicBuffer<Child> childBuffer, int unfilteredChunkIndex)
 		{
@@ -56,7 +53,7 @@ namespace Renderer
 			{
 				var childBuffer = childAccessor[entityIndex];
 				DestroyChildrenRecursive(ref childBuffer, unfilteredChunkIndex);
-				
+
 				Debug.Log("Job running for one entity at least.");
 			}
 		}
@@ -129,6 +126,7 @@ namespace Renderer
 		private EntityQuery _removedParentsQuery;
 		private EntityQuery _destroyedParentsQuery;
 		private EntityQuery _toFullyDestroyQuery;
+		private EntityQuery _parentQuery;
 
 		protected override void OnCreate()
 		{
@@ -140,13 +138,33 @@ namespace Renderer
 			_destroyedParentsQuery = GetEntityQuery(
 				ComponentType.ReadOnly<Child>(),
 				ComponentType.Exclude<LocalToWorld>());
+
+			_parentQuery = GetEntityQuery(ComponentType.ReadOnly<Parent>());
 		}
 
 		protected override void OnUpdate()
 		{
 			Debug.Log("ParentUpdateSystem Running =.");
-			
+
 			var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
+
+			var addedParentsJobHandle = new HandleAddedParentsJob
+			{
+				ChildJustAddedEntities = new NativeParallelHashSet<Entity>(32, Allocator.TempJob).AsParallelWriter(),
+				ChildLookup = GetBufferLookup<Child>(true),
+				EntityTypeHandle = GetEntityTypeHandle(),
+				ParallelCommandBuffer = commandBuffer.AsParallelWriter(),
+				ParentTypeHandle = GetComponentTypeHandle<Parent>(true),
+				LastSystemVersion = LastSystemVersion,
+			}.ScheduleParallel(_parentQuery, Dependency);
+
+			addedParentsJobHandle.Complete();
+			commandBuffer.Playback(EntityManager);
+			commandBuffer.Dispose();
+
+			return;
+
+			// var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
 
 			var destroyedParentsJob = new HandleDestroyedParentsJob
 			{
@@ -160,28 +178,28 @@ namespace Renderer
 			commandBuffer.Playback(EntityManager);
 			commandBuffer.Dispose();
 
-			var parentByRemovedChildren = new NativeParallelMultiHashMap<Entity, Entity>(64, Allocator.TempJob);
-
-			// If Parent is removed from a Child Entity, that Child Entity should get removed from the Parent's Child List
-			var dep1 = new HandleChildrenWithRemovedParentJob
-			{
-				EntityHandle = GetEntityTypeHandle(),
-				PreviousParentHandle = GetComponentTypeHandle<PreviousParent>(true),
-				ParentByRemovedChildren = parentByRemovedChildren.AsParallelWriter(),
-				LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
-				LocalToWorldLookup = GetComponentLookup<LocalToWorld>(true),
-				LocalTransformHandle = GetComponentTypeHandle<LocalTransform>(),
-			}.ScheduleParallel(_removedParentsQuery, Dependency);
-
-			var dep2 = new UpdateBufferOfChildrenRemovedParentsJob
-			{
-				ChildLookup = GetBufferLookup<Child>(),
-				ParentRemovedChildrenMap = parentByRemovedChildren
-			}.Schedule(dep1);
-
-			Dependency = parentByRemovedChildren.Dispose(dep2);
-
-			EntityManager.RemoveComponent<PreviousParent>(_removedParentsQuery);
+			// var parentByRemovedChildren = new NativeParallelMultiHashMap<Entity, Entity>(64, Allocator.TempJob);
+			//
+			// // If Parent is removed from a Child Entity, that Child Entity should get removed from the Parent's Child List
+			// var dep1 = new HandleChildrenWithRemovedParentJob
+			// {
+			// 	EntityHandle = GetEntityTypeHandle(),
+			// 	PreviousParentHandle = GetComponentTypeHandle<PreviousParent>(true),
+			// 	ParentByRemovedChildren = parentByRemovedChildren.AsParallelWriter(),
+			// 	LocalToWorldHandle = GetComponentTypeHandle<LocalToWorld>(),
+			// 	LocalToWorldLookup = GetComponentLookup<LocalToWorld>(true),
+			// 	LocalTransformHandle = GetComponentTypeHandle<LocalTransform>(),
+			// }.ScheduleParallel(_removedParentsQuery, Dependency);
+			//
+			// var dep2 = new UpdateBufferOfChildrenRemovedParentsJob
+			// {
+			// 	ChildLookup = GetBufferLookup<Child>(),
+			// 	ParentRemovedChildrenMap = parentByRemovedChildren
+			// }.Schedule(dep1);
+			//
+			// Dependency = parentByRemovedChildren.Dispose(dep2);
+			//
+			// EntityManager.RemoveComponent<PreviousParent>(_removedParentsQuery);
 		}
 	}
 }
