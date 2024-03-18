@@ -8,24 +8,27 @@ namespace Renderer.Demo
 	{
 		[ShowInInspector]
 		[ValueDropdown(nameof(GetAllEntityNames))]
-		private string _entityName;
+		private string _firstEntityName;
 
 		[Button]
 		public void DestroyEntity()
+		{
+			GetEntityManager().DestroyEntity(GetEntityByName(_firstEntityName));
+		}
+
+		private Entity GetEntityByName(string entityName)
 		{
 			var em = GetEntityManager();
 
 			foreach (var entity in em.GetAllEntities())
 			{
-				if (em.GetName(entity) == _entityName)
+				if (em.GetName(entity) == entityName)
 				{
-					em.DestroyEntity(entity);
-					Debug.Log("Done.");
-					return;
+					return entity;
 				}
 			}
 
-			Debug.LogError("Couldn't do it.");
+			throw new Exception($"No Entity with name {entityName} exists.");
 		}
 
 		private EntityManager GetEntityManager()
