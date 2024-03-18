@@ -6,6 +6,41 @@ using UnityEngine;
 
 namespace Renderer
 {
+	// TODO: Remove all PreviousParent
+	// How to detect if Parent is removed?
+	// Easy: Parent component no longer exists on the Entity, PreviousParent component does exist
+	// Question: Could we do it without needing a 'PreviousParent' component? I don't think so, at least for now.
+	// Needs to be removed from the Parent's Child List
+	[BurstCompile]
+	public struct HandleRemovedParentsJob : IJobChunk
+	{
+		public NativeParallelHashMap<Entity, Entity>.ParallelWriter ChildrenToRemove;
+
+		public EntityCommandBuffer.ParallelWriter ParallelCommandBuffer;
+		
+		[ReadOnly]
+		public ComponentTypeHandle<PreviousParent> PreviousParentHandle;
+		
+		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+		{
+			Debug.Assert(!useEnabledMask);
+
+			var entityCount = chunk.Count;
+			var previousParentArray = chunk.GetNativeArray(ref PreviousParentHandle);
+			
+			for (int i = 0; i < entityCount; i++)
+			{
+				var previousParent = previousParentArray[i].Value;
+				if (previousParent != Entity.Null)
+				{
+				}
+			}
+			
+			throw new System.NotImplementedException();
+		}
+	}
+	
+	
 	[BurstCompile]
 	public struct HandleDestroyedParentsJob : IJobChunk
 	{
