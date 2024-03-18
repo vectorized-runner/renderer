@@ -8,6 +8,7 @@ namespace Renderer
 	public class RenderObject : MonoBehaviour
 	{
 		public bool IsStatic;
+		public bool IsDestroyable;
 
 		private class RenderObjectBaker : Baker<RenderObject>
 		{
@@ -22,22 +23,23 @@ namespace Renderer
 
 				// If the object is static, we're not going to include Transform Hierarchy information
 				var isStatic = authoring.IsStatic;
+				var isDestroyable = authoring.IsDestroyable;
 
 				if (isStatic)
 				{
 					var childrenWithMeshRenderer = root.GetComponentsInChildren<MeshRenderer>();
 					foreach (var meshRenderer in childrenWithMeshRenderer)
 					{
-						BakeStaticObject(meshRenderer);
+						BakeStaticObject(meshRenderer, isDestroyable);
 					}
 				}
 				else
 				{
-					BakeDynamicRecursive(root, Entity.Null);
+					BakeDynamicRecursive(root, Entity.Null, isDestroyable);
 				}
 			}
 
-			private void BakeDynamicRecursive(GameObject go, Entity parentEntity)
+			private void BakeDynamicRecursive(GameObject go, Entity parentEntity, bool isDestroyable)
 			{
 				var transform = go.transform;
 				var entityName = go.name;
@@ -59,6 +61,11 @@ namespace Renderer
 							AddComponent(entity, new Parent { Value = parentEntity });
 							AddComponent(entity, new PreviousParent { Value = parentEntity });
 						}
+
+						if (isDestroyable)
+						{
+							AddComponent(entity, new Destroyable());
+						}
 					}
 				}
 				else
@@ -73,6 +80,11 @@ namespace Renderer
 					AddComponent(entity, localTransform);
 					AddComponent(entity, matrix);
 
+					if (isDestroyable)
+					{
+						AddComponent(entity, new Destroyable());
+					}
+
 					if (parentEntity != Entity.Null)
 					{
 						AddComponent(entity, new Parent { Value = parentEntity });
@@ -85,7 +97,7 @@ namespace Renderer
 				{
 					var child = transform.GetChild(i).gameObject;
 					var mainEntity = createdEntities[0];
-					BakeDynamicRecursive(child, mainEntity);
+					BakeDynamicRecursive(child, mainEntity, isDestroyable);
 				}
 
 				if (parentEntity != Entity.Null)
@@ -100,7 +112,7 @@ namespace Renderer
 				}
 			}
 
-			private void BakeStaticObject(MeshRenderer meshRenderer)
+			private void BakeStaticObject(MeshRenderer meshRenderer, bool isDestroyable)
 			{
 				var isRoot = meshRenderer.transform.parent == null;
 				var entities = BakeMeshRenderer(isRoot, meshRenderer, false);
@@ -108,6 +120,11 @@ namespace Renderer
 				foreach (var entity in entities)
 				{
 					AddComponent(entity, new Static());
+
+					if (isDestroyable)
+					{
+						AddComponent(entity, new Destroyable());
+					}
 				}
 			}
 
