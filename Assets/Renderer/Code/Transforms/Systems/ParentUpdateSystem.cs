@@ -146,7 +146,7 @@ namespace Renderer
 		{
 			var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
 
-			var addedParentsJobHandle = new HandleAddedParentsJob
+			var addedParentJobHandle = new HandleNewlyAddedParentJob
 			{
 				ChildJustAddedEntities = new NativeParallelHashSet<Entity>(32, Allocator.TempJob).AsParallelWriter(),
 				ChildLookup = GetBufferLookup<Child>(true),
@@ -156,7 +156,7 @@ namespace Renderer
 				LastSystemVersion = LastSystemVersion,
 			}.ScheduleParallel(_parentQuery, Dependency);
 
-			addedParentsJobHandle.Complete();
+			addedParentJobHandle.Complete();
 			commandBuffer.Playback(EntityManager);
 			commandBuffer.Dispose();
 

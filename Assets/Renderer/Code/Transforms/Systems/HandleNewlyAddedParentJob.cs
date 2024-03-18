@@ -6,9 +6,10 @@ using UnityEngine;
 
 namespace Renderer
 {
-	// TODO: Performance test with lots of Entities.
+	// TODO: Performance Test
+	// TODO: LocalTransform has to be fixed
 	[BurstCompile]
-	public unsafe struct HandleAddedParentsJob : IJobChunk
+	public unsafe struct HandleNewlyAddedParentJob : IJobChunk
 	{
 		[ReadOnly]
 		public ComponentTypeHandle<Parent> ParentTypeHandle;
