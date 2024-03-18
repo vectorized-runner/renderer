@@ -144,8 +144,6 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			Debug.Log("ParentUpdateSystem Running =.");
-
 			var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
 
 			var addedParentsJobHandle = new HandleAddedParentsJob

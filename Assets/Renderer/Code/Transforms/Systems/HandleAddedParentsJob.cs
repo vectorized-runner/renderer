@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Renderer
 {
+	// TODO: Performance test with lots of Entities.
 	[BurstCompile]
 	public unsafe struct HandleAddedParentsJob : IJobChunk
 	{
@@ -43,9 +44,9 @@ namespace Renderer
 				var parentEntity = parentArray[entityIndex].Value;
 				if (parentEntity == Entity.Null)
 					continue;
-				
+
 				var childEntity = entityArray[entityIndex];
-				
+
 				// All add buffer operations must come before append operations to ensure we can append
 				const int addBufferSortIndex = 0;
 				const int appendBufferSortIndex = 1;
@@ -63,10 +64,27 @@ namespace Renderer
 				}
 				else
 				{
-					// TODO: If Child Buffer already exists, and this Entity isn't it, append to it.
-					// var children = ChildLookup[parentEntity];
+					var children = ChildLookup[parentEntity];
+					if (Contains(ref children, childEntity))
+					{
+						ParallelCommandBuffer.AppendToBuffer(appendBufferSortIndex, parentEntity,
+							new Child { Value = childEntity });
+					}
 				}
 			}
+		}
+
+		private bool Contains(ref DynamicBuffer<Child> childBuffer, Entity entity)
+		{
+			var count = childBuffer.Length;
+
+			for (int i = 0; i < count; i++)
+			{
+				if (childBuffer[i].Value == entity)
+					return true;
+			}
+
+			return false;
 		}
 	}
 }
