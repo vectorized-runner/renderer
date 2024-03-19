@@ -17,6 +17,25 @@ namespace Renderer.Demo
 		private string _secondEntityName;
 
 		[Button]
+		public void ScaleUp()
+		{
+			var em = GetEntityManager();
+			var e1 = GetEntityByName(_firstEntityName);
+			var tf = em.GetComponentData<LocalTransform>(e1);
+			tf.Scale *= 2;
+			em.SetComponentData(e1, tf);
+		}
+
+		[Button]
+		public void ScaleDown()
+		{
+			var em = GetEntityManager();
+			var e1 = GetEntityByName(_firstEntityName);
+			var tf = em.GetComponentData<LocalTransform>(e1);
+			tf.Scale *= 0.5f;
+			em.SetComponentData(e1, tf);
+		}
+		[Button]
 		public void MoveUp()
 		{
 			var em = GetEntityManager();
