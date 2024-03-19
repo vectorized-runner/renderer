@@ -35,7 +35,7 @@ namespace Renderer.Demo
 			tf.Scale *= 0.5f;
 			em.SetComponentData(e1, tf);
 		}
-		
+
 		[Button]
 		public void RotateAround()
 		{
@@ -45,7 +45,7 @@ namespace Renderer.Demo
 			tf.Rotation = math.mul(tf.Rotation, quaternion.RotateY(math.radians(30.0f)));
 			em.SetComponentData(e1, tf);
 		}
-		
+
 		[Button]
 		public void MoveUp()
 		{
@@ -54,6 +54,18 @@ namespace Renderer.Demo
 			var tf = em.GetComponentData<LocalTransform>(e1);
 			tf.Position += new float3(0, 1, 0);
 			em.SetComponentData(e1, tf);
+		}
+
+		[Button]
+		public void RemoveParent()
+		{
+			var em = GetEntityManager();
+			var e1 = GetEntityByName(_firstEntityName);
+
+			if (em.HasComponent<Parent>(e1))
+			{
+				em.RemoveComponent<Parent>(e1);
+			}
 		}
 
 		[Button]
