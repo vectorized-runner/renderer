@@ -35,6 +35,17 @@ namespace Renderer.Demo
 			tf.Scale *= 0.5f;
 			em.SetComponentData(e1, tf);
 		}
+		
+		[Button]
+		public void RotateAround()
+		{
+			var em = GetEntityManager();
+			var e1 = GetEntityByName(_firstEntityName);
+			var tf = em.GetComponentData<LocalTransform>(e1);
+			tf.Rotation = math.mul(tf.Rotation, quaternion.RotateY(math.radians(30.0f)));
+			em.SetComponentData(e1, tf);
+		}
+		
 		[Button]
 		public void MoveUp()
 		{
