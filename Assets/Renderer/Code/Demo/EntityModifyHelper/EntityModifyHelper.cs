@@ -1,6 +1,7 @@
 using System;
 using Sirenix.OdinInspector;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Renderer.Demo
@@ -14,6 +15,16 @@ namespace Renderer.Demo
 		[ShowInInspector]
 		[ValueDropdown(nameof(GetAllEntityNames))]
 		private string _secondEntityName;
+
+		[Button]
+		public void MoveUp()
+		{
+			var em = GetEntityManager();
+			var e1 = GetEntityByName(_firstEntityName);
+			var tf = em.GetComponentData<LocalTransform>(e1);
+			tf.Position += new float3(0, 1, 0);
+			em.SetComponentData(e1, tf);
+		}
 
 		[Button]
 		public void SetParent()
