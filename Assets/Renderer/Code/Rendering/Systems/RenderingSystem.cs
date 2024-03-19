@@ -37,14 +37,20 @@ namespace Renderer
 			var renderBatchCount = 0;
 			var renderMeshes = new List<RenderMesh>();
 			
-			// This returns the unused Shared components too.
 			EntityManager.GetAllUniqueSharedComponentsManaged(renderMeshes);
 
 			Debug.Assert(matricesByRenderMeshIndex.Length <= renderMeshes.Count, $"MBI: {matricesByRenderMeshIndex.Length} RMI {renderMeshes.Count}");
 
 			for (var renderMeshIndex = 0; renderMeshIndex < matricesByRenderMeshIndex.Length; renderMeshIndex++)
 			{
+				// RenderMesh count decreases after they get destroyed, can't think of a simpler solution atm.
+				if (renderMeshes.Count <= renderMeshIndex)
+				{
+					continue;
+				}
+					
 				var matrices = matricesByRenderMeshIndex[renderMeshIndex];
+				
 				var drawCount = matrices.Length;
 				if (drawCount == 0)
 					continue;
