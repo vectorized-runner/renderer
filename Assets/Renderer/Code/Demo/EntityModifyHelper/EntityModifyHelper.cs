@@ -1,3 +1,4 @@
+using System;
 using Sirenix.OdinInspector;
 using Unity.Entities;
 using UnityEngine;
@@ -9,6 +10,27 @@ namespace Renderer.Demo
 		[ShowInInspector]
 		[ValueDropdown(nameof(GetAllEntityNames))]
 		private string _firstEntityName;
+
+		[ShowInInspector]
+		[ValueDropdown(nameof(GetAllEntityNames))]
+		private string _secondEntityName;
+
+		[Button]
+		public void SetParent()
+		{
+			var em = GetEntityManager();
+			var e1 = GetEntityByName(_firstEntityName);
+			var e2 = GetEntityByName(_secondEntityName);
+
+			if (em.HasComponent<Parent>(e1))
+			{
+				em.SetComponentData(e1, new Parent { Value = e2 });
+			}
+			else
+			{
+				em.AddComponentData(e1, new Parent { Value = e2 });
+			}
+		}
 
 		[Button]
 		public void DestroyEntity()
