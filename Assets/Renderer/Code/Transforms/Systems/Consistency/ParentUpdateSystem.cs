@@ -39,60 +39,7 @@ namespace Renderer
 			throw new System.NotImplementedException();
 		}
 	}
-	
-	
-	[BurstCompile]
-	public struct HandleDestroyedParentsJob : IJobChunk
-	{
-		public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
-		[ReadOnly]
-		public BufferTypeHandle<Child> ChildTypeHandle;
-
-		[ReadOnly]
-		public BufferLookup<Child> ChildLookup;
-
-
-		private void DestroyChildrenRecursive(ref DynamicBuffer<Child> childBuffer, int unfilteredChunkIndex)
-		{
-			var childCount = childBuffer.Length;
-
-			for (int childIndex = 0; childIndex < childCount; childIndex++)
-			{
-				// I need to Destroy this children
-				// I can't use EntityManager.Destroy here (can't do structural changes)
-				// If I use EntityCommandBuffer.Destroy, and if it has Child buffer, it will persist another frame,
-				// so I need to remove the Child component immediately too.
-				var childEntity = childBuffer[childIndex].Value;
-
-				CommandBuffer.DestroyEntity(unfilteredChunkIndex, childEntity);
-
-				// Remove Child Component to instantly destroy
-				if (ChildLookup.TryGetBuffer(childEntity, out var children))
-				{
-					DestroyChildrenRecursive(ref children, unfilteredChunkIndex);
-					CommandBuffer.RemoveComponent<Child>(unfilteredChunkIndex, childEntity);
-				}
-			}
-		}
-
-		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
-			in v128 chunkEnabledMask)
-		{
-			Debug.Assert(!useEnabledMask);
-
-			var childAccessor = chunk.GetBufferAccessor(ref ChildTypeHandle);
-			var entityCount = chunk.Count;
-
-			for (int entityIndex = 0; entityIndex < entityCount; entityIndex++)
-			{
-				var childBuffer = childAccessor[entityIndex];
-				DestroyChildrenRecursive(ref childBuffer, unfilteredChunkIndex);
-
-				Debug.Log("Job running for one entity at least.");
-			}
-		}
-	}
 
 	// AddParent
 	// ChangeParent
@@ -177,39 +124,39 @@ namespace Renderer
 			_parentQuery = GetEntityQuery(ComponentType.ReadOnly<Parent>());
 		}
 
+		// TODO: Allow some time for Jobs to complete (?)
 		protected override void OnUpdate()
 		{
-			var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
+			var addedParentCmdBuffer = new EntityCommandBuffer(Allocator.TempJob);
 
 			var addedParentJobHandle = new HandleNewlyAddedParentJob
 			{
 				ChildJustAddedEntities = new NativeParallelHashSet<Entity>(32, Allocator.TempJob).AsParallelWriter(),
 				ChildLookup = GetBufferLookup<Child>(true),
 				EntityTypeHandle = GetEntityTypeHandle(),
-				ParallelCommandBuffer = commandBuffer.AsParallelWriter(),
+				ParallelCommandBuffer = addedParentCmdBuffer.AsParallelWriter(),
 				ParentTypeHandle = GetComponentTypeHandle<Parent>(true),
 				LastSystemVersion = LastSystemVersion,
 			}.ScheduleParallel(_parentQuery, Dependency);
 
 			addedParentJobHandle.Complete();
-			commandBuffer.Playback(EntityManager);
-			commandBuffer.Dispose();
+			addedParentCmdBuffer.Playback(EntityManager);
+			addedParentCmdBuffer.Dispose();
 
-			return;
-
-			// var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
+			var destroyedParentCmdBuffer = new EntityCommandBuffer(Allocator.TempJob);
 
 			var destroyedParentsJob = new HandleDestroyedParentsJob
 			{
 				ChildLookup = GetBufferLookup<Child>(true),
 				ChildTypeHandle = GetBufferTypeHandle<Child>(true),
-				CommandBuffer = commandBuffer.AsParallelWriter()
+				CommandBuffer = destroyedParentCmdBuffer.AsParallelWriter(),
+				LocalToWorldLookup = GetComponentLookup<LocalToWorld>(true),
 			}.ScheduleParallel(_destroyedParentsQuery, Dependency);
 
 			// Let's try the naive version: Complete immediately
 			destroyedParentsJob.Complete();
-			commandBuffer.Playback(EntityManager);
-			commandBuffer.Dispose();
+			addedParentCmdBuffer.Playback(EntityManager);
+			addedParentCmdBuffer.Dispose();
 
 			// var parentByRemovedChildren = new NativeParallelMultiHashMap<Entity, Entity>(64, Allocator.TempJob);
 			//
