@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Renderer
 {
 	[BurstCompile]
-	public struct HandleDestroyedParentsJob : IJobChunk
+	public unsafe struct HandleDestroyedParentsJob : IJobChunk
 	{
 		public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
@@ -19,6 +19,9 @@ namespace Renderer
 
 		[ReadOnly]
 		public ComponentLookup<LocalToWorld> LocalToWorldLookup;
+
+		[ReadOnly]
+		public EntityTypeHandle EntityTypeHandle;
 
 		private void DestroyChildrenRecursive(ref DynamicBuffer<Child> childBuffer, int unfilteredChunkIndex)
 		{
@@ -57,8 +60,10 @@ namespace Renderer
 
 			for (int entityIndex = 0; entityIndex < entityCount; entityIndex++)
 			{
+				var parentEntity = chunk.GetEntityDataPtrRO(EntityTypeHandle)[entityIndex];
 				var childBuffer = childAccessor[entityIndex];
 				DestroyChildrenRecursive(ref childBuffer, unfilteredChunkIndex);
+				CommandBuffer.RemoveComponent<Child>(unfilteredChunkIndex, parentEntity);
 			}
 		}
 	}

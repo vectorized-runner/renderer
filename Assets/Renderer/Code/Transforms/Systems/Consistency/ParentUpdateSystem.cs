@@ -151,6 +151,7 @@ namespace Renderer
 				ChildTypeHandle = GetBufferTypeHandle<Child>(true),
 				CommandBuffer = destroyedParentCmdBuffer.AsParallelWriter(),
 				LocalToWorldLookup = GetComponentLookup<LocalToWorld>(true),
+				EntityTypeHandle = GetEntityTypeHandle(),
 			}.ScheduleParallel(_destroyedParentsQuery, Dependency);
 
 			// Let's try the naive version: Complete immediately
