@@ -156,8 +156,8 @@ namespace Renderer
 
 			// Let's try the naive version: Complete immediately
 			destroyedParentsJob.Complete();
-			addedParentCmdBuffer.Playback(EntityManager);
-			addedParentCmdBuffer.Dispose();
+			destroyedParentCmdBuffer.Playback(EntityManager);
+			destroyedParentCmdBuffer.Dispose();
 
 			// var parentByRemovedChildren = new NativeParallelMultiHashMap<Entity, Entity>(64, Allocator.TempJob);
 			//
