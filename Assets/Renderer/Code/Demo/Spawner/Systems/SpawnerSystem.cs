@@ -60,7 +60,7 @@ namespace Renderer
 						{
 							var linkedEntity = linkedEntityGroup[i].Value;
 
-							if (!EntityManager.HasComponent<RenderObjectTag>(linkedEntity))
+							if (!EntityManager.HasComponent<RenderObject>(linkedEntity))
 							{
 								continue;
 							}
