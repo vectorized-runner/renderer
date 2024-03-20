@@ -105,21 +105,21 @@ namespace Renderer
 
 	public partial class ParentUpdateSystem : SystemBase
 	{
-		private EntityQuery _removedParentsQuery;
-		private EntityQuery _destroyedParentsQuery;
+		private EntityQuery _objectsWithRemovedParentQuery;
+		private EntityQuery _destroyedParentObjectsQuery;
 		private EntityQuery _toFullyDestroyQuery;
 		private EntityQuery _parentQuery;
 
 		protected override void OnCreate()
 		{
-			_removedParentsQuery = GetEntityQuery(
+			_objectsWithRemovedParentQuery = GetEntityQuery(
 				ComponentType.Exclude<Parent>(),
 				ComponentType.ReadOnly<PreviousParent>());
 
-			// LocalToWorld shouldn't be removed in any case, so I'm using it to detect destroyed entities.
-			_destroyedParentsQuery = GetEntityQuery(
+			// Child is a cleanup component, doesn't get removed when an entity is destroyed
+			_destroyedParentObjectsQuery = GetEntityQuery(
 				ComponentType.ReadOnly<Child>(),
-				ComponentType.Exclude<LocalToWorld>());
+				ComponentType.Exclude<RenderObject>());
 
 			_parentQuery = GetEntityQuery(ComponentType.ReadOnly<Parent>());
 		}
@@ -152,7 +152,7 @@ namespace Renderer
 				CommandBuffer = destroyedParentCmdBuffer.AsParallelWriter(),
 				LocalToWorldLookup = GetComponentLookup<LocalToWorld>(true),
 				EntityTypeHandle = GetEntityTypeHandle(),
-			}.ScheduleParallel(_destroyedParentsQuery, Dependency);
+			}.ScheduleParallel(_destroyedParentObjectsQuery, Dependency);
 
 			// Let's try the naive version: Complete immediately
 			destroyedParentsJob.Complete();
