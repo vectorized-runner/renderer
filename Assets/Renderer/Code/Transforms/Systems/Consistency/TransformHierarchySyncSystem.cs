@@ -103,12 +103,14 @@ namespace Renderer
 		}
 	}
 
-	public partial class ParentUpdateSystem : SystemBase
+	// Reason why this is complicated: Child and Parent components need to be kept in sync.
+	// They're modified by user code but one way, we need to track the changes and react.
+	public partial class TransformHierarchySyncSystem : SystemBase
 	{
 		private EntityQuery _objectsWithRemovedParentQuery;
 		private EntityQuery _destroyedParentObjectsQuery;
 		private EntityQuery _toFullyDestroyQuery;
-		private EntityQuery _parentQuery;
+		private EntityQuery _objectsWithParentQuery;
 
 		protected override void OnCreate()
 		{
@@ -121,7 +123,7 @@ namespace Renderer
 				ComponentType.ReadOnly<Child>(),
 				ComponentType.Exclude<RenderObject>());
 
-			_parentQuery = GetEntityQuery(ComponentType.ReadOnly<Parent>());
+			_objectsWithParentQuery = GetEntityQuery(ComponentType.ReadOnly<Parent>());
 		}
 
 		// TODO: Allow some time for Jobs to complete (?)
@@ -137,7 +139,7 @@ namespace Renderer
 				ParallelCommandBuffer = addedParentCmdBuffer.AsParallelWriter(),
 				ParentTypeHandle = GetComponentTypeHandle<Parent>(true),
 				LastSystemVersion = LastSystemVersion,
-			}.ScheduleParallel(_parentQuery, Dependency);
+			}.ScheduleParallel(_objectsWithParentQuery, Dependency);
 
 			addedParentJobHandle.Complete();
 			addedParentCmdBuffer.Playback(EntityManager);
