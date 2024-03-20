@@ -104,7 +104,8 @@ namespace Renderer
 	}
 
 	// Reason why this is complicated: Child and Parent components need to be kept in sync.
-	// They're modified by user code but one way, we need to track the changes and react.
+	// They're modified by user code but one way, we need to track the changes and keep the Transform System consistent.
+	// Example: User removes the Parent component from Child Entity, we need to Find the Parent Entity and remove the Child Entity from Child Buffer
 	public partial class TransformHierarchySyncSystem : SystemBase
 	{
 		private EntityQuery _objectsWithRemovedParentQuery;
