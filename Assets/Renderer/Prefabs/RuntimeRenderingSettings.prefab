@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1068666623427655391}
   - component: {fileID: 6748454699251858722}
   m_Layer: 0
-  m_Name: RenderManager
+  m_Name: RuntimeRenderingSettings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
