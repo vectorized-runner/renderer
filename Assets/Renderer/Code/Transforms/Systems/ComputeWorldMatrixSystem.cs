@@ -6,14 +6,16 @@ namespace Renderer
 	[UpdateInGroup(typeof(TransformsGroup))]
 	public partial class ComputeWorldMatrixSystem : SystemBase
 	{
-		private EntityQuery _rootsWithChildrenQuery;
+		private EntityQuery _dynamicRootObjectQuery;
 
 		protected override void OnCreate()
 		{
-			_rootsWithChildrenQuery = GetEntityQuery(
-				ComponentType.ReadOnly<Child>(),
+			// If the Root object is Static, the children also shouldn't be able to move.
+			// At least this is the current design decision, for now.
+			_dynamicRootObjectQuery = GetEntityQuery(
 				ComponentType.ReadOnly<LocalTransform>(),
 				ComponentType.ReadWrite<LocalToWorld>(),
+				ComponentType.Exclude<Static>(),
 				ComponentType.Exclude<Parent>());
 		}
 
@@ -39,7 +41,7 @@ namespace Renderer
 				LocalToWorldLookup = GetComponentLookup<LocalToWorld>(),
 				LocalTransformLookup = GetComponentLookup<LocalTransform>(true),
 				LastSystemVersion = LastSystemVersion
-			}.ScheduleParallel(_rootsWithChildrenQuery, Dependency);
+			}.ScheduleParallel(_dynamicRootObjectQuery, Dependency);
 		}
 	}
 }
