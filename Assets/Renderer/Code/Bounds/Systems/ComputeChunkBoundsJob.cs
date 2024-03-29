@@ -3,6 +3,7 @@ using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Renderer
 {
@@ -17,15 +18,21 @@ namespace Renderer
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
 		{
+			Debug.Assert(!useEnabledMask);
+
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
-			var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+			var entityCount = chunk.Count;
+			if (entityCount == 0)
+				return;
 
-			float3 min = float.MaxValue;
-			float3 max = float.MinValue;
+			var firstAABB = worldRenderBoundsArray[0].AABB;
+			var min = firstAABB.Min;
+			var max = firstAABB.Max;
+			
 
-			while (enumerator.NextEntityIndex(out var entityIndex))
+			for (int i = 1; i < entityCount; i++)
 			{
-				var aabb = worldRenderBoundsArray[entityIndex].AABB;
+				var aabb = worldRenderBoundsArray[i].AABB;
 				min = math.min(min, aabb.Min);
 				max = math.max(max, aabb.Max);
 			}

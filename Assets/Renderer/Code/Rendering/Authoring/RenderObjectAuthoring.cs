@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Renderer
 {
-	public class RenderObject : MonoBehaviour
+	public class RenderObjectAuthoring : MonoBehaviour
 	{
 		public bool IsStatic;
 		public bool IsDestroyable;
 
-		private class RenderObjectBaker : Baker<RenderObject>
+		private class RenderObjectBaker : Baker<RenderObjectAuthoring>
 		{
-			public override void Bake(RenderObject authoring)
+			public override void Bake(RenderObjectAuthoring authoring)
 			{
 				var root = authoring.gameObject;
 				if (root.transform.parent != null)
@@ -99,17 +99,6 @@ namespace Renderer
 					var mainEntity = createdEntities[0];
 					BakeDynamicRecursive(child, mainEntity, isDestroyable);
 				}
-
-				if (parentEntity != Entity.Null)
-				{
-					// Only include direct children to the parent, not recursive
-					var buffer = AddBuffer<Child>(parentEntity);
-
-					foreach (var childEntity in createdEntities)
-					{
-						buffer.Add(new Child { Value = childEntity });
-					}
-				}
 			}
 
 			private void BakeStaticObject(MeshRenderer meshRenderer, bool isDestroyable)
@@ -187,7 +176,7 @@ namespace Renderer
 					AddComponent(entity, localToWorld);
 					AddSharedComponentManaged(entity, renderMesh);
 					AddComponent(entity, worldBounds);
-					AddComponent(entity, new RenderObjectTag());
+					AddComponent(entity, new RenderObject());
 					createdEntities[index] = entity;
 				}
 
