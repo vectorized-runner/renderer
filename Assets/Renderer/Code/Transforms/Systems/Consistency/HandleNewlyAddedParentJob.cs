@@ -8,6 +8,7 @@ namespace Renderer
 {
 	// TODO: Performance Test
 	// TODO: LocalTransform has to be fixed
+	// TODO: Parent Entity should exist
 	[BurstCompile]
 	public unsafe struct HandleNewlyAddedParentJob : IJobChunk
 	{
@@ -21,6 +22,9 @@ namespace Renderer
 		public EntityTypeHandle EntityTypeHandle;
 
 		public EntityCommandBuffer.ParallelWriter ParallelCommandBuffer;
+
+		[ReadOnly]
+		public ComponentLookup<RenderObject> RenderObjectLookup;
 
 		// The Entities that we've just added the Child components through the Parallel ECB
 		public NativeParallelHashSet<Entity>.ParallelWriter ChildJustAddedEntities;
@@ -46,6 +50,10 @@ namespace Renderer
 				if (parentEntity == Entity.Null)
 					continue;
 
+				var parentExists = RenderObjectLookup.HasComponent(parentEntity);
+				if (!parentExists)
+					continue;
+				
 				var childEntity = entityArray[entityIndex];
 
 				// All add buffer operations must come before append operations to ensure we can append
