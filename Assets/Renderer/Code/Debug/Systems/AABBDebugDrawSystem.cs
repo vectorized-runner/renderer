@@ -24,13 +24,25 @@ namespace Renderer
 		private GameObject _outChunkGo;
 		private GameObject _partialChunkGo;
 
+		private bool _isPreviouslyRunning = false;
+
 		public const int PointsPerAABB = 24;
 
 		protected override void OnCreate()
 		{
 			_cullingSystem = World.GetExistingSystemManaged<ChunkCullingSystem>();
+			CreateDebugMeshes();
+		}
 
+		protected override void OnDestroy()
+		{
+			DestroyDebugMeshes();
+		}
+
+		private void CreateDebugMeshes()
+		{
 			var renderSettings = RenderSettings.Instance;
+
 			_inEntityGo = CreateGameObject("AABBDebug-InEntityDrawer", renderSettings.InEntityColor);
 			_outEntityGo = CreateGameObject("AABBDebug-OutEntityDrawer", renderSettings.OutEntityColor);
 			_inChunkGo = CreateGameObject("AABBDebug-InChunkDrawer", renderSettings.InChunkColor);
@@ -57,7 +69,7 @@ namespace Renderer
 			SetMesh(_outChunkGo, _outChunkMesh);
 		}
 
-		protected override void OnDestroy()
+		private void DestroyDebugMeshes()
 		{
 			Object.Destroy(_inEntityGo);
 			Object.Destroy(_outEntityGo);
@@ -79,8 +91,25 @@ namespace Renderer
 		{
 			using var marker = new AutoProfilerMarker("AABBDebugDraw");
 
-			if (!RenderSettings.Instance.DebugMode)
+			if (RenderSettings.Instance.DebugMode)
+			{
+				if (!_isPreviouslyRunning)
+				{
+					CreateDebugMeshes();
+				}
+			}
+			else
+			{
+				if (_isPreviouslyRunning)
+				{
+					DestroyDebugMeshes();
+				}
+
+				_isPreviouslyRunning = false;
 				return;
+			}
+
+			_isPreviouslyRunning = true;
 
 			var visibleObjectCount = _cullingSystem.VisibleObjectCount;
 			var totalEntityCount = _cullingSystem.CullingQuery.CalculateEntityCount();
