@@ -15,11 +15,16 @@ namespace Renderer
 		[ReadOnly]
 		public ComponentTypeHandle<WorldRenderBounds> WorldRenderBoundsHandle;
 
+		public uint LastSystemVersion;
+
 		public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask,
 			in v128 chunkEnabledMask)
 		{
 			Debug.Assert(!useEnabledMask);
 
+			if (!chunk.DidChange(ref ChunkWorldRenderBoundsHandle, LastSystemVersion))
+				return;
+			
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
 			var entityCount = chunk.Count;
 			if (entityCount == 0)
