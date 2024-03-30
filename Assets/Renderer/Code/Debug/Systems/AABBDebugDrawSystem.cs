@@ -37,11 +37,18 @@ namespace Renderer
 			_outChunkGo = CreateGameObject("AABBDebug-OutChunkDrawer", renderSettings.OutChunkColor);
 			_partialChunkGo = CreateGameObject("AABBDebug-PartialChunkDrawer", renderSettings.PartialChunkColor);
 
+			var noCullBounds = new Bounds(Vector3.zero, new Vector3(1_000_000, 1_000_000, 1_000_000));
+
 			_inEntityMesh = new Mesh();
+			_inEntityMesh.bounds = noCullBounds;
 			_outEntityMesh = new Mesh();
+			_outEntityMesh.bounds = noCullBounds;
 			_inChunkMesh = new Mesh();
+			_inChunkMesh.bounds = noCullBounds;
 			_partialChunkMesh = new Mesh();
+			_partialChunkMesh.bounds = noCullBounds;
 			_outChunkMesh = new Mesh();
+			_outChunkMesh.bounds = noCullBounds;
 
 			SetMesh(_inEntityGo, _inEntityMesh);
 			SetMesh(_outEntityGo, _outEntityMesh);
