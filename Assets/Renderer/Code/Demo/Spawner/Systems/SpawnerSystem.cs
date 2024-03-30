@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Text;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -13,12 +14,28 @@ namespace Renderer
 	[UpdateInGroup(typeof(RenderSetupGroup), OrderFirst = true)]
 	public partial class SpawnerSystem : SystemBase
 	{
+		private void LogAllComponents(Entity entity)
+		{
+			var name = EntityManager.GetName(entity);
+			var types = EntityManager.GetComponentTypes(entity);
+
+			var sb = new StringBuilder();
+			sb.AppendLine($"Components on Entity '{name}'");
+
+			foreach (var type in types)
+			{
+				sb.AppendLine(type.ToString());
+			}
+
+			Debug.Log(sb.ToString());
+		}
+
 		protected override void OnUpdate()
 		{
 			// Only Runs in Spawner Demo
 			if (SceneManager.GetActiveScene().name != "Demo-Spawner")
 				return;
-			
+
 			// Fast way to trigger Spawner
 			if (!Input.GetKeyDown(KeyCode.Space))
 				return;
@@ -38,6 +55,7 @@ namespace Renderer
 					var amount = spawnTrigger.Amount;
 					var label = spawnTrigger.Label;
 					var (prefab, aabb) = FindEntity(ref spawnEntities, label);
+					LogAllComponents(prefab);
 					var spawnedEntities = EntityManager.Instantiate(prefab, amount, Allocator.Temp);
 					var center = float3.zero;
 					var distanceMin = 100.0f;
@@ -64,7 +82,7 @@ namespace Renderer
 							{
 								continue;
 							}
-							
+
 							if (EntityManager.HasComponent<Static>(linkedEntity))
 							{
 								var localToWorld = new LocalToWorld { Value = float4x4.TRS(position, rotation, scale) };
