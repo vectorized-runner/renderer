@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Debug = UnityEngine.Debug;
 
 namespace Renderer
 {
@@ -144,12 +143,13 @@ namespace Renderer
 			return AsReadOnlySpan(array, 0, array.Length);
 		}
 
-		// TODO: Exception on un-matching length
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ReadOnlySpan<T2> Reinterpret<T1, T2>(this ReadOnlySpan<T1> items)
 			where T2 : unmanaged where T1 : unmanaged
 		{
-			Debug.Assert(UnsafeUtility.SizeOf<T1>() == UnsafeUtility.SizeOf<T2>());
+			if (UnsafeUtility.SizeOf<T1>() != UnsafeUtility.SizeOf<T2>())
+				throw new ArgumentException($"The types {typeof(T1)} and {typeof(T2)} do not have the same size.");
+
 			return MemoryMarshal.Cast<T1, T2>(items);
 		}
 
@@ -158,7 +158,9 @@ namespace Renderer
 		public static Span<TTo> Reinterpret<TFrom, TTo>(this Span<TFrom> items)
 			where TTo : unmanaged where TFrom : unmanaged
 		{
-			Debug.Assert(UnsafeUtility.SizeOf<TFrom>() == UnsafeUtility.SizeOf<TTo>());
+			if (UnsafeUtility.SizeOf<TFrom>() != UnsafeUtility.SizeOf<TTo>())
+				throw new ArgumentException($"The types {typeof(TFrom)} and {typeof(TTo)} do not have the same size.");
+
 			return MemoryMarshal.Cast<TFrom, TTo>(items);
 		}
 
@@ -166,7 +168,9 @@ namespace Renderer
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ref TTo Reinterpret<TFrom, TTo>(ref TFrom from) where TFrom : unmanaged where TTo : unmanaged
 		{
-			Debug.Assert(UnsafeUtility.SizeOf<TFrom>() == UnsafeUtility.SizeOf<TTo>());
+			if (UnsafeUtility.SizeOf<TFrom>() != UnsafeUtility.SizeOf<TTo>())
+				throw new ArgumentException($"The types {typeof(TFrom)} and {typeof(TTo)} do not have the same size.");
+
 			return ref Unsafe.As<TFrom, TTo>(ref from);
 		}
 	}
