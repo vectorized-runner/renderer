@@ -36,7 +36,7 @@ namespace Renderer
 
 			var uniqueValues = new NativeHashSet<int>(64, Allocator.Temp);
 
-			Entities.ForEach((Entity entity, in LocalToWorld localToWorld) =>
+			Entities.ForEach((Entity entity, ref WorldRenderBounds wrb, in LocalToWorld localToWorld) =>
 				{
 					const int maxAbsPosition = 100_000;
 					const int groupSize = 1_000;
@@ -53,6 +53,9 @@ namespace Renderer
 					var ids = (int3)math.floor(remapPosition / groupSize);
 					var id = ids.x + ids.y * multiplier + ids.z * multiplier * multiplier;
 					EntityManager.AddSharedComponent(entity, new SpatialGroupIndex { Value = id });
+
+					// Dummy write, trigger re-calculate of Chunk Bounds
+					wrb = new WorldRenderBounds { AABB = wrb.AABB };
 
 					uniqueValues.Add(id);
 				})
