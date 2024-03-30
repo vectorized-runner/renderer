@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -16,6 +17,7 @@ namespace Renderer
 	public partial class ChunkGroupingSystem : SystemBase
 	{
 		private EntityQuery _query;
+		private EntityQuery _mainQuery;
 
 		protected override void OnCreate()
 		{
@@ -35,11 +37,14 @@ namespace Renderer
 			EntityManager.RemoveComponent<SpatialGroupIndex>(_query);
 
 			var uniqueValues = new NativeHashSet<int>(64, Allocator.Temp);
+			var beforeChunk = _mainQuery.CalculateChunkCount();
 
-			Entities.ForEach((Entity entity, ref WorldRenderBounds wrb, in LocalToWorld localToWorld) =>
+			Entities
+				.WithStoreEntityQueryInField(ref _mainQuery)
+				.ForEach((Entity entity, ref WorldRenderBounds wrb, in LocalToWorld localToWorld) =>
 				{
 					const int maxAbsPosition = 100_000;
-					const int groupSize = 1_000;
+					const int groupSize = 1000;
 					const int multiplier = 2 * maxAbsPosition / groupSize;
 					var position = localToWorld.Position;
 
@@ -62,8 +67,13 @@ namespace Renderer
 				.WithStructuralChanges()
 				.Run();
 
-			Debug.Log("Chunk Grouping System Run.");
-			Debug.Log($"Unique Generated Id Count: {uniqueValues.Count}");
+			var afterChunk = _mainQuery.CalculateChunkCount();
+			var sb = new StringBuilder();
+			sb.AppendLine("Chunk Grouping System Run.");
+			sb.AppendLine($"Unique Generated Id Count: {uniqueValues.Count}");
+			sb.AppendLine($"ChunkCount Increased By {afterChunk - beforeChunk}");
+
+			Debug.Log(sb.ToString());
 		}
 	}
 }
