@@ -1,3 +1,4 @@
+#if RENDERER_DEBUG
 using System.Text;
 using TMPro;
 using Unity.Entities;
@@ -57,3 +58,4 @@ namespace Renderer
 		}
 	}
 }
+#endif

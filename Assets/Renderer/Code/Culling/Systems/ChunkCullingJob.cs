@@ -28,11 +28,12 @@ namespace Renderer
 
 		public NativeArray<UnsafeAtomicCounter> RenderCountByRenderMeshIndex;
 
-		// TODO-Renderer: Make these counters debug mode only behind define
+#if RENDERER_DEBUG
 		public NativeAtomicCounter.ParallelWriter VisibleObjectCount;
 		public NativeAtomicCounter.ParallelWriter FrustumOutCount;
 		public NativeAtomicCounter.ParallelWriter FrustumInCount;
 		public NativeAtomicCounter.ParallelWriter FrustumPartialCount;
+#endif
 
 		public ComponentTypeHandle<ChunkCullResult> ChunkCullResultHandle;
 
@@ -55,7 +56,9 @@ namespace Renderer
 						IntersectResult = chunkIntersection,
 					};
 					chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
+#if RENDERER_DEBUG
 					FrustumOutCount.Increment();
+#endif
 					break;
 				}
 				case FrustumPlanes.IntersectResult.In:
@@ -94,13 +97,17 @@ namespace Renderer
 					ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 					counter.Add(ThreadIndex, visibleEntityCount);
 					
+#if RENDERER_DEBUG
 					VisibleObjectCount.Increment(visibleEntityCount);
 					FrustumInCount.Increment();
+#endif
 					break;
 				}
 				case FrustumPlanes.IntersectResult.Partial:
 				{
+#if RENDERER_DEBUG
 					FrustumPartialCount.Increment();
+#endif
 
 					// Check Each Entity individually
 					{
@@ -124,8 +131,9 @@ namespace Renderer
 
 						ref var counter = ref RenderCountByRenderMeshIndex.ElementAsRef(renderMeshIndex);
 						counter.Add(ThreadIndex, visibleEntityCount);
-
+#if RENDERER_DEBUG
 						VisibleObjectCount.Increment(visibleEntityCount);
+#endif
 						chunk.SetChunkComponentData(ref ChunkCullResultHandle, cullResult);
 					}
 					break;

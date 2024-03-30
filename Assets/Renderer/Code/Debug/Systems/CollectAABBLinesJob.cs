@@ -1,3 +1,4 @@
+#if RENDERER_DEBUG
 using System;
 using System.Threading;
 using Renderer.UnityPackages;
@@ -236,3 +237,4 @@ namespace Renderer
 		}
 	}
 }
+#endif

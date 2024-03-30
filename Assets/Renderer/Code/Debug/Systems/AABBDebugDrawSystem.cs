@@ -1,3 +1,4 @@
+#if RENDERER_DEBUG
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -271,3 +272,4 @@ namespace Renderer
 		}
 	}
 }
+#endif

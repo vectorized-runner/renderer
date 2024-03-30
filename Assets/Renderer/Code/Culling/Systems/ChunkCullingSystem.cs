@@ -13,17 +13,21 @@ namespace Renderer
 		public NativeList<UnsafeList<float4x4>> MatricesByRenderMeshIndex;
 		public EntityQuery CullingQuery { get; private set; }
 
+#if RENDERER_DEBUG
 		public int VisibleObjectCount => _visibleObjectCounter.Count;
 		public int FrustumInCount => _frustumInCount.Count;
 		public int FrustumOutCount => _frustumOutCount.Count;
 		public int FrustumPartialCount => _frustumPartialCount.Count;
-		public int UniqueMeshCount { get; private set; }
-
-		private NativeList<UnsafeAtomicCounter> _renderCountByRenderMeshIndex;
 		private NativeAtomicCounter _frustumInCount;
 		private NativeAtomicCounter _frustumOutCount;
 		private NativeAtomicCounter _frustumPartialCount;
 		private NativeAtomicCounter _visibleObjectCounter;
+#endif
+		
+		public int UniqueMeshCount { get; private set; }
+
+		private NativeList<UnsafeAtomicCounter> _renderCountByRenderMeshIndex;
+
 		private CalculateCameraFrustumPlanesSystem _frustumSystem;
 
 		protected override void OnCreate()
@@ -40,10 +44,12 @@ namespace Renderer
 				ComponentType.ChunkComponentReadOnly(typeof(ChunkCullResult)));
 			ComponentType.ChunkComponentReadOnly(typeof(ChunkWorldRenderBounds));
 
+#if RENDERER_DEBUG
 			_visibleObjectCounter = new NativeAtomicCounter(Allocator.Persistent);
 			_frustumInCount = new NativeAtomicCounter(Allocator.Persistent);
 			_frustumOutCount = new NativeAtomicCounter(Allocator.Persistent);
 			_frustumPartialCount = new NativeAtomicCounter(Allocator.Persistent);
+#endif
 		}
 
 		protected override void OnDestroy()
@@ -60,20 +66,24 @@ namespace Renderer
 			MatricesByRenderMeshIndex.Dispose();
 			_renderCountByRenderMeshIndex.Dispose();
 
+#if RENDERER_DEBUG
 			_visibleObjectCounter.Dispose();
 			_frustumInCount.Dispose();
 			_frustumPartialCount.Dispose();
 			_frustumOutCount.Dispose();
+#endif
 		}
 
 		protected override void OnUpdate()
 		{
 			var planePackets = _frustumSystem.PlanePackets;
 
+#if RENDERER_DEBUG
 			_visibleObjectCounter.Count = 0;
 			_frustumPartialCount.Count = 0;
 			_frustumOutCount.Count = 0;
 			_frustumInCount.Count = 0;
+#endif
 
 			var sharedComponentCounter = new NativeParallelHashSet<int>(32, Allocator.TempJob);
 
@@ -123,10 +133,12 @@ namespace Renderer
 				ChunkCullResultHandle = GetComponentTypeHandle<ChunkCullResult>(),
 				RenderMeshHandle = GetSharedComponentTypeHandle<RenderMesh>(),
 				RenderCountByRenderMeshIndex = countAsArray,
+#if RENDERER_DEBUG 
 				VisibleObjectCount = _visibleObjectCounter,
 				FrustumOutCount = _frustumOutCount,
 				FrustumInCount = _frustumInCount,
 				FrustumPartialCount = _frustumPartialCount,
+#endif
 			}.ScheduleParallel(CullingQuery, clearCountersJob);
 
 			var initializeRenderBatchesJob = new InitializeRenderBatchesJob
