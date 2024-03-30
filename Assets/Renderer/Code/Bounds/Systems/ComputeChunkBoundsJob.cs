@@ -11,7 +11,7 @@ namespace Renderer
 	public struct ComputeChunkBoundsJob : IJobChunk
 	{
 		public ComponentTypeHandle<ChunkWorldRenderBounds> ChunkWorldRenderBoundsHandle;
-
+		
 		[ReadOnly]
 		public ComponentTypeHandle<WorldRenderBounds> WorldRenderBoundsHandle;
 
@@ -21,20 +21,20 @@ namespace Renderer
 			in v128 chunkEnabledMask)
 		{
 			Debug.Assert(!useEnabledMask);
-
-			if (!chunk.DidChange(ref ChunkWorldRenderBoundsHandle, LastSystemVersion))
-				return;
+			
+			// TODO-Renderer: Chunk Change Filter doesn't work right now (this code doesn't trigger) when using ChunkGrouping
+			// if (!chunk.DidChange(ref WorldRenderBoundsHandle, LastSystemVersion))
+			// 	return;
 			
 			var worldRenderBoundsArray = chunk.GetNativeArray(ref WorldRenderBoundsHandle);
 			var entityCount = chunk.Count;
 			if (entityCount == 0)
 				return;
-
+			
 			var firstAABB = worldRenderBoundsArray[0].AABB;
 			var min = firstAABB.Min;
 			var max = firstAABB.Max;
 			
-
 			for (int i = 1; i < entityCount; i++)
 			{
 				var aabb = worldRenderBoundsArray[i].AABB;
@@ -50,7 +50,7 @@ namespace Renderer
 					Extents = (max - min) * 0.5f
 				}
 			};
-
+			
 			chunk.SetChunkComponentData(ref ChunkWorldRenderBoundsHandle, chunkBounds);
 		}
 	}
