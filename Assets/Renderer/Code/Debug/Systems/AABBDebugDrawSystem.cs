@@ -210,7 +210,7 @@ namespace Renderer
 			Mesh.ApplyAndDisposeWritableMeshData(outChunkMeshArray, _outChunkMesh, flags);
 			Mesh.ApplyAndDisposeWritableMeshData(partialChunkMeshArray, _partialChunkMesh, flags);
 
-			DebugDrawCameraFrustum(Color.yellow);
+			DebugDrawCameraFrustum(RenderSettings.Instance.CameraFrustumColor);
 
 			inEntityPointsCounter.Dispose();
 			outEntityPointsCounter.Dispose();
