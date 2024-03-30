@@ -148,7 +148,7 @@ namespace Renderer
 				{
 					// Problem with multiple materials: Dynamic Objects.
 					// We need to Link the Same Transform for these objects (if one moves, the other one moves as well)
-					// TODO: Properly test this in our Test-Scene.
+					// TODO-Renderer: Properly test this in our Test-Scene.
 					throw new NotSupportedException("Multiple Materials aren't supported yet.");
 				}
 

@@ -153,7 +153,6 @@ namespace Renderer
 			return MemoryMarshal.Cast<T1, T2>(items);
 		}
 
-		// TODO: Exception on un-matching length
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static Span<TTo> Reinterpret<TFrom, TTo>(this Span<TFrom> items)
 			where TTo : unmanaged where TFrom : unmanaged
@@ -164,7 +163,6 @@ namespace Renderer
 			return MemoryMarshal.Cast<TFrom, TTo>(items);
 		}
 
-		// TODO: Exception on un-matching length
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static ref TTo Reinterpret<TFrom, TTo>(ref TFrom from) where TFrom : unmanaged where TTo : unmanaged
 		{

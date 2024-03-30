@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace Renderer
 {
-	// TODO: Performance Test
-	// TODO: LocalTransform has to be fixed
-	// TODO: Parent Entity should exist
+	// TODO-Renderer: Performance Test
+	// TODO-Renderer: LocalTransform has to be fixed
+	// TODO-Renderer: Parent Entity should exist
 	[BurstCompile]
 	public unsafe struct HandleNewlyAddedParentJob : IJobChunk
 	{

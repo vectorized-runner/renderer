@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Renderer
 {
-	// TODO: Remove all PreviousParent
+	// TODO-Renderer: Remove all PreviousParent
 	// How to detect if Parent is removed?
 	// Easy: Parent component no longer exists on the Entity, PreviousParent component does exist
 	// Question: Could we do it without needing a 'PreviousParent' component? I don't think so, at least for now.
@@ -89,12 +89,12 @@ namespace Renderer
 					else if (previousParentEntity == Entity.Null)
 					{
 						// Should be added to Parent's child buffer
-						// TODO: Implement
+						// TODO-Renderer: Implement
 					}
 					else
 					{
 						// Should be removed from Parent's child buffer, should be added to PreviousParent's child buffer
-						// TODO: Implement
+						// TODO-Renderer: Implement
 					}
 				}
 			}
@@ -130,7 +130,7 @@ namespace Renderer
 			_objectsWithParentQuery = GetEntityQuery(ComponentType.ReadOnly<Parent>());
 		}
 
-		// TODO: Allow some time for Jobs to complete (?)
+		// TODO-Renderer: Allow some time for Jobs to complete (?)
 		protected override void OnUpdate()
 		{
 			var addedParentCmdBuffer = new EntityCommandBuffer(Allocator.TempJob);
