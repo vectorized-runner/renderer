@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: RenderSettings
   m_EditorClassIdentifier: 
   PanSpeed: 20
-  MoveSpeed: 10
-  SpawnCount: 100
+  MoveSpeed: 1000
+  SpawnCount: 100000
   DebugMode: 1
   RenderCamera: {fileID: 0}
   InChunkColor: {r: 0, g: 1, b: 1, a: 1}
