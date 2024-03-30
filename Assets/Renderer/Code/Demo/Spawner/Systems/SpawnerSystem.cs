@@ -30,6 +30,11 @@ namespace Renderer
 			Debug.Log(sb.ToString());
 		}
 
+		protected override void OnStartRunning()
+		{
+			Debug.Log("Spawner System is Running. Press Space to Spawn Entities.");
+		}
+
 		protected override void OnUpdate()
 		{
 			// Only Runs in Spawner Demo
