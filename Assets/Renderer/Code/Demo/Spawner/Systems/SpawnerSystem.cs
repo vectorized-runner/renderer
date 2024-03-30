@@ -105,11 +105,12 @@ namespace Renderer
 
 						EntityManager.DestroyEntity(spawnedEntity);
 					}
+
+					Debug.Log($"Spawned '{label}' entity {amount} times.");
 				})
 				.WithStructuralChanges()
 				.Run();
 
-			Debug.Log("Spawned Entities.");
 
 			EntityManager.RemoveComponent<SpawnTrigger>(spawnTrigger);
 		}
