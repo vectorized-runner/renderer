@@ -109,7 +109,8 @@ namespace Renderer
 							}
 						}
 
-						EntityManager.DestroyEntity(spawnedEntity);
+						// I don't recall why did I do this previously.
+						// EntityManager.DestroyEntity(spawnedEntity);
 					}
 
 					Debug.Log($"Spawned '{label}' entity {amount} times.");
