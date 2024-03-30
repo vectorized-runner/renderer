@@ -37,8 +37,9 @@ namespace Renderer
 
 		protected override void OnUpdate()
 		{
-			// Only Runs in Spawner Demo
-			if (SceneManager.GetActiveScene().name != "Demo-Spawner")
+			// Only Runs in Demo Scenes
+			var activeSceneName = SceneManager.GetActiveScene().name;
+			if (!activeSceneName.Contains("Demo"))
 				return;
 
 			// Fast way to trigger Spawner
