@@ -32,9 +32,9 @@ namespace Renderer
 			var moveAmount = GetMoveAmount(currentRot, moveInput);
 			
 			var rotateY = quaternion.RotateY(panAmount.x);
-			var rotateX = quaternion.RotateX(-panAmount.y);
+			// var rotateX = quaternion.RotateX(-panAmount.y);
 
-			var newRot = math.mul(math.mul(currentRot, rotateX), rotateY);
+			var newRot = math.mul(currentRot, rotateY);
 			camera.transform.rotation = newRot;
 
 			camera.transform.position += moveAmount;
