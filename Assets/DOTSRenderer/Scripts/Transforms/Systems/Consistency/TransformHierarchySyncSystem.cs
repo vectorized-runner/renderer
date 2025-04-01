@@ -134,10 +134,11 @@ namespace Renderer
 		protected override void OnUpdate()
 		{
 			var addedParentCmdBuffer = new EntityCommandBuffer(Allocator.TempJob);
+			var childJustAddedEntities = new NativeParallelHashSet<Entity>(32, Allocator.TempJob);
 
 			var addedParentJobHandle = new HandleNewlyAddedParentJob
 			{
-				ChildJustAddedEntities = new NativeParallelHashSet<Entity>(32, Allocator.TempJob).AsParallelWriter(),
+				ChildJustAddedEntities = childJustAddedEntities.AsParallelWriter(),
 				ChildLookup = GetBufferLookup<Child>(true),
 				EntityTypeHandle = GetEntityTypeHandle(),
 				ParallelCommandBuffer = addedParentCmdBuffer.AsParallelWriter(),
@@ -145,6 +146,7 @@ namespace Renderer
 				LastSystemVersion = LastSystemVersion,
 			}.ScheduleParallel(_objectsWithParentQuery, Dependency);
 
+			addedParentJobHandle = childJustAddedEntities.Dispose(addedParentJobHandle);
 			addedParentJobHandle.Complete();
 			addedParentCmdBuffer.Playback(EntityManager);
 			addedParentCmdBuffer.Dispose();
