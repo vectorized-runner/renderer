@@ -26,7 +26,7 @@ namespace Renderer
 
 		protected override void OnStartRunning()
 		{
-			Debug.Log("Chunk Grouping System is Running. Press C Key to Trigger it.");
+			// Debug.Log("Chunk Grouping System is Running. Press C Key to Trigger it.");
 		}
 
 		protected override void OnUpdate()
