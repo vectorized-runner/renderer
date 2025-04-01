@@ -96,7 +96,10 @@ namespace Renderer
 			UniqueMeshCount = sharedComponentCounter.Count();
 			// No mesh, no culling
 			if (UniqueMeshCount == 0)
+			{
+				sharedComponentCounter.Dispose();
 				return;
+			}
 
 			// Stupid Unity returns SharedComponentIndex of 2, when there's only 1 shared component
 			// So this is a hack to allocate extra matrix arrays even though it wouldn't be required in an ideal case
