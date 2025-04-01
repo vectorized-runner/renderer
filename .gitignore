@@ -98,3 +98,5 @@ ProjectSettings/Packages/com.unity.testtools.codecoverage/Settings.json
 /Assets/SharedAssets*.meta
 /Assets/Tutorials
 /Assets/Tutorials*.meta
+Assets/SceneDependencyCache
+Assets/SceneDependencyCache.meta
