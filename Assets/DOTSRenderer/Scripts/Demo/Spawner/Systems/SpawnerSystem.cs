@@ -32,6 +32,11 @@ namespace Renderer
 
 		protected override void OnStartRunning()
 		{
+			// Only Runs in Demo Scenes
+			var activeSceneName = SceneManager.GetActiveScene().name;
+			if (!activeSceneName.Contains("Demo"))
+				return;
+			
 			Debug.Log("Spawner System is Running. Press Space to Spawn Entities.");
 		}
 
