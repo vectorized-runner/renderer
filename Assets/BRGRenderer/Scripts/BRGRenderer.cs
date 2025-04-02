@@ -160,6 +160,7 @@ namespace BRGRenderer
             // - a single draw range (which covers our single draw command)
             // - kNumInstances visible instance indices.
             // You must always allocate the arrays using Allocator.TempJob.
+            const int drawCommandCount = 1;
             var batchDrawCommand = Util.Malloc<BatchDrawCommand>(1, Allocator.TempJob);
             // Configure the single draw command to draw kNumInstances instances
             // starting from offset 0 in the array, using the batch, material and mesh
@@ -174,6 +175,7 @@ namespace BRGRenderer
             batchDrawCommand->flags = 0;
             batchDrawCommand->sortingPosition = 0;
             output.drawCommands = batchDrawCommand;
+            output.drawCommandCount = drawCommandCount;
 
             const int drawRangeCount = 1;
             var batchDrawRange = Util.Malloc<BatchDrawRange>(drawRangeCount, Allocator.TempJob);;
@@ -192,7 +194,6 @@ namespace BRGRenderer
             output.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
             output.drawCommandPickingInstanceIDs = null;
 
-            output.drawCommandCount = 1;
             output.visibleInstanceCount = _renderObjectCount;
 
             // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
