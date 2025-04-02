@@ -1,13 +1,12 @@
 using System;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace BRGRenderer
 {
-    public class SimpleBRGExample : MonoBehaviour
+    public unsafe class SimpleBRGExample : MonoBehaviour
     {
         public Mesh mesh;
         public Material material;
@@ -132,7 +131,7 @@ namespace BRGRenderer
 
         // Raw buffers are allocated in ints. This is a utility method that calculates
         // the required number of ints for the data.
-        int BufferCountForInstances(int bytesPerInstance, int numInstances, int extraBytes = 0)
+        private static int BufferCountForInstances(int bytesPerInstance, int numInstances, int extraBytes = 0)
         {
             // Round byte counts to int multiples
             bytesPerInstance = (bytesPerInstance + _intSize - 1) / _intSize * _intSize;
@@ -141,7 +140,7 @@ namespace BRGRenderer
             return totalBytes / _intSize;
         }
 
-        public unsafe JobHandle OnPerformCulling(
+        private JobHandle OnPerformCulling(
             BatchRendererGroup rendererGroup,
             BatchCullingContext cullingContext,
             BatchCullingOutput cullingOutput,
@@ -178,7 +177,7 @@ namespace BRGRenderer
             output.drawCommandCount = drawCommandCount;
 
             const int drawRangeCount = 1;
-            var batchDrawRange = Util.Malloc<BatchDrawRange>(drawRangeCount, Allocator.TempJob);;
+            var batchDrawRange = Util.Malloc<BatchDrawRange>(drawRangeCount, Allocator.TempJob);
             // Configure the single draw range to cover the single draw command which
             // is at offset 0.
             // drawCommands->drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
@@ -190,21 +189,21 @@ namespace BRGRenderer
             batchDrawRange->filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
             output.drawRanges = batchDrawRange;
             output.drawRangeCount = drawRangeCount;
-            
-            output.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
             output.drawCommandPickingInstanceIDs = null;
 
+            output.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
             output.visibleInstanceCount = _renderObjectCount;
-
-            // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
-            output.instanceSortingPositions = null;
-            output.instanceSortingPositionFloatCount = 0;
-         
             // Finally, write the actual visible instance indices to the array. In a more complicated
             // implementation, this output would depend on what is visible, but this example
             // assumes that everything is visible.
             for (int i = 0; i < _renderObjectCount; ++i)
+            {
                 output.visibleInstances[i] = i;
+            }
+
+            // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
+            output.instanceSortingPositions = null;
+            output.instanceSortingPositionFloatCount = 0;
 
             // This simple example doesn't use jobs, so it returns an empty JobHandle.
             // Performance-sensitive applications are encouraged to use Burst jobs to implement
