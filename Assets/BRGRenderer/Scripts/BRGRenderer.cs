@@ -154,14 +154,14 @@ namespace BRGRenderer
 
             // Allocate memory for the output arrays. In a more complicated implementation, you would calculate
             // the amount of memory to allocate dynamically based on what is visible.
-            // This example assumes that all of the instances are visible and thus allocates
+            // This example assumes that all the instances are visible and thus allocates
             // memory for each of them. The necessary allocations are as follows:
             // - a single draw command (which draws kNumInstances instances)
             // - a single draw range (which covers our single draw command)
             // - kNumInstances visible instance indices.
             // You must always allocate the arrays using Allocator.TempJob.
             const int drawCommandCount = 1;
-            var batchDrawCommand = Util.Malloc<BatchDrawCommand>(1, Allocator.TempJob);
+            var batchDrawCommand = Util.Malloc<BatchDrawCommand>(drawCommandCount, Allocator.TempJob);
             // Configure the single draw command to draw kNumInstances instances
             // starting from offset 0 in the array, using the batch, material and mesh
             // IDs registered in the Start() method. It doesn't set any special flags.
