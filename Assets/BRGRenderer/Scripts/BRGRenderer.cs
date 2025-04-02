@@ -149,7 +149,7 @@ namespace BRGRenderer
         {
             // Acquire a pointer to the BatchCullingOutputDrawCommands struct so you can easily
             // modify it directly.
-            var drawCommands = (BatchCullingOutputDrawCommands*)cullingOutput.drawCommands.GetUnsafePtr();
+            ref var drawCommands = ref cullingOutput.drawCommands.ElementAsRef(0);
 
             // Allocate memory for the output arrays. In a more complicated implementation, you would calculate
             // the amount of memory to allocate dynamically based on what is visible.
@@ -159,48 +159,48 @@ namespace BRGRenderer
             // - a single draw range (which covers our single draw command)
             // - kNumInstances visible instance indices.
             // You must always allocate the arrays using Allocator.TempJob.
-            drawCommands->drawCommands = Util.Malloc<BatchDrawCommand>(1, Allocator.TempJob);
-            drawCommands->drawRanges = Util.Malloc<BatchDrawRange>(1, Allocator.TempJob);
-            drawCommands->visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
-            drawCommands->drawCommandPickingInstanceIDs = null;
+            drawCommands.drawCommands = Util.Malloc<BatchDrawCommand>(1, Allocator.TempJob);
+            drawCommands.drawRanges = Util.Malloc<BatchDrawRange>(1, Allocator.TempJob);
+            drawCommands.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
+            drawCommands.drawCommandPickingInstanceIDs = null;
 
-            drawCommands->drawCommandCount = 1;
-            drawCommands->drawRangeCount = 1;
-            drawCommands->visibleInstanceCount = _renderObjectCount;
+            drawCommands.drawCommandCount = 1;
+            drawCommands.drawRangeCount = 1;
+            drawCommands.visibleInstanceCount = _renderObjectCount;
 
             // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
-            drawCommands->instanceSortingPositions = null;
-            drawCommands->instanceSortingPositionFloatCount = 0;
+            drawCommands.instanceSortingPositions = null;
+            drawCommands.instanceSortingPositionFloatCount = 0;
 
             // Configure the single draw command to draw kNumInstances instances
             // starting from offset 0 in the array, using the batch, material and mesh
             // IDs registered in the Start() method. It doesn't set any special flags.
-            drawCommands->drawCommands[0].visibleOffset = 0;
-            drawCommands->drawCommands[0].visibleCount = _renderObjectCount;
-            drawCommands->drawCommands[0].batchID = _batchID;
-            drawCommands->drawCommands[0].materialID = _materialID;
-            drawCommands->drawCommands[0].meshID = _meshID;
-            drawCommands->drawCommands[0].submeshIndex = 0;
-            drawCommands->drawCommands[0].splitVisibilityMask = 0xff;
-            drawCommands->drawCommands[0].flags = 0;
-            drawCommands->drawCommands[0].sortingPosition = 0;
+            drawCommands.drawCommands[0].visibleOffset = 0;
+            drawCommands.drawCommands[0].visibleCount = _renderObjectCount;
+            drawCommands.drawCommands[0].batchID = _batchID;
+            drawCommands.drawCommands[0].materialID = _materialID;
+            drawCommands.drawCommands[0].meshID = _meshID;
+            drawCommands.drawCommands[0].submeshIndex = 0;
+            drawCommands.drawCommands[0].splitVisibilityMask = 0xff;
+            drawCommands.drawCommands[0].flags = 0;
+            drawCommands.drawCommands[0].sortingPosition = 0;
 
             // Configure the single draw range to cover the single draw command which
             // is at offset 0.
             // drawCommands->drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
-            drawCommands->drawRanges[0].drawCommandsBegin = 0;
-            drawCommands->drawRanges[0].drawCommandsCount = 1;
+            drawCommands.drawRanges[0].drawCommandsBegin = 0;
+            drawCommands.drawRanges[0].drawCommandsCount = 1;
 
             // This example doesn't care about shadows or motion vectors, so it leaves everything
             // at the default zero values, except the renderingLayerMask which it sets to all ones
             // so Unity renders the instances regardless of mask settings.
-            drawCommands->drawRanges[0].filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
+            drawCommands.drawRanges[0].filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
 
             // Finally, write the actual visible instance indices to the array. In a more complicated
             // implementation, this output would depend on what is visible, but this example
             // assumes that everything is visible.
             for (int i = 0; i < _renderObjectCount; ++i)
-                drawCommands->visibleInstances[i] = i;
+                drawCommands.visibleInstances[i] = i;
 
             // This simple example doesn't use jobs, so it returns an empty JobHandle.
             // Performance-sensitive applications are encouraged to use Burst jobs to implement
