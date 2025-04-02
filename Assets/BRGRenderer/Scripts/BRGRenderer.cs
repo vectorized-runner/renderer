@@ -149,7 +149,8 @@ namespace BRGRenderer
         {
             // Acquire a pointer to the BatchCullingOutputDrawCommands struct so you can easily
             // modify it directly.
-            ref var drawCommands = ref cullingOutput.drawCommands.ElementAsRef(0);
+            Debug.Assert(cullingOutput.drawCommands.Length == 0);
+            ref var output = ref cullingOutput.drawCommands.ElementAsRef(0);
 
             // Allocate memory for the output arrays. In a more complicated implementation, you would calculate
             // the amount of memory to allocate dynamically based on what is visible.
@@ -172,7 +173,7 @@ namespace BRGRenderer
             batchDrawCommand->splitVisibilityMask = 0xff;
             batchDrawCommand->flags = 0;
             batchDrawCommand->sortingPosition = 0;
-            drawCommands.drawCommands = batchDrawCommand;
+            output.drawCommands = batchDrawCommand;
 
 
             var batchDrawRange = Util.Malloc<BatchDrawRange>(1, Allocator.TempJob);;
@@ -185,24 +186,24 @@ namespace BRGRenderer
             // at the default zero values, except the renderingLayerMask which it sets to all ones
             // so Unity renders the instances regardless of mask settings.
             batchDrawRange->filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
-            drawCommands.drawRanges = batchDrawRange;
+            output.drawRanges = batchDrawRange;
             
-            drawCommands.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
-            drawCommands.drawCommandPickingInstanceIDs = null;
+            output.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
+            output.drawCommandPickingInstanceIDs = null;
 
-            drawCommands.drawCommandCount = 1;
-            drawCommands.drawRangeCount = 1;
-            drawCommands.visibleInstanceCount = _renderObjectCount;
+            output.drawCommandCount = 1;
+            output.drawRangeCount = 1;
+            output.visibleInstanceCount = _renderObjectCount;
 
             // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
-            drawCommands.instanceSortingPositions = null;
-            drawCommands.instanceSortingPositionFloatCount = 0;
+            output.instanceSortingPositions = null;
+            output.instanceSortingPositionFloatCount = 0;
          
             // Finally, write the actual visible instance indices to the array. In a more complicated
             // implementation, this output would depend on what is visible, but this example
             // assumes that everything is visible.
             for (int i = 0; i < _renderObjectCount; ++i)
-                drawCommands.visibleInstances[i] = i;
+                output.visibleInstances[i] = i;
 
             // This simple example doesn't use jobs, so it returns an empty JobHandle.
             // Performance-sensitive applications are encouraged to use Burst jobs to implement
