@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Random = Unity.Mathematics.Random;
 
 namespace BRGRenderer
 {
@@ -26,6 +27,8 @@ namespace BRGRenderer
         private const int _sizePerRenderObject = (_brgMatrixSize * 2) + _float4Size;
         private const int _extraBytes = _unityMatrixSize * 2;
         private const int _renderObjectCount = 3;
+
+        private Random _random;
 
         private void Start()
         {
