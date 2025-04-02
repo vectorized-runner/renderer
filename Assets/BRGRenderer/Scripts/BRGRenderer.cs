@@ -23,6 +23,7 @@ namespace BRGRenderer
         private const int _unityMatrixSize = sizeof(float) * 4 * 4;
         private const int _brgMatrixSize = sizeof(float) * 4 * 3;
         private const int _float4Size = sizeof(float) * 4;
+        private const int _intSize = sizeof(int);
         private const int _sizePerRenderObject = (_brgMatrixSize * 2) + _float4Size;
         private const int _extraBytes = _unityMatrixSize * 2;
         private const int _renderObjectCount = 3;
@@ -46,7 +47,7 @@ namespace BRGRenderer
         private void AllocateInstanceDateBuffer()
         {
             var intCount = BufferCountForInstances(_sizePerRenderObject, _renderObjectCount, _extraBytes);
-            _graphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, intCount, sizeof(int));
+            _graphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, intCount, _intSize);
         }
 
         private void PopulateInstanceDataBuffer()
@@ -134,10 +135,10 @@ namespace BRGRenderer
         int BufferCountForInstances(int bytesPerInstance, int numInstances, int extraBytes = 0)
         {
             // Round byte counts to int multiples
-            bytesPerInstance = (bytesPerInstance + sizeof(int) - 1) / sizeof(int) * sizeof(int);
-            extraBytes = (extraBytes + sizeof(int) - 1) / sizeof(int) * sizeof(int);
+            bytesPerInstance = (bytesPerInstance + _intSize - 1) / _intSize * _intSize;
+            extraBytes = (extraBytes + _intSize - 1) / _intSize * _intSize;
             int totalBytes = bytesPerInstance * numInstances + extraBytes;
-            return totalBytes / sizeof(int);
+            return totalBytes / _intSize;
         }
 
 
@@ -169,7 +170,7 @@ namespace BRGRenderer
             drawCommands->drawRanges = (BatchDrawRange*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<BatchDrawRange>(),
                 alignment, Allocator.TempJob);
             drawCommands->visibleInstances =
-                (int*)UnsafeUtility.Malloc(_renderObjectCount * sizeof(int), alignment, Allocator.TempJob);
+                (int*)UnsafeUtility.Malloc(_renderObjectCount * _intSize, alignment, Allocator.TempJob);
             drawCommands->drawCommandPickingInstanceIDs = null;
 
             drawCommands->drawCommandCount = 1;
