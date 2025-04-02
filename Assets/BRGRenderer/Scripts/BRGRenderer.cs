@@ -159,8 +159,34 @@ namespace BRGRenderer
             // - a single draw range (which covers our single draw command)
             // - kNumInstances visible instance indices.
             // You must always allocate the arrays using Allocator.TempJob.
-            drawCommands.drawCommands = Util.Malloc<BatchDrawCommand>(1, Allocator.TempJob);
-            drawCommands.drawRanges = Util.Malloc<BatchDrawRange>(1, Allocator.TempJob);
+            var batchDrawCommand = Util.Malloc<BatchDrawCommand>(1, Allocator.TempJob);
+            // Configure the single draw command to draw kNumInstances instances
+            // starting from offset 0 in the array, using the batch, material and mesh
+            // IDs registered in the Start() method. It doesn't set any special flags.
+            batchDrawCommand->visibleOffset = 0;
+            batchDrawCommand->visibleCount = _renderObjectCount;
+            batchDrawCommand->batchID = _batchID;
+            batchDrawCommand->materialID = _materialID;
+            batchDrawCommand->meshID = _meshID;
+            batchDrawCommand->submeshIndex = 0;
+            batchDrawCommand->splitVisibilityMask = 0xff;
+            batchDrawCommand->flags = 0;
+            batchDrawCommand->sortingPosition = 0;
+            drawCommands.drawCommands = batchDrawCommand;
+
+
+            var batchDrawRange = Util.Malloc<BatchDrawRange>(1, Allocator.TempJob);;
+            // Configure the single draw range to cover the single draw command which
+            // is at offset 0.
+            // drawCommands->drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
+            batchDrawRange->drawCommandsBegin = 0;
+            batchDrawRange->drawCommandsCount = 1;
+            // This example doesn't care about shadows or motion vectors, so it leaves everything
+            // at the default zero values, except the renderingLayerMask which it sets to all ones
+            // so Unity renders the instances regardless of mask settings.
+            batchDrawRange->filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
+            drawCommands.drawRanges = batchDrawRange;
+            
             drawCommands.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
             drawCommands.drawCommandPickingInstanceIDs = null;
 
@@ -171,31 +197,7 @@ namespace BRGRenderer
             // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
             drawCommands.instanceSortingPositions = null;
             drawCommands.instanceSortingPositionFloatCount = 0;
-
-            // Configure the single draw command to draw kNumInstances instances
-            // starting from offset 0 in the array, using the batch, material and mesh
-            // IDs registered in the Start() method. It doesn't set any special flags.
-            drawCommands.drawCommands[0].visibleOffset = 0;
-            drawCommands.drawCommands[0].visibleCount = _renderObjectCount;
-            drawCommands.drawCommands[0].batchID = _batchID;
-            drawCommands.drawCommands[0].materialID = _materialID;
-            drawCommands.drawCommands[0].meshID = _meshID;
-            drawCommands.drawCommands[0].submeshIndex = 0;
-            drawCommands.drawCommands[0].splitVisibilityMask = 0xff;
-            drawCommands.drawCommands[0].flags = 0;
-            drawCommands.drawCommands[0].sortingPosition = 0;
-
-            // Configure the single draw range to cover the single draw command which
-            // is at offset 0.
-            // drawCommands->drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
-            drawCommands.drawRanges[0].drawCommandsBegin = 0;
-            drawCommands.drawRanges[0].drawCommandsCount = 1;
-
-            // This example doesn't care about shadows or motion vectors, so it leaves everything
-            // at the default zero values, except the renderingLayerMask which it sets to all ones
-            // so Unity renders the instances regardless of mask settings.
-            drawCommands.drawRanges[0].filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
-
+         
             // Finally, write the actual visible instance indices to the array. In a more complicated
             // implementation, this output would depend on what is visible, but this example
             // assumes that everything is visible.
