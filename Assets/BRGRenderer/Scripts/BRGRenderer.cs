@@ -149,7 +149,7 @@ namespace BRGRenderer
         {
             // Acquire a pointer to the BatchCullingOutputDrawCommands struct so you can easily
             // modify it directly.
-            Debug.Assert(cullingOutput.drawCommands.Length == 0);
+            Debug.Assert(cullingOutput.drawCommands.Length == 1);
             ref var output = ref cullingOutput.drawCommands.ElementAsRef(0);
 
             // Allocate memory for the output arrays. In a more complicated implementation, you would calculate
