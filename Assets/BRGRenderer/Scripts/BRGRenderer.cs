@@ -141,17 +141,12 @@ namespace BRGRenderer
             return totalBytes / _intSize;
         }
 
-
         public unsafe JobHandle OnPerformCulling(
             BatchRendererGroup rendererGroup,
             BatchCullingContext cullingContext,
             BatchCullingOutput cullingOutput,
             IntPtr userContext)
         {
-            // UnsafeUtility.Malloc() requires an alignment, so use the largest integer type's alignment
-            // which is a reasonable default.
-            int alignment = UnsafeUtility.AlignOf<long>();
-
             // Acquire a pointer to the BatchCullingOutputDrawCommands struct so you can easily
             // modify it directly.
             var drawCommands = (BatchCullingOutputDrawCommands*)cullingOutput.drawCommands.GetUnsafePtr();
@@ -164,20 +159,16 @@ namespace BRGRenderer
             // - a single draw range (which covers our single draw command)
             // - kNumInstances visible instance indices.
             // You must always allocate the arrays using Allocator.TempJob.
-            drawCommands->drawCommands =
-                (BatchDrawCommand*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<BatchDrawCommand>(), alignment,
-                    Allocator.TempJob);
-            drawCommands->drawRanges = (BatchDrawRange*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<BatchDrawRange>(),
-                alignment, Allocator.TempJob);
-            drawCommands->visibleInstances =
-                (int*)UnsafeUtility.Malloc(_renderObjectCount * _intSize, alignment, Allocator.TempJob);
+            drawCommands->drawCommands = Util.Malloc<BatchDrawCommand>(1, Allocator.TempJob);
+            drawCommands->drawRanges = Util.Malloc<BatchDrawRange>(1, Allocator.TempJob);
+            drawCommands->visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
             drawCommands->drawCommandPickingInstanceIDs = null;
 
             drawCommands->drawCommandCount = 1;
             drawCommands->drawRangeCount = 1;
             drawCommands->visibleInstanceCount = _renderObjectCount;
 
-            // This example doens't use depth sorting, so it leaves instanceSortingPositions as null.
+            // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
             drawCommands->instanceSortingPositions = null;
             drawCommands->instanceSortingPositionFloatCount = 0;
 
