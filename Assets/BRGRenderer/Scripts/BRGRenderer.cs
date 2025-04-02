@@ -26,6 +26,7 @@ namespace BRGRenderer
         private const int _sizePerRenderObject = (_brgMatrixSize * 2) + _float4Size;
         private const int _extraBytes = _unityMatrixSize * 2;
         private const int _renderObjectCount = 3;
+
         private void Start()
         {
             _brg = new BatchRendererGroup(OnPerformCulling, IntPtr.Zero);
@@ -36,20 +37,25 @@ namespace BRGRenderer
             PopulateInstanceDataBuffer();
         }
 
+        private void OnDestroy()
+        {
+            _brg.Dispose();
+            _graphicsBuffer.Release();
+        }
+
         private void AllocateInstanceDateBuffer()
         {
-            _graphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw,
-                BufferCountForInstances(_sizePerRenderObject, _renderObjectCount, _extraBytes),
-                sizeof(int));
+            var intCount = BufferCountForInstances(_sizePerRenderObject, _renderObjectCount, _extraBytes);
+            _graphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, intCount, sizeof(int));
         }
 
         private void PopulateInstanceDataBuffer()
         {
             // Place a zero matrix at the start of the instance data buffer, so loads from address 0 return zero.
-            var zero = new Matrix4x4[1] { Matrix4x4.zero };
+            var zero = new[] { Matrix4x4.zero };
 
             // Create transform matrices for three example instances.
-            var matrices = new Matrix4x4[_renderObjectCount]
+            var matrices = new[]
             {
                 Matrix4x4.Translate(new Vector3(-2, 0, 0)),
                 Matrix4x4.Translate(new Vector3(0, 0, 0)),
@@ -57,7 +63,7 @@ namespace BRGRenderer
             };
 
             // Convert the transform matrices into the packed format that shaders expects.
-            var objectToWorld = new PackedMatrix[_renderObjectCount]
+            var objectToWorld = new[]
             {
                 new PackedMatrix(matrices[0]),
                 new PackedMatrix(matrices[1]),
@@ -65,7 +71,7 @@ namespace BRGRenderer
             };
 
             // Also create packed inverse matrices.
-            var worldToObject = new PackedMatrix[_renderObjectCount]
+            var worldToObject = new[]
             {
                 new PackedMatrix(matrices[0].inverse),
                 new PackedMatrix(matrices[1].inverse),
@@ -73,7 +79,7 @@ namespace BRGRenderer
             };
 
             // Make all instances have unique colors.
-            var colors = new Vector4[_renderObjectCount]
+            var colors = new[]
             {
                 new Vector4(1, 0, 0, 1),
                 new Vector4(0, 1, 0, 1),
@@ -134,11 +140,6 @@ namespace BRGRenderer
             return totalBytes / sizeof(int);
         }
 
-
-        private void OnDisable()
-        {
-            _brg.Dispose();
-        }
 
         public unsafe JobHandle OnPerformCulling(
             BatchRendererGroup rendererGroup,
