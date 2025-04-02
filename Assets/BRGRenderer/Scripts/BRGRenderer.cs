@@ -175,8 +175,8 @@ namespace BRGRenderer
             batchDrawCommand->sortingPosition = 0;
             output.drawCommands = batchDrawCommand;
 
-
-            var batchDrawRange = Util.Malloc<BatchDrawRange>(1, Allocator.TempJob);;
+            const int drawRangeCount = 1;
+            var batchDrawRange = Util.Malloc<BatchDrawRange>(drawRangeCount, Allocator.TempJob);;
             // Configure the single draw range to cover the single draw command which
             // is at offset 0.
             // drawCommands->drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
@@ -187,12 +187,12 @@ namespace BRGRenderer
             // so Unity renders the instances regardless of mask settings.
             batchDrawRange->filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
             output.drawRanges = batchDrawRange;
+            output.drawRangeCount = drawRangeCount;
             
             output.visibleInstances = Util.Malloc<int>(_renderObjectCount, Allocator.TempJob);
             output.drawCommandPickingInstanceIDs = null;
 
             output.drawCommandCount = 1;
-            output.drawRangeCount = 1;
             output.visibleInstanceCount = _renderObjectCount;
 
             // This example doesn't use depth sorting, so it leaves instanceSortingPositions as null.
